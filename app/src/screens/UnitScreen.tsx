@@ -10,6 +10,7 @@ import { CapInfo, OwnedLine, ProductionLines } from "../components/unit/UnitInfo
 import { BuyUnit } from "../components/unit/BuyUnit";
 import { UpgradeList } from "../components/unit/UpgradeList";
 import { AbilityList } from "../components/unit/AbilityList";
+import { AscensionPanel } from "../components/progression/AscensionPanel";
 
 export function UnitScreen({ unit: key }: { unit: string }) {
   const { game } = useGame();
@@ -45,6 +46,7 @@ export function UnitScreen({ unit: key }: { unit: string }) {
         <ProductionLines unit={unit} />
       </section>
       <CapInfo unit={unit} />
+      {unit.name === "mutagen" && <AscensionPanel />}
       {isUnitBuyable(unit) && <BuyUnit key={unit.name + "?" + initial} unit={unit} initial={initial} />}
       <UpgradeList unit={unit} />
       <AbilityList unit={unit} />

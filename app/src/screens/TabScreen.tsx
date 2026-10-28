@@ -4,6 +4,7 @@ import { tabByName, tabTitle } from "../game/selectors";
 import { tabHref } from "../router";
 import { HiveCanvas } from "../components/HiveCanvas";
 import { UnitList } from "../components/UnitList";
+import { AscendSummary } from "../components/progression/AscensionPanel";
 
 export function TabScreen({ tab: name }: { tab: string }) {
   const { game } = useStore();
@@ -20,6 +21,7 @@ export function TabScreen({ tab: name }: { tab: string }) {
       <HiveCanvas />
       <h1 className="tab-title">{tabTitle(tab)}</h1>
       {/* PHASE B: on the larva tab the old game listed achievement points here */}
+      {tab.name === "mutagen" && <AscendSummary />}
       <UnitList tab={tab} />
     </>
   );

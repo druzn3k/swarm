@@ -13,6 +13,8 @@ import { AchievementsScreen } from "./screens/AchievementsScreen";
 import { StatisticsScreen } from "./screens/StatisticsScreen";
 import { OptionsScreen } from "./screens/OptionsScreen";
 import { AboutScreen } from "./screens/AboutScreen";
+import { WelcomeBack } from "./components/progression/WelcomeBack";
+import { TutorialHint } from "./components/progression/TutorialHint";
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -55,6 +57,8 @@ export function App() {
       <div className="wrap">
         <Header />
         <main className="wrap" id="main">
+          <WelcomeBack />
+          {(route.name === "tab" || route.name === "unit") && <TutorialHint />}
           <Screen route={route} />
         </main>
         <Footer />

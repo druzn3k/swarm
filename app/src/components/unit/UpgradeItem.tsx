@@ -1,5 +1,6 @@
 // One upgrade (or ability) on a unit screen: level, cost, progress toward
 // affording it, time until affordable, and buy buttons.
+import type { ReactNode } from "react";
 import type { Upgrade } from "@swarmsim/engine";
 import { useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
@@ -22,7 +23,7 @@ export function upgradeEta(upgrade: Upgrade, fmt: Formatter): string {
   }
 }
 
-export function UpgradeItem({ upgrade, ability = false }: { upgrade: Upgrade; ability?: boolean }) {
+export function UpgradeItem({ upgrade, ability = false, footer }: { upgrade: Upgrade; ability?: boolean; footer?: ReactNode }) {
   const store = useStore();
   const fmt = useFormat();
   const t = upgrade.type;
@@ -71,6 +72,7 @@ export function UpgradeItem({ upgrade, ability = false }: { upgrade: Upgrade; ab
           </button>
         )}
       </div>
+      {footer}
     </li>
   );
 }

@@ -1,9 +1,8 @@
 import type { Unit } from "@swarmsim/engine";
 import { visibleUpgrades } from "../../game/selectors";
-import { UpgradeItem } from "./UpgradeItem";
+import { AbilityItem } from "../progression/AbilityItem";
 
-// PHASE B (B1): this is a minimal stand-in. Abilities still need their
-// show/hide toggle, cast feedback and art.
+/** A unit's abilities (energy spells); each can be hidden and shown again. */
 export function AbilityList({ unit }: { unit: Unit }) {
   const abilities = visibleUpgrades(unit, "ability");
   if (!abilities.length) return null;
@@ -12,7 +11,7 @@ export function AbilityList({ unit }: { unit: Unit }) {
       <h2 id="abilities-title">Abilities</h2>
       <ul className="upgrade-list">
         {abilities.map((u) => (
-          <UpgradeItem key={u.name} upgrade={u} ability />
+          <AbilityItem key={u.name} upgrade={u} />
         ))}
       </ul>
     </section>
