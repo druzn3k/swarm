@@ -311,6 +311,34 @@ export function scenarios(): Scenario[] {
     });
   }
 
+  // 6b. seeded random premutagen spawns (addUnitRand) and timed crystal (addUnitTimed)
+  {
+    const start = { now: MIDGAME_SAVED_AT, save: SAVE_MIDGAME };
+    const base = Date.parse(MIDGAME_SAVED_AT);
+    const t = (s: number) => at(s, base);
+    const steps: Step[] = [
+      { action: { do: "tick", at: t(10) } },
+      { action: { do: "setUnitCount", unit: "meat", val: "1e300" } },
+      { action: { do: "setUnitCount", unit: "territory", val: "1e300" } },
+      { action: { do: "effects", upgrade: "hatchery" } },
+      { action: { do: "effects", upgrade: "expansion" } },
+    ];
+    for (let i = 0; i < 6; i++) {
+      steps.push({ action: { do: "buyUpgrade", upgrade: "hatchery", num: 7 }, snapshot: "counts" });
+      steps.push({ action: { do: "buyUpgrade", upgrade: "expansion", num: 13 }, snapshot: "counts" });
+      steps.push({ action: { do: "effects", upgrade: "expansion" } });
+      steps.push({ action: { do: "tick", at: t(10 + 3600 * (i + 1)) } });
+    }
+    steps.push({ action: { do: "buyMaxUpgrade", upgrade: "hatchery", percent: 1 }, snapshot: "full" });
+    list.push({
+      name: "random-spawns",
+      description:
+        "Mid-game save with 1e300 meat/territory: buy hatcheries/expansions in batches across hours. Exercises addUnitRand (seeded premutagen spawns: seed = date.restarted + upgrade name + level) and addUnitTimed (crystal every N hours).",
+      start,
+      steps,
+    });
+  }
+
   // 7. save import/export round trips
   {
     const base = { now: T0 };

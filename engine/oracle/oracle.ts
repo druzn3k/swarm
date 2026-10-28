@@ -12,9 +12,7 @@
 // Test-only code: never imported by engine/src.
 import * as fs from "fs";
 import * as path from "path";
-import * as vm from "vm";
 import _ from "lodash";
-import LZString from "lz-string";
 import seedrandom from "seedrandom";
 import { spreadsheet } from "../src/data";
 import { createAngular, EventBus, Injector, Registry } from "./shim";
@@ -22,6 +20,7 @@ import { createAngular, EventBus, Injector, Registry } from "./shim";
 /* eslint-disable @typescript-eslint/no-var-requires */
 const coffee: { compile(src: string, opts?: object): string } = require("coffee-script");
 const DecimalBase: any = require("decimal.js");
+const LZString: any = require("lz-string");
 const moment: any = require("moment");
 const mathjs: any = require("mathjs");
 const numberformat: any = require("swarm-numberformat");
@@ -86,8 +85,11 @@ function compiled(file: string): CompiledFile {
   if (!compiledCache[file]) {
     const filename = path.join(COFFEE_ROOT, file);
     const js = coffee.compile(fs.readFileSync(filename, "utf8"), { bare: false });
-    const wrapped = `(function(${GLOBAL_NAMES.join(", ")}) {\n${js}\n})`;
-    compiledCache[file] = vm.runInThisContext(wrapped, { filename: filename + ".js" });
+    const wrapped = `(function(${GLOBAL_NAMES.join(", ")}) {\n${js}\n})\n//# sourceURL=${filename}.js`;
+    // indirect eval: evaluate in *this* realm (under jest that's the test's
+    // sandbox), so builtins like Object/Error/JSON match the caller's.
+    const indirectEval = eval;
+    compiledCache[file] = indirectEval(wrapped);
   }
   return compiledCache[file];
 }
@@ -103,6 +105,21 @@ export class Clock {
   }
 }
 
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** `new Date(...).toString()` as printed by V8 with TZ=UTC, e.g. "Wed Jan 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time)" */
+export function utcDateString(d: Date): string {
+  if (isNaN(d.getTime())) return "Invalid Date";
+  const p = (n: number, w = 2) => String(n).padStart(w, "0");
+  const y = d.getUTCFullYear();
+  const year = y < 0 ? "-" + p(-y, 6) : p(y, 4);
+  return (
+    `${DAYS[d.getUTCDay()]} ${MONTHS[d.getUTCMonth()]} ${p(d.getUTCDate())} ${year} ` +
+    `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} GMT+0000 (Coordinated Universal Time)`
+  );
+}
+
 /** A Date class whose zero-arg constructor and now() read `clock`. */
 function makeDateClass(clock: Clock): DateConstructor {
   class OracleDate extends Date {
@@ -112,6 +129,14 @@ function makeDateClass(clock: Clock): DateConstructor {
     }
     static now() {
       return clock.millis;
+    }
+    /**
+     * Date#toString() is timezone-dependent, and the old engine feeds it into
+     * random seeds (seedrand.mkseed: "#{session.state.date.started}:...").
+     * Pin it to what a browser in UTC prints, so goldens don't depend on TZ.
+     */
+    toString() {
+      return utcDateString(this);
     }
   }
   // calling Date() without `new` returns a string; nothing in the engine does that.
@@ -268,4 +293,18 @@ export function createOracle(opts: OracleOptions = {}): Oracle {
       game.tick(new OracleDate(clock.millis));
     },
   };
+}
+
+/** The spreadsheet exactly as the old app shipped it (app/scripts/spreadsheetpreload/v0.2.js). */
+export function loadOriginalSpreadsheet(): any {
+  const src = fs.readFileSync(path.join(COFFEE_ROOT, "spreadsheetpreload/v0.2.js"), "utf8");
+  let data: unknown;
+  const mod = {
+    value(_name: string, value: unknown) {
+      data = value;
+      return mod;
+    },
+  };
+  new Function("angular", src)({ module: () => mod });
+  return data;
 }

@@ -6,7 +6,8 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "oracle:golden": "ts-node --transpile-only oracle/generate.ts"
   },
   "dependencies": {
     "decimal.js": "7.1.1",
