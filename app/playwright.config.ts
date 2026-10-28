@@ -26,7 +26,11 @@ export default defineConfig({
     trace: "retain-on-failure",
     launchOptions: executablePath ? { executablePath } : {},
   },
-  projects: [{ name: "phone", use: { ...devices["Pixel 7"], browserName: "chromium" } }],
+  projects: [
+    // the phone specs; desktop.spec.ts covers the laptop layout (from 1000px wide)
+    { name: "phone", use: { ...devices["Pixel 7"], browserName: "chromium" }, testIgnore: /desktop\.spec\.ts/ },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } }, testMatch: /desktop\.spec\.ts/ },
+  ],
   webServer: {
     command: `pnpm exec vite preview --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/`,
