@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # tables, swarmsim-ts, engine, mockup and app: a pnpm workspace on current Node
+  # tables, swarmsim-ts, engine and app: a pnpm workspace on current Node
   packages:
     runs-on: ubuntu-latest
     steps:

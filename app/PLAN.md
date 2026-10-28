@@ -2,7 +2,7 @@
 
 Goal: a complete, phone-first, pixel-art Swarm Simulator built on
 `@swarmsim/engine`, with everything the old game offers to a player, in the
-style of `mockup/`. It replaces the mock-up on GitHub Pages.
+style of the first pixel mock-up (retired; see git history). It is deployed to GitHub Pages.
 
 ## Decisions
 

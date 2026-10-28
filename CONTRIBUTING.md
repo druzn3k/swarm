@@ -25,7 +25,7 @@ Run automated tests: `pnpm test`
 
 The repository has two halves:
 
-- `tables`, `swarmsim-ts`, `engine` and `mockup` form a [pnpm](https://pnpm.io) workspace. `pnpm install` at the root installs all of them, and `pnpm test:packages` builds and tests them. Use Node 18 or newer; `corepack enable` installs the pnpm version named in `package.json`.
+- `tables`, `swarmsim-ts`, `engine` and `app` (the new phone-first game) form a [pnpm](https://pnpm.io) workspace. `pnpm install` at the root installs all of them, and `pnpm test:packages` builds and tests them. Use Node 18 or newer; `corepack enable` installs the pnpm version named in `package.json`.
 - `swarmsim-coffee`, the original AngularJS game, keeps its own Yarn 1 setup (Node 16, Ruby compass) until it's retired. `pnpm legacy:install` installs it and links in the built `tables` and `swarmsim-ts`, so build those first (`pnpm --filter @swarmsim/tables build && pnpm --filter @swarmsim/ts build`). `pnpm test:legacy` runs its tests. If you call `yarn` yourself there, set `SKIP_YARN_COREPACK_CHECK=1`: Yarn 1 otherwise refuses to run under a root `package.json` that names pnpm.
 
 Push changes to your github fork and send me a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork). Swarmsim is one man's hobby project, so I may need a few days to respond. Please nag me if it's been a week or more; thanks!

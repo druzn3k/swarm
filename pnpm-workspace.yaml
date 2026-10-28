@@ -4,7 +4,6 @@ packages:
   - tables
   - swarmsim-ts
   - engine
-  - mockup
   - app
 
 # dependencies allowed to run install scripts
