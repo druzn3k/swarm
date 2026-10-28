@@ -13,6 +13,7 @@ import { AchievementsScreen } from "./screens/AchievementsScreen";
 import { StatisticsScreen } from "./screens/StatisticsScreen";
 import { OptionsScreen } from "./screens/OptionsScreen";
 import { AboutScreen } from "./screens/AboutScreen";
+import { AchievementToast } from "./components/meta/AchievementToast";
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -60,6 +61,7 @@ export function App() {
         <Footer />
       </div>
       <TabBar current={currentTab} moreOpen={moreOpen} onMore={() => setMoreOpen(true)} />
+      <AchievementToast />
       {moreOpen && <MoreSheet onClose={closeMore} />}
     </>
   );

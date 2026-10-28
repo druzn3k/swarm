@@ -7,6 +7,7 @@ import { useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { unitNoun } from "../../game/selectors";
 import { CostList } from "../CostList";
+import { AdvancedUnitData } from "../meta/AdvancedUnitData";
 
 const ONE = new Decimal(1);
 
@@ -128,7 +129,8 @@ export function BuyUnit({ unit, initial = "" }: { unit: Unit; initial?: string }
           {twin.greaterThan(1) && <span className="muted"> (×{fmt.num(twin)} twins)</span>} will cost <CostList costs={unit.eachCost()} num={num} />
         </p>
         <BuyHelp id={helpId} hidden={!help} />
-        {/* PHASE B (B2): advanced unit data (cost as % of stock and income) when enabled in options */}
+        {/* advanced unit data (cost as % of stock and income), when enabled in options */}
+        <AdvancedUnitData unit={unit} />
       </form>
       <BuyButtons unit={unit} num={num} />
     </div>
