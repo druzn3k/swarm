@@ -43,7 +43,7 @@ export function ConfirmButton({
     );
   }
   return (
-    <div className="confirm" role="group" aria-labelledby={id} ref={box} tabIndex={-1}>
+    <div className="confirm" role="group" aria-labelledby={id} ref={box} tabIndex={-1} onKeyDown={(e) => e.key === "Escape" && close()}>
       <p id={id} className="confirm-text">
         {warning}
       </p>

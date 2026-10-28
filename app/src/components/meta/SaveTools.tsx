@@ -1,6 +1,6 @@
 // Export, import and reset (old options.html): saves stay in the old game's
 // format, so swarmsim.com saves import here and these export back there.
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../../game/GameContext";
 import { navigate } from "../../router";
 import "../../styles/meta.css";
@@ -82,6 +82,16 @@ export function ImportSave({ onImported }: { onImported?: () => void }) {
   const [done, setDone] = useState(false);
   const id = useId();
   const errId = useId();
+  const confirmBox = useRef<HTMLDivElement>(null);
+  const importBtn = useRef<HTMLButtonElement>(null);
+  // move focus into the question, and back to the Import button when it closes
+  useEffect(() => {
+    if (confirming) confirmBox.current?.focus();
+  }, [confirming]);
+  const cancel = () => {
+    setConfirming(false);
+    setTimeout(() => importBtn.current?.focus(), 0);
+  };
 
   const check = () => {
     setDone(false);
@@ -139,20 +149,20 @@ export function ImportSave({ onImported }: { onImported?: () => void }) {
         </p>
       )}
       {confirming ? (
-        <div className="confirm" role="alertdialog" aria-label="Replace your game?">
+        <div className="confirm" role="alertdialog" aria-label="Replace your game?" ref={confirmBox} tabIndex={-1} onKeyDown={(e) => e.key === "Escape" && cancel()}>
           <p>This replaces your current game with the imported one. Export your current game first if you want to keep it.</p>
           <div className="btn-row two">
             <button type="button" className="btn btn-danger" onClick={doImport}>
               Replace my game
             </button>
-            <button type="button" className="btn btn-quiet" onClick={() => setConfirming(false)}>
+            <button type="button" className="btn btn-quiet" onClick={cancel}>
               Cancel
             </button>
           </div>
         </div>
       ) : (
         <div className="btn-row one">
-          <button type="button" className="btn" onClick={check} disabled={!text.trim()}>
+          <button type="button" className="btn" onClick={check} disabled={!text.trim()} ref={importBtn}>
             Import
           </button>
         </div>
@@ -167,16 +177,21 @@ export function ImportSave({ onImported }: { onImported?: () => void }) {
 export function ResetGame() {
   const store = useStore();
   const [step, setStep] = useState(0);
+  const wipeBtn = useRef<HTMLButtonElement>(null);
+  const cancel = () => {
+    setStep(0);
+    setTimeout(() => wipeBtn.current?.focus(), 0);
+  };
   return (
     <div className="save-block">
       {step === 0 ? (
         <div className="btn-row one">
-          <button type="button" className="btn btn-danger" onClick={() => setStep(1)}>
+          <button type="button" className="btn btn-danger" onClick={() => setStep(1)} ref={wipeBtn}>
             Wipe all saved data and start over
           </button>
         </div>
       ) : (
-        <div className="confirm" role="alertdialog" aria-label="Wipe everything?">
+        <div className="confirm" role="alertdialog" aria-label="Wipe everything?" onKeyDown={(e) => e.key === "Escape" && cancel()}>
           <p>You will lose everything and restart the game. No reset-bonuses here. You sure?</p>
           <div className="btn-row two">
             <button
@@ -194,7 +209,7 @@ export function ResetGame() {
             >
               Yes, wipe everything
             </button>
-            <button type="button" className="btn btn-quiet" onClick={() => setStep(0)} autoFocus>
+            <button type="button" className="btn btn-quiet" onClick={cancel} autoFocus>
               Cancel
             </button>
           </div>

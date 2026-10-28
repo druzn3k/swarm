@@ -98,6 +98,27 @@ a {
 p {
   margin: 0;
 }
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 30;
+  padding: 10px 14px;
+  background: var(--amber);
+  color: var(--edge);
+  font-family: var(--display);
+  font-size: 13px;
+}
+.skip-link:focus {
+  top: 8px;
+}
+#main:focus {
+  outline: none;
+}
+::placeholder {
+  color: var(--dust);
+  opacity: 1;
+}
 
 /* pixel frame: hard stepped corners instead of rounded ones */
 .frame,

@@ -210,7 +210,7 @@ fieldset.section {
     var(--px) 0 0 0 var(--edge);
 }
 .ach.masked {
-  opacity: 0.75;
+  background: var(--earth);
 }
 .ach-icon,
 .ach-row-icon,

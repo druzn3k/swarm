@@ -34,9 +34,7 @@ export function UnitScreen({ unit: key }: { unit: string }) {
         <SpriteIcon name={unit.name} tab={t.tab} size={72} />
         <div>
           <h1>{unitLabel(unit)}</h1>
-          <p className="owned num" aria-label={`Owned: ${fmt.long(unit.count())}`}>
-            {fmt.long(unit.count())}
-          </p>
+          <p className="owned num">{fmt.long(unit.count())}</p>
         </div>
       </div>
       <section className="section card" aria-label="About this unit">

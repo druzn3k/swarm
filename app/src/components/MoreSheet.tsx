@@ -17,12 +17,15 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
+    // everything behind the sheet is out of reach while it's open
+    const behind = [...(document.getElementById("root")?.children ?? [])].filter((el) => !el.contains(sheet.current));
+    behind.forEach((el) => el.setAttribute("inert", ""));
     sheet.current?.querySelector<HTMLElement>("a, button:not(:disabled)")?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab" && sheet.current) {
         // keep focus inside the sheet
-        const items = [...sheet.current.querySelectorAll<HTMLElement>("a, button:not(:disabled)")];
+        const items = [...sheet.current.querySelectorAll<HTMLElement>("a[href], button:not(:disabled), select, input, textarea")];
         const first = items[0];
         const last = items[items.length - 1];
         if (e.shiftKey && document.activeElement === first) {
@@ -37,6 +40,7 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
+      behind.forEach((el) => el.removeAttribute("inert"));
       previous?.focus?.();
     };
   }, [onClose]);

@@ -58,9 +58,20 @@ export function App() {
 
   return (
     <>
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          // a hash link would change the route; move focus instead
+          e.preventDefault();
+          document.getElementById("main")?.focus();
+        }}
+      >
+        Skip to content
+      </a>
       <div className="wrap">
         <Header />
-        <main className="wrap" id="main">
+        <main className="wrap" id="main" tabIndex={-1}>
           <WelcomeBack />
           {(route.name === "tab" || route.name === "unit") && <TutorialHint />}
           <Screen route={route} />
