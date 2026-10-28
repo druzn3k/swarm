@@ -6,6 +6,7 @@ import { useRunningStore } from "./game/useGameStore";
 import { FormatContext } from "./format";
 import type { ReactNode } from "react";
 import { useOptionsFormatter } from "./game/options";
+import { setupPwa } from "./pwa";
 import "./styles.css";
 import "./styles/wide.css";
 
@@ -24,6 +25,8 @@ function Root() {
     </GameProvider>
   );
 }
+
+setupPwa();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -4,6 +4,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
 import { href, tabHref } from "../router";
+import { promptInstall, useCanInstall } from "../pwa";
 import { MoreActions } from "./progression/MoreActions";
 
 const LINKS = [
@@ -86,7 +87,29 @@ export function MoreSheet({ onClose, anchor }: { onClose: () => void; anchor?: R
             </li>
           ))}
         </ul>
+        <InstallItem onDone={onClose} />
       </div>
     </div>
+  );
+}
+
+/** "Install app", while the browser offers it (Chrome, Edge, Android). */
+function InstallItem({ onDone }: { onDone: () => void }) {
+  const canInstall = useCanInstall();
+  if (!canInstall) return null;
+  return (
+    <>
+      <hr />
+      <button
+        type="button"
+        className="sheet-item"
+        onClick={() => {
+          onDone();
+          void promptInstall();
+        }}
+      >
+        Install app
+      </button>
+    </>
   );
 }
