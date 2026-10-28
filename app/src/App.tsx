@@ -13,6 +13,7 @@ import { AchievementsScreen } from "./screens/AchievementsScreen";
 import { StatisticsScreen } from "./screens/StatisticsScreen";
 import { OptionsScreen } from "./screens/OptionsScreen";
 import { AboutScreen } from "./screens/AboutScreen";
+import { ArtGalleryScreen } from "./screens/ArtGalleryScreen";
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -28,6 +29,8 @@ function Screen({ route }: { route: Route }) {
       return <OptionsScreen />;
     case "about":
       return <AboutScreen />;
+    case "art":
+      return <ArtGalleryScreen />;
   }
 }
 

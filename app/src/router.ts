@@ -9,10 +9,11 @@ export type Route =
   | { name: "achievements" }
   | { name: "statistics" }
   | { name: "options" }
-  | { name: "about" };
+  | { name: "about" }
+  | { name: "art" };
 
 export const DEFAULT_ROUTE: Route = { name: "tab", tab: "meat" };
-const PAGES = ["achievements", "statistics", "options", "about"] as const;
+const PAGES = ["achievements", "statistics", "options", "about", "art"] as const;
 
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, "").replace(/\?.*$/, "");
