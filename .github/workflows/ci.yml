@@ -53,3 +53,7 @@ jobs:
     - run: gem install compass
     - run: sh scripts/legacy-install.sh
     - run: cd swarmsim-coffee && yarn test
+      env:
+        # PhantomJS can't start against the runner's OpenSSL 3 config; the
+        # Dockerfile and devcontainer use the same fix. Scoped to this step.
+        OPENSSL_CONF: /dev/null
