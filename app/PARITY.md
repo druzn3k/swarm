@@ -169,7 +169,7 @@ the end.
 | Feature | Old | App | Notes |
 |---|---|---|---|
 | Wide unit page: list beside the unit (`views/unit.html` sidebar) | ✅ | ✅ | `components/Split.tsx`, from 1000px. The old list sat on the left at `col-lg-3`; here it holds the hive too. |
-| Tab links go to the last unit selected on the tab (`tab.url(lastselected)`) | ✅ | ✅ | Laptop layout: `#/tab/<tab>` shows `tab.lastselected`, else the lead unit (`game/selectors.ts defaultUnit`). The old main page showed only the table until a unit was picked; the app always fills the right column. |
+| Tab links go to the last unit selected on the tab (`tab.url(lastselected)`) | ✅ | ✅ | Laptop layout: `#/tab/<tab>` shows `tab.lastselected`, else the lead unit if it has something to buy or cast, else the first unit that does (`game/selectors.ts defaultUnit`). The old main page showed only the table until a unit was picked; the app always fills the right column. |
 | Close button back to the table | ✅ | ⚠️ | No close/back button next to the list (it is in view); prev/next stay. |
 | Re-render cost, laptop layout (late save, 1440×900, CPU 4×) | — | ✅ | Tick+render mean: meat tab 8.3 ms, drone 12.8 ms (was 16.2 before these fixes), queen 13.1 ms, energy 11.4 ms, mutagen tab 10.1 ms (was 15.3), all units 9.2 ms. List cards next to a unit refresh every other tick, half on each; ascension cost is worked out once per render; the hive re-reads counts twice a second. |
 

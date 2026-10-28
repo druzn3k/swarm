@@ -33,13 +33,14 @@ const side = (page: Page) => page.locator(".split-side");
 const unitHeading = (page: Page) => page.locator("main").getByRole("heading", { level: 1 });
 const card = (page: Page, unit: string) => page.locator(`a.unit-card[data-unit="${unit}"]`);
 
-test("two columns: the tab's list on the left, its lead unit on the right", async ({ page }) => {
+test("two columns: the tab's list on the left, a unit with something to do on the right", async ({ page }) => {
   await loadWith(page, MID, "./#/tab/meat");
   await expect(side(page)).toBeVisible();
   await expect(side(page).getByRole("heading", { name: "meat" })).toBeVisible();
   await expect(side(page).locator("canvas")).toBeVisible();
-  await expect(unitHeading(page)).toHaveText(/^meat$/i);
-  await expect(card(page, "meat")).toHaveAttribute("aria-current", "true");
+  // meat has nothing to buy, so the first unit that does is shown
+  await expect(unitHeading(page)).toHaveText(/^drone$/i);
+  await expect(card(page, "drone")).toHaveAttribute("aria-current", "true");
 
   const left = (await side(page).boundingBox())!;
   const right = (await page.locator("main").boundingBox())!;

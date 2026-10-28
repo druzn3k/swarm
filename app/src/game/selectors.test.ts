@@ -3,9 +3,10 @@ import { createGame } from "@swarmsim/engine";
 import { defaultUnit, tabByName } from "./selectors";
 
 describe("defaultUnit (laptop layout, no unit in the route)", () => {
-  it("shows the tab's lead unit", () => {
+  it("shows the tab's lead unit, or the first unit with something to do", () => {
     const { game } = createGame();
-    expect(defaultUnit(game, "meat")).toBe("meat");
+    // meat has nothing to buy, so a new game opens on drones
+    expect(defaultUnit(game, "meat")).toBe("drone");
     expect(defaultUnit(game, "larva")).toBe("larva");
     expect(defaultUnit(game, "nope")).toBe("");
   });
@@ -18,9 +19,9 @@ describe("defaultUnit (laptop layout, no unit in the route)", () => {
     expect(defaultUnit(game, "meat")).toBe("queen");
     // a unit from another tab, or one that is hidden again (after an ascension), is ignored
     meat.lastselected = game.unit("larva");
-    expect(defaultUnit(game, "meat")).toBe("meat");
+    expect(defaultUnit(game, "meat")).toBe("drone");
     meat.lastselected = game.unit("pantheon");
-    expect(defaultUnit(game, "meat")).toBe("meat");
+    expect(defaultUnit(game, "meat")).toBe("drone");
     // "all units" remembers its own
     tabByName(game, "all")!.lastselected = game.unit("queen");
     expect(defaultUnit(game, "all")).toBe("queen");

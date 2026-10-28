@@ -19,7 +19,8 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
   stays put), a unit's screen on the right (`<main>`, where the skip link
   goes). With no unit in the route (`#/tab/<tab>`) the right shows the unit
   last opened on that tab this session (the old game's `tab.lastselected`),
-  else the tab's lead unit (meat, larvae, territory, energy, mutagen). The
+  else the tab's lead unit if its screen has something to buy or cast, else
+  the first unit in list order that does (so a new game opens on drones). The
   old wide page showed only the table until a unit was picked; an empty half
   screen helps nobody. A unit picked from "all units" keeps that list. Other
   screens are one column up to 960px. Tabs are a strip under the header and

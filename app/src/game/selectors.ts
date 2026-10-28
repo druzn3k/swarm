@@ -32,15 +32,25 @@ export function visibleUpgrades(unit: Unit, klass: "upgrade" | "ability" = "upgr
 /**
  * The unit the laptop layout shows next to a tab's list when the route names
  * none: the one last opened on the tab (the old game's tab.lastselected), else
- * the tab's lead unit, else its first visible unit.
+ * the tab's lead unit if its screen has something to buy or cast, else the first
+ * unit in list order that does.
  */
 export function defaultUnit(game: Game, tabName: string): string {
   const tab = tabByName(game, tabName);
   if (!tab) return "";
   const last = tab.lastselected;
   if (last && last.isVisible() && tab.indexByUnitName[last.name] !== undefined) return last.name;
-  if (tab.leadunit.isVisible()) return tab.leadunit.name;
-  return visibleUnits(tab)[0]?.name ?? "";
+  // otherwise the first unit, in list order, with something to do on its
+  // screen (meat has nothing to buy, so a new game opens on drones)
+  const units = visibleUnits(tab);
+  const lead = tab.leadunit as Unit;
+  const candidates = lead.isVisible() ? [lead, ...units.filter((u) => u !== lead)] : units;
+  return (candidates.find(hasActions) ?? candidates[0])?.name ?? "";
+}
+
+/** Does the unit's screen offer anything to buy or cast? */
+function hasActions(unit: Unit): boolean {
+  return isUnitBuyable(unit) || visibleUpgrades(unit).length > 0 || visibleUpgrades(unit, "ability").length > 0;
 }
 
 export function tabTitle(tab: Tab): string {
