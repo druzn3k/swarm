@@ -33,7 +33,9 @@ export function WelcomeBack() {
             <li key={g.unit.name}>
               <a href={unitHref(g.unit.name)} onClick={close}>
                 <SpriteIcon name={g.unit.name} tab={g.unit.unittype.tab} size={24} />
-                <b className="num">{fmt.long(g.val)}</b> <span className="gain-name">{unitLabel(g.unit, true)}</span>
+                <span className="gain-text">
+                  <b className="num">{fmt.long(g.val)}</b> <span className="gain-name">{unitLabel(g.unit, true)}</span>
+                </span>
               </a>
             </li>
           ))}

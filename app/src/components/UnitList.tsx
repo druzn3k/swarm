@@ -5,6 +5,8 @@ import type { Formatter } from "../format";
 import { unitLabel, visibleUnits } from "../game/selectors";
 import { unitHref } from "../router";
 import { SpriteIcon } from "./Icon";
+import { QuickBuy } from "./unit/QuickBuy";
+import { useOptions } from "../game/options";
 
 function rateText(unit: Unit, tab: Tab, fmt: Formatter): string {
   const v = unit.velocity();
@@ -20,7 +22,7 @@ function rateText(unit: Unit, tab: Tab, fmt: Formatter): string {
   return "";
 }
 
-function UnitCard({ unit, tab }: { unit: Unit; tab: Tab }) {
+function UnitCard({ unit, tab, quickBuy }: { unit: Unit; tab: Tab; quickBuy: boolean }) {
   const fmt = useFormat();
   const cap = unit.capValue();
   const upgradable = unit.isNewlyUpgradable();
@@ -42,6 +44,8 @@ function UnitCard({ unit, tab }: { unit: Unit; tab: Tab }) {
           <span className="upgrade-dot" role="img" aria-label="New upgrade available" title="New upgrade available" />
         )}
       </a>
+      {/* the old table's buy dropdown, with advanced unit data on */}
+      {quickBuy && <QuickBuy unit={unit} />}
     </li>
   );
 }
@@ -49,10 +53,11 @@ function UnitCard({ unit, tab }: { unit: Unit; tab: Tab }) {
 /** The visible units of a tab, as cards that open the unit screen. Re-renders every tick. */
 export function UnitList({ tab }: { tab: Tab }) {
   useGame();
+  const [{ showAdvancedUnitData }] = useOptions();
   return (
     <ul className="unit-list">
       {visibleUnits(tab).map((u) => (
-        <UnitCard key={u.name} unit={u} tab={tab} />
+        <UnitCard key={u.name} unit={u} tab={tab} quickBuy={showAdvancedUnitData} />
       ))}
     </ul>
   );

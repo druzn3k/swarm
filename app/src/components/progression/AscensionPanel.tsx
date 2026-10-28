@@ -8,6 +8,7 @@ import { useFormat } from "../../format";
 import { unitHref } from "../../router";
 import { ProgressBar } from "../ProgressBar";
 import { ConfirmButton } from "./Confirm";
+import { useOptions } from "../../game/options";
 import "../../styles/progression.css";
 
 /** Seconds until energy covers the ascension cost; undefined when unknown, capped or already affordable. */
@@ -54,6 +55,7 @@ export function AscensionPanel() {
   const { game } = store;
   const fmt = useFormat();
   const [status, setStatus] = useState("");
+  const [{ showAdvancedUnitData }] = useOptions();
   const premutagen = game.unit("premutagen").count();
   const cost = game.ascendCost();
   const energy = game.unit("energy").count();
@@ -134,6 +136,9 @@ export function AscensionPanel() {
         onConfirm={() => run(({ commands }) => commands.respecFree({ game }), "Respecced for free: your mutagen is refunded.")}
       />
 
+      {/* like the old page, only with advanced unit data */}
+      {showAdvancedUnitData && (
+        <>
       <h3 className="ascend-sub">Upgrade notifiers</h3>
       <ConfirmButton
         quiet
@@ -147,6 +152,8 @@ export function AscensionPanel() {
           }, "Upgrade notifiers are back to their defaults.")
         }
       />
+        </>
+      )}
       <p className="more-status" role="status" aria-live="polite">
         {status}
       </p>

@@ -9,6 +9,7 @@ import type { DurationFormat, Notation } from "../format";
 import { useOptions, VELOCITY_UNITS, velocityUnitFor } from "../game/options";
 import { ExportSave, ImportSave, ResetGame } from "../components/meta/SaveTools";
 import { fromNow } from "../components/meta/time";
+import { numberSuffixesLong, numberSuffixesShort } from "@swarmsim/engine";
 import "../styles/meta.css";
 
 const NOTATION_LABELS: { value: Notation; label: string }[] = [
@@ -51,6 +52,40 @@ function OptionGroup({ title, children, example }: { title: string; children: Re
   );
 }
 
+/** The old #/decimallegend page: every standard-decimal suffix (short ones stop after "NOg"; long ones earlier). */
+function SuffixLegend() {
+  const rows = numberSuffixesShort.map((short, i) => {
+    let value = `1e${i * 3}`;
+    if (i === 0) value += " (1)";
+    if (i === 1) value += " (1,000)";
+    if (i === 2) value += " (1,000,000)";
+    return { value, short, long: (numberSuffixesLong[i] ?? "").trim() };
+  });
+  return (
+    <details className="section card legend">
+      <summary>Standard decimal suffixes</summary>
+      <table className="legend-table">
+        <thead>
+          <tr>
+            <th scope="col">Value</th>
+            <th scope="col">Short</th>
+            <th scope="col">Long</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.value}>
+              <td className="num">{r.value}</td>
+              <td>{r.short}</td>
+              <td>{r.long}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+  );
+}
+
 export function OptionsScreen() {
   const store = useGame();
   const fmt = useFormat();
@@ -89,6 +124,8 @@ export function OptionsScreen() {
           />
         ))}
       </OptionGroup>
+
+      <SuffixLegend />
 
       <OptionGroup
         title="Rates per"

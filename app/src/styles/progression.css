@@ -288,10 +288,12 @@
   color: var(--amber);
   font-size: 14px;
 }
-.gain-name {
-  text-transform: capitalize;
+.gain-text {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.gain-name {
+  text-transform: capitalize;
 }
 .tut-dot {
   display: inline-block;

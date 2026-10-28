@@ -12,8 +12,9 @@ function Step({ unit, dir }: { unit?: Unit; dir: "prev" | "next" }) {
     <a className="icon-btn step" href={unitHref(unit.name)} rel={dir} aria-label={`${dir === "prev" ? "Previous" : "Next"}: ${name}`}>
       {dir === "prev" && <span aria-hidden="true">‹</span>}
       <SpriteIcon name={unit.name} tab={unit.unittype.tab} size={24} />
-      <span className="num">
-        {fmt.num(unit.count())} {name}
+      <span className="step-text">
+        <span className="step-name">{name}</span>
+        <span className="num step-count">{fmt.num(unit.count())}</span>
       </span>
       {dir === "next" && <span aria-hidden="true">›</span>}
     </a>

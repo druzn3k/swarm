@@ -407,3 +407,32 @@ fieldset.section {
 .about a {
   overflow-wrap: anywhere;
 }
+
+/* standard-decimal suffix legend (old #/decimallegend) */
+.legend summary {
+  cursor: pointer;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--dust);
+  text-transform: uppercase;
+}
+.legend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.legend-table th {
+  text-align: left;
+  color: var(--dust);
+  font-weight: 400;
+  padding: 4px 6px 4px 0;
+}
+.legend-table td {
+  padding: 3px 6px 3px 0;
+  border-top: 1px solid var(--burrow-hi);
+  overflow-wrap: anywhere;
+}
