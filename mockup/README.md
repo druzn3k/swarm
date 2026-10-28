@@ -14,6 +14,7 @@ without the document skeleton, for hosts that add their own).
 
 Every push to `master` builds it and pushes the result to the `gh-pages`
 branch, which GitHub Pages serves at
-https://druzn3k.github.io/swarm/ (`.github/workflows/pages.yml`). Progress saves to localStorage under
-its own key, separate from the real game. The "Speed" button is a demo aid
+https://druzn3k.github.io/swarm/ (`.github/workflows/pages.yml`).
+
+Progress saves to localStorage under its own key, separate from the real game. The "Speed" button is a demo aid
 that makes time pass faster.
