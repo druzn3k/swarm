@@ -79,3 +79,8 @@ B. **In parallel, on the shell:**
 C. **Review and polish** — parity walk-through against the feature
    inventory, accessibility, performance of the tick loop, end-to-end tests
    in CI, retire `mockup/`.
+D. **Laptop layout** — from about 1000px wide: two columns (hive scene and
+   unit list on the left, the selected unit's screen on the right, so picking
+   a unit keeps the list in view), the tab bar as a strip along the top, a
+   larger pixel-sharp scene, larger type. Phone layout below that width stays
+   as it is.
