@@ -1,0 +1,118 @@
+// One engine instance plus a version counter that React subscribes to
+// (useSyncExternalStore). The counter bumps after every tick and every
+// command, so components re-read the game then. Framework-agnostic: React
+// bindings live in ./GameContext.tsx.
+import { createGame } from "@swarmsim/engine";
+import type { Clock, Engine, SaveStorage } from "@swarmsim/engine";
+
+export const SAVE_ID = "swarmhive-v1";
+export const TICK_MILLIS = 100;
+export const SAVE_MILLIS = 5000;
+
+export interface GameStoreOptions {
+  storage?: SaveStorage;
+  now?: Clock;
+  saveId?: string;
+  /** a save string to import instead of loading the stored one */
+  save?: string;
+}
+
+export class GameStore {
+  readonly engine: Engine;
+  private version = 0;
+  private listeners = new Set<() => void>();
+
+  constructor(opts: GameStoreOptions = {}) {
+    this.engine = createGame({
+      storage: opts.storage,
+      now: opts.now,
+      save: opts.save,
+      saveId: opts.saveId ?? SAVE_ID,
+    });
+    const { events } = this.engine;
+    // commands, achievements and resets all change what's on screen
+    events.on("command", () => this.bump());
+    events.on("achieve", () => this.bump());
+    events.on("reset", () => this.bump());
+  }
+
+  get game() {
+    return this.engine.game;
+  }
+  get commands() {
+    return this.engine.commands;
+  }
+  get events() {
+    return this.engine.events;
+  }
+
+  // --- external store protocol (useSyncExternalStore) ---
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+  getVersion = (): number => this.version;
+
+  /** Tell subscribers the game changed. Call after mutating the game outside commands. */
+  bump(): void {
+    this.version++;
+    for (const fn of [...this.listeners]) fn();
+  }
+
+  /** Advance the game clock to now. */
+  tick(): void {
+    try {
+      this.game.tick();
+    } catch (e) {
+      // the clock went backwards by more than the engine tolerates; keep the old time
+      console.warn("tick failed", e);
+    }
+    this.bump();
+  }
+
+  save(): void {
+    try {
+      this.game.save();
+    } catch (e) {
+      console.warn("save failed", e);
+    }
+  }
+
+  /**
+   * Run a player action (usually a `commands.*` call). Returns the error
+   * instead of throwing, e.g. when the player can't afford it any more.
+   */
+  act(fn: (engine: Engine) => void): unknown {
+    try {
+      fn(this.engine);
+      return undefined;
+    } catch (e) {
+      return e ?? new Error("action failed");
+    } finally {
+      this.bump();
+    }
+  }
+
+  /** Start ticking and autosaving in the browser. Returns a stop function. */
+  start(win: Window = window): () => void {
+    const tick = win.setInterval(() => this.tick(), TICK_MILLIS);
+    const save = win.setInterval(() => this.save(), SAVE_MILLIS);
+    const onVisibility = () => {
+      if (win.document.visibilityState === "hidden") this.save();
+      else this.tick();
+    };
+    const onPageHide = () => this.save();
+    win.document.addEventListener("visibilitychange", onVisibility);
+    win.addEventListener("pagehide", onPageHide);
+    this.tick();
+    return () => {
+      win.clearInterval(tick);
+      win.clearInterval(save);
+      win.document.removeEventListener("visibilitychange", onVisibility);
+      win.removeEventListener("pagehide", onPageHide);
+      this.save();
+    };
+  }
+}

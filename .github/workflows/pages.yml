@@ -1,7 +1,7 @@
-# Publishes the pixel mock-up (mockup/) to GitHub Pages on every push to master.
+# Publishes the app (app/) to GitHub Pages on every push to master.
 # Needs Settings > Pages > Source set to "GitHub Actions" (done once by hand;
 # the workflow's own token isn't allowed to switch Pages on).
-name: deploy mock-up to GitHub Pages
+name: deploy app to GitHub Pages
 
 on:
   push:
@@ -29,12 +29,12 @@ jobs:
         node-version: "22.x"
         cache: pnpm
     - run: pnpm install --frozen-lockfile
-    - run: pnpm --filter @swarmsim/mockup test
-    - run: pnpm --filter @swarmsim/mockup build
+    - run: pnpm --filter @swarmsim/app test
+    - run: pnpm --filter @swarmsim/app build
     - uses: actions/configure-pages@v5
     - uses: actions/upload-pages-artifact@v3
       with:
-        path: mockup/dist
+        path: app/dist
 
   deploy:
     needs: build
