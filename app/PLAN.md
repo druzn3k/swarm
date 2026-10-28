@@ -56,6 +56,12 @@ Dropped on purpose: PlayFab/Kongregate login and cloud saves, analytics,
 feedback widget, purchases (MTX), themes, debug pages, changelog page (link to
 the repository instead).
 
+Documented deviations (phase C parity audit, see [PARITY.md](PARITY.md)):
+units are listed lowest tier first; no keyboard hotkeys; unavailable buy
+buttons are shown disabled rather than omitted; drastic actions (ascend,
+respec, import, reset) ask for confirmation on the page; flavor text is shown
+inline rather than as a tooltip; the territory chart is a bar chart.
+
 ## Phases
 
 A. **Shell** — package, engine provider and tick loop, save/load, routing,
