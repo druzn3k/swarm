@@ -28,6 +28,8 @@ export interface FormatSettings {
   notation: Notation;
   durationFormat: DurationFormat;
   velocityUnit: VelocityUnit;
+  /** picks the velocity unit per unit/producer (options.ts: warp falls back to seconds for energy) */
+  resolveVelocityUnit?: (about?: { unit?: string; prod?: string }) => VelocityUnit;
 }
 
 export const DEFAULT_FORMAT_SETTINGS: FormatSettings = {
@@ -216,7 +218,7 @@ export function createFormatter(overrides: Partial<FormatSettings> = {}): Format
     long: (v, maxSmall = 0) => formatNumber(v, { notation, flavor: "full", sigfigs: 6, minSuffix: 1e6, maxSmall }),
     percent: (v, opts) => formatPercent(v, opts),
     duration: (secs, opts) => formatDuration(secs, { ...opts, format: settings.durationFormat }),
-    velocityUnit: () => settings.velocityUnit,
+    velocityUnit: (about) => settings.resolveVelocityUnit?.(about) ?? settings.velocityUnit,
     rate: (perSecond, about) => {
       const vu = f.velocityUnit(about);
       return `+${f.num(perSecond.times(vu.mult), 2)}/${vu.name}`;

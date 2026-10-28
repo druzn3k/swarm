@@ -4,6 +4,7 @@ import { tabByName, tabTitle } from "../game/selectors";
 import { tabHref } from "../router";
 import { HiveCanvas } from "../components/HiveCanvas";
 import { UnitList } from "../components/UnitList";
+import { AchievementPointsRow } from "../components/meta/AchievementPointsRow";
 
 export function TabScreen({ tab: name }: { tab: string }) {
   const { game } = useStore();
@@ -19,7 +20,8 @@ export function TabScreen({ tab: name }: { tab: string }) {
       {/* PHASE B (B3): per-tab hive scenes (territory war band, energy nexus, mutagen lab) */}
       <HiveCanvas />
       <h1 className="tab-title">{tabTitle(tab)}</h1>
-      {/* PHASE B: on the larva tab the old game listed achievement points here */}
+      {/* on the larva tab the old game listed achievement points here */}
+      {name === "larva" && <AchievementPointsRow />}
       <UnitList tab={tab} />
     </>
   );

@@ -3,17 +3,23 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { GameProvider } from "./game/GameContext";
 import { useRunningStore } from "./game/useGameStore";
-import { FormatContext, defaultFormatter } from "./format";
+import { FormatContext } from "./format";
+import type { ReactNode } from "react";
+import { useOptionsFormatter } from "./game/options";
 import "./styles.css";
+
+function FormatProvider({ children }: { children: ReactNode }) {
+  return <FormatContext.Provider value={useOptionsFormatter()}>{children}</FormatContext.Provider>;
+}
 
 function Root() {
   const store = useRunningStore();
   return (
     <GameProvider store={store}>
-      {/* PHASE B (B2): build the formatter from the player's options */}
-      <FormatContext.Provider value={defaultFormatter}>
+      {/* the formatter follows the player's options (game/options.ts) */}
+      <FormatProvider>
         <App />
-      </FormatContext.Provider>
+      </FormatProvider>
     </GameProvider>
   );
 }

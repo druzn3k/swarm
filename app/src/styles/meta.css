@@ -1,0 +1,409 @@
+/* Meta screens (options, achievements, statistics, about), the achievement
+   toast and advanced unit data. Uses the tokens from styles.css. */
+
+.small {
+  font-size: 13px;
+}
+fieldset.section {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+/* --- options ---------------------------------------------------------- */
+.option-title {
+  float: left; /* lets the legend sit inside the card's grid padding */
+  width: 100%;
+  padding: 0;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+.choices {
+  display: grid;
+  gap: 8px;
+  clear: both;
+}
+.choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch);
+  padding: 6px 12px;
+  background: var(--earth);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px transparent;
+}
+.choice.on {
+  box-shadow: inset 0 0 0 3px var(--amber);
+}
+.choice.switch {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.choice input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--amber);
+}
+.choice:has(input:focus-visible) {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+.choice-label {
+  font-family: var(--display);
+  font-size: 13px;
+  text-transform: capitalize;
+}
+.choice-example {
+  color: var(--amber);
+  font-size: 14px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.option-example {
+  font-size: 14px;
+  color: var(--dust);
+  overflow-wrap: anywhere;
+}
+.note {
+  margin-top: -6px;
+  padding-inline: 4px;
+}
+
+/* save import/export */
+.save-block {
+  display: grid;
+  gap: 8px;
+}
+.save-block > label {
+  font-family: var(--display);
+  font-size: 13px;
+}
+.save-text {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  padding: 8px 10px;
+  background: var(--earth);
+  color: var(--bone);
+  border: 0;
+  box-shadow: inset 0 0 0 3px var(--burrow-hi);
+  font-family: ui-monospace, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.3;
+  word-break: break-all;
+}
+.save-text:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--amber);
+}
+.save-text[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 3px var(--flesh);
+}
+.save-status {
+  min-height: 1.2em;
+  font-size: 14px;
+  color: var(--amber);
+}
+.save-status:empty {
+  min-height: 0;
+}
+.form-error {
+  color: var(--flesh);
+  font-size: 14px;
+}
+.confirm {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: #3a1a22;
+  box-shadow: inset 4px 0 0 var(--flesh);
+}
+.btn.btn-danger {
+  background: var(--flesh);
+  box-shadow:
+    inset 0 -4px 0 #9b3a44,
+    0 3px 0 var(--edge);
+  white-space: normal;
+  line-height: 1.2;
+}
+.danger-zone h2 {
+  color: var(--flesh);
+}
+
+/* --- achievements ------------------------------------------------------ */
+.ach-total {
+  font-size: 15px;
+}
+.ach-total b {
+  font-family: var(--display);
+  font-size: 24px;
+  color: var(--amber);
+}
+.filters {
+  gap: 8px;
+}
+.filter-label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 4px 12px;
+  background: var(--earth);
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 3px var(--burrow-hi);
+}
+.chip:has(input:checked) {
+  box-shadow: inset 0 0 0 3px var(--amber);
+}
+.chip:has(input:focus-visible) {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+.chip input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--amber);
+}
+.ach-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.ach {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ach.earned {
+  box-shadow:
+    inset 4px 0 0 var(--amber),
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge);
+}
+.ach.masked {
+  opacity: 0.75;
+}
+.ach-icon,
+.ach-row-icon,
+.toast-badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: var(--earth);
+  color: var(--dust);
+  font-family: var(--display);
+  font-size: 18px;
+  box-shadow: 0 0 0 3px var(--edge);
+}
+.ach.earned .ach-icon,
+.ach-row-icon,
+.toast-badge {
+  background: var(--amber);
+  color: var(--edge);
+}
+.ach-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.ach-title {
+  font-family: var(--display);
+  font-size: 14px;
+  text-transform: capitalize;
+  overflow-wrap: anywhere;
+}
+.ach-desc {
+  font-size: 15px;
+}
+.ach-long {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--dust);
+}
+.ach-date {
+  font-size: 12px;
+  color: var(--dust);
+}
+.ach-progress {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+.ach-points {
+  font-family: var(--display);
+  font-size: 15px;
+  color: var(--dust);
+  white-space: nowrap;
+}
+.ach.earned .ach-points {
+  color: var(--amber);
+}
+.ach-row-icon {
+  width: 48px;
+  height: 48px;
+  font-size: 22px;
+  box-shadow: none;
+}
+
+/* --- statistics -------------------------------------------------------- */
+.stat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.stat-row {
+  background: var(--earth);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+}
+.stat-row h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 13px;
+  text-transform: capitalize;
+}
+.stat-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+.stat {
+  min-width: 0;
+}
+.stat dt {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+.stat dd {
+  margin: 0;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+/* --- advanced unit data ------------------------------------------------ */
+.advanced {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--earth);
+  box-shadow: inset 4px 0 0 var(--chitin);
+  font-size: 14px;
+}
+
+/* --- achievement toast ------------------------------------------------- */
+.toast-region {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-h) + 10px + env(safe-area-inset-bottom, 0px));
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  padding-inline: max(12px, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  width: min(100%, 528px);
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  background: var(--burrow-hi);
+  box-shadow:
+    inset 0 4px 0 var(--amber),
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge),
+    0 8px 0 0 rgba(0, 0, 0, 0.4);
+  animation: toast-in 180ms steps(3) both;
+}
+.toast-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.toast-kicker {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.toast-title {
+  font-family: var(--display);
+  font-size: 16px;
+  color: var(--bone);
+  text-transform: capitalize;
+  overflow-wrap: anywhere;
+}
+.toast-desc {
+  font-size: 15px;
+}
+.toast-long,
+.toast-more {
+  font-size: 13px;
+  color: var(--dust);
+}
+.toast-long {
+  font-style: italic;
+}
+.toast-close {
+  margin: -6px -6px 0 0;
+}
+@keyframes toast-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* --- about ------------------------------------------------------------- */
+.about p {
+  max-width: 62ch;
+}
+.about a {
+  overflow-wrap: anywhere;
+}
