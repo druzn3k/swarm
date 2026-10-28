@@ -1,6 +1,6 @@
 // Port of the type-table half of services/achievement.coffee: AchievementTypes
-// (and the 'achievements' factory). Achievement instances and
-// AchievementsListener are NOT ported here (next phase).
+// (and the 'achievements' factory). Achievement and AchievementsListener are
+// in ./achievement.
 import { assert, sum } from "./util";
 import { parseRows, resolveList } from "./spreadsheetutil";
 import { UnitTypes } from "./unittypes";

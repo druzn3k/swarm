@@ -4,6 +4,7 @@
 // Fights savestate scumming that would occur with math.rand().
 import seedrandom from "seedrandom";
 import { SeedSession } from "./interfaces";
+import { str } from "./util";
 
 export class SeedRand {
   // The old service took the Angular `session`; we take anything with
@@ -13,7 +14,10 @@ export class SeedRand {
   // normal seeding uses session.date.started, but let unittests override it
   mkseed(seedstring: string, baseseed: any = null): string {
     const base = baseseed ?? this.session.state.date.started;
-    return `${base}:${seedstring}`;
+    // coffee: "#{base}:#{seedstring}". A Date base used Date#toString(), which
+    // is timezone-dependent; render it as a browser in UTC would (see
+    // utcDateString) so seeds don't depend on the host timezone.
+    return `${str(base)}:${seedstring}`;
   }
 
   rng(seedstring: string, baseseed: any = null): () => number {

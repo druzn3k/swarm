@@ -1,14 +1,37 @@
-// Scenario interpreter + snapshotting for the oracle.
+// Scenario interpreter + snapshotting, shared by the oracle (old CoffeeScript
+// engine) and the TS engine's golden tests.
 //
 // A scenario is a list of plain-JSON actions. `runScenario` replays them
-// against a fresh old-engine instance and records, for each step, the action,
-// its result (or error) and an optional snapshot. The TS engine's golden tests
-// replay the same action list and compare.
+// against a fresh engine instance (by default the old engine, via the oracle)
+// and records, for each step, the action, its result (or error) and an
+// optional snapshot. The interpreter only talks to a ScenarioEngine, so both
+// engines are driven and serialized identically.
 //
 // Serialization: Decimal -> string (full precision, Decimal#toString()),
 // finite JS number -> number, non-finite number -> {"$number": "Infinity"},
 // Date -> ISO string, undefined -> omitted / null.
-import { createOracle, OLD_VERSION, Oracle, OracleOptions } from "./oracle";
+import { createOracle, OLD_VERSION, OracleOptions } from "./oracle";
+
+/** What the interpreter needs from an engine instance (old or new). */
+export interface ScenarioEngine {
+  game: any;
+  session: any;
+  commands: any;
+  /** Decimal constructor used to build action arguments */
+  Decimal: any;
+  /** serialize as a Decimal (string)? */
+  isDecimal(v: unknown): boolean;
+  parseNumber(value: unknown, unit?: any): any;
+  /** set the clock to `date` and game.tick() there */
+  tick(date: string): void;
+  /** backfill.run(game) */
+  runBackfill(): void;
+  /** every 'command' event emitted, as plain copies (without unit/upgrade object refs), taken before other listeners run */
+  commandLog: { [k: string]: unknown }[];
+  /** exceptions thrown (and swallowed) by event listeners */
+  listenerErrors: { event: string; error: unknown }[];
+}
+type Oracle = ScenarioEngine;
 
 export type Num = string | number;
 
@@ -96,7 +119,7 @@ export interface ScenarioResult {
 export function ser(o: Oracle, v: unknown, depth = 0): unknown {
   if (depth > 20) throw new Error("ser: too deep");
   if (v === undefined || v === null) return null;
-  if (v instanceof o.Decimal) return v.toString();
+  if (o.isDecimal(v)) return (v as { toString(): string }).toString();
   if (typeof v === "number") return Number.isFinite(v) ? v : { $number: String(v) };
   if (typeof v === "string" || typeof v === "boolean") return v;
   if (v instanceof Date) return v.toISOString();
@@ -299,7 +322,7 @@ export function applyAction(o: Oracle, a: Action): unknown {
       return undefined;
     case "importSave":
       g.importSave(a.save, a.transient ?? true);
-      o.get("backfill").run(g);
+      o.runBackfill();
       return undefined;
     case "exportSave":
       return o.session.exportSave();
@@ -333,8 +356,14 @@ export function applyAction(o: Oracle, a: Action): unknown {
   }
 }
 
-export function runScenario(s: Scenario, opts: Partial<OracleOptions> = {}): ScenarioResult {
-  const o = createOracle({ now: s.start.now, save: s.start.save, ...opts });
+export function runScenario(
+  s: Scenario,
+  opts: Partial<OracleOptions> = {},
+  /** engine to run on; default: the old engine (oracle) */
+  create: (start: Scenario["start"]) => ScenarioEngine = (start) =>
+    createOracle({ now: start.now, save: start.save, ...opts })
+): ScenarioResult {
+  const o = create(s.start);
   let initial = snapshotFull(o);
   if (s.prefixSteps?.length) {
     for (const step of s.prefixSteps) runStep(o, step);
@@ -354,7 +383,7 @@ export function runScenario(s: Scenario, opts: Partial<OracleOptions> = {}): Sce
 
 /** Apply one step and take its snapshot. */
 export function runStep(o: Oracle, step: Step): StepResult {
-  const errorsBefore = o.rootScope.listenerErrors.length;
+  const errorsBefore = o.listenerErrors.length;
   const commandsBefore = o.commandLog.length;
   const r: StepResult = { action: step.action, now: "" };
   try {
@@ -363,7 +392,7 @@ export function runStep(o: Oracle, step: Step): StepResult {
   } catch (e) {
     r.error = (e as Error).message;
   }
-  const listenerErrors = o.rootScope.listenerErrors.slice(errorsBefore);
+  const listenerErrors = o.listenerErrors.slice(errorsBefore);
   if (listenerErrors.length) {
     const msgs = listenerErrors.map((l) => `listener ${l.event}: ${(l.error as Error).message}`);
     r.error = [r.error, ...msgs].filter(Boolean).join("; ");

@@ -17,7 +17,7 @@ describe("seedrand", () => {
   });
 
   it("defaults the base seed to session.state.date.started", () => {
-    expect(seedrand.mkseed("x")).toBe(`${new Date(0)}:x`);
+    expect(seedrand.mkseed("x")).toBe("Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time):x");
     expect(seedrand.rand("x")).toEqual(seedrand.rand("x", new Date(0)));
     expect(seedrand.rand("x")).not.toEqual(seedrand.rand("x", new Date(1000)));
   });

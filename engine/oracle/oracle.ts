@@ -188,6 +188,10 @@ export interface Oracle {
   Decimal: any;
   /** advance the clock and tick the game there */
   tick(date: Date | string | number): void;
+  // ScenarioEngine
+  isDecimal(v: unknown): boolean;
+  runBackfill(): void;
+  listenerErrors: { event: string; error: unknown }[];
 }
 
 export function createOracle(opts: OracleOptions = {}): Oracle {
@@ -292,6 +296,9 @@ export function createOracle(opts: OracleOptions = {}): Oracle {
       clock.set(date);
       game.tick(new OracleDate(clock.millis));
     },
+    isDecimal: (v) => v instanceof Decimal,
+    runBackfill: () => injector.get("backfill").run(game),
+    listenerErrors: rootScope.listenerErrors,
   };
 }
 

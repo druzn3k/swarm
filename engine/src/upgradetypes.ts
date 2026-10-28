@@ -1,5 +1,5 @@
 // Port of the type-table half of services/upgrade.coffee: UpgradeType, UpgradeTypes.
-// The runtime Upgrade class is NOT ported here (next phase).
+// The runtime Upgrade class is in ./upgrade.
 import { assert } from "./util";
 import { parseRows, resolveList } from "./spreadsheetutil";
 import { EffectTypes } from "./effecttypes";

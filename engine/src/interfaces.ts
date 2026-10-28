@@ -1,6 +1,7 @@
 // Minimal structural interfaces describing what the leaf modules (effect type
-// handlers, parseNumber, Tab, seedrand) need from the not-yet-ported runtime
-// classes (Game, Unit, Upgrade, Effect). The real classes implement these.
+// handlers, parseNumber, Tab, seedrand) need from the runtime classes (Game,
+// Unit, Upgrade, Effect). The real classes satisfy these (checked in
+// test/game.test.ts).
 import Decimal from "decimal.js";
 
 /** The slice of a UnitType that Tab uses. */

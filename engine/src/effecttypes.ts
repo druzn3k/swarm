@@ -1,6 +1,6 @@
 // Port of the type-table half of services/effect.coffee: EffectType,
 // EffectTypes, romanize, and the effecttypes registry of effect handlers.
-// The runtime Effect class is NOT ported here (next phase).
+// The runtime Effect class is in ./effect.
 import Decimal from "decimal.js";
 import { assert } from "./util";
 import { SeedRand } from "./seedrand";

@@ -1,8 +1,9 @@
 import Decimal from "decimal.js";
 import { parseNumber, ParseNumberUnit } from "../src";
+import { mkgame } from "./helpers";
 
-// The original spec used a full Game and the drone unit. We have no Game yet,
-// so fake the three unit methods parseNumber uses.
+// Fake the three unit methods parseNumber uses (the original spec used a full
+// Game and the drone unit; those cases are repeated against real units below).
 function mkunit(opts: {
   count?: Decimal.Value;
   twin?: Decimal.Value;
@@ -126,5 +127,74 @@ describe("parsenumber", () => {
   it("parses =n%, #617", () => {
     const unit = mkunit({});
     expect(parseNumber("=50%", unit)!.toNumber()).toBe(1);
+  });
+});
+
+// The original spec's unit-dependent cases, against real Units in a real Game.
+describe("parsenumber with real units", () => {
+
+  it("parses cost-percents", () => {
+    const game = mkgame({ larva: "9e9999", meat: 100 });
+    const unit = game.unit("drone");
+    expect(parseNumber("100%", unit)!.toNumber()).toBe(10);
+    expect(parseNumber("50%", unit)!.toNumber()).toBe(5);
+    expect(parseNumber("49.99999%", unit)!.toNumber()).toBe(4);
+    expect(parseNumber("0%", unit)!.toNumber()).toBe(1); //minimum
+    expect(parseNumber("-1%", unit)!.toNumber()).toBe(1);
+    expect(parseNumber("9999%", unit)!.toNumber()).toBe(10); //max
+  });
+
+  it("parses twins", () => {
+    const game = mkgame({ larva: "9e9999", meat: "1e99999" });
+    const unit = game.unit("drone");
+    const upgrade = game.upgrade("dronetwin");
+    expect(upgrade.count().toNumber()).toBe(0);
+    expect(unit.twinMult().toNumber()).toBe(1);
+    expect(parseNumber("=1000", unit)!.toNumber()).toBe(1000);
+
+    upgrade._setCount(1);
+    expect(unit.twinMult().toNumber()).toBe(2);
+    expect(parseNumber("=1000", unit)!.toNumber()).toBe(500);
+    expect(parseNumber("=1001", unit)!.toNumber()).toBe(501); // round up
+
+    upgrade._setCount(3);
+    expect(unit.twinMult().toNumber()).toBe(8);
+    expect(parseNumber("=100", unit)!.toNumber()).toBe(13);
+    expect(parseNumber("=1000", unit)!.toNumber()).toBe(125);
+    expect(parseNumber("=1001", unit)!.toNumber()).toBe(126);
+    expect(parseNumber("=1k", unit)!.toNumber()).toBe(125);
+    expect(parseNumber("=1.001k", unit)!.toNumber()).toBe(126);
+    expect(parseNumber("=1 thousand", unit)!.toNumber()).toBe(125);
+  });
+
+  it("parses a target value", () => {
+    const game = mkgame({ drone: 0, larva: "9e9999", meat: "1e99999" });
+    const unit = game.unit("drone");
+    const upgrade = game.upgrade("dronetwin");
+    expect(parseNumber("@1000", unit)!.toNumber()).toBe(1000);
+    unit._setCount(200);
+    expect(parseNumber("@1000", unit)!.toNumber()).toBe(800);
+    upgrade._setCount(1);
+    unit._setCount(0);
+    expect(unit.twinMult().toNumber()).toBe(2);
+    expect(parseNumber("@1000", unit)!.toNumber()).toBe(500);
+    expect(parseNumber("@1001", unit)!.toNumber()).toBe(501); // round up
+    upgrade._setCount(3);
+    expect(unit.twinMult().toNumber()).toBe(8);
+    expect(parseNumber("@100", unit)!.toNumber()).toBe(13);
+    expect(parseNumber("@1000", unit)!.toNumber()).toBe(125);
+    expect(parseNumber("@1001", unit)!.toNumber()).toBe(126);
+    expect(parseNumber("@1k", unit)!.toNumber()).toBe(125);
+    expect(parseNumber("@1.001k", unit)!.toNumber()).toBe(126);
+    expect(parseNumber("@1 thousand", unit)!.toNumber()).toBe(125);
+    unit._setCount(200);
+    expect(parseNumber("@100", unit)!.toNumber()).toBe(1); // 1 is the minimum, no matter what
+    expect(parseNumber("@1000", unit)!.toNumber()).toBe(100);
+    expect(parseNumber("@1k", unit)!.toNumber()).toBe(100);
+  });
+
+  it("parses =n%, #617", () => {
+    const game = mkgame({ drone: 0, larva: "9e9999", meat: "1e99999" });
+    expect(parseNumber("=50%", game.unit("drone"))!.toNumber()).toBe(1);
   });
 });
