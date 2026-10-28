@@ -60,7 +60,7 @@ the end.
 | `warnfirst` warnings | ✅ | ✅ | `BuyUnit.tsx` | |
 | Advanced unit data | ✅ | ✅ | `meta/AdvancedUnitData.tsx` | |
 | Prev / next unit (only visible ones) | ✅ | ✅ | `unit/UnitNav.tsx` | At 360px the name was cut off entirely; now name and count on two lines. |
-| Number formatting (`bignum` / `longnum`) | ⚠️ | ✅ | `format.ts` | `longnum` started suffixes at 1e6 and dropped trailing zeros of small numbers; the old filter (swarm-numberformat with the old options, checked by running it) starts at 1e5 (`minsuffix` typo in the old code) and keeps zeros: `123.456 thousand`, `8.00000 million`, `1.00`. Now identical. |
+| Number formatting (`bignum` / `longnum`) | ⚠️ | ✅ | `format.ts` | `longnum` started suffixes at 1e6 and dropped trailing zeros of small numbers; the old filter (swarm-numberformat with the old options, checked by running it) starts at 1e5 (`minsuffix` typo in the old code) and keeps zeros: `123.456 thousand`, `8.00000 million`, `1.00`. Now identical, except that trailing zeros are dropped on purpose (`8 million`, `1.5B`): they add digits without adding information. |
 
 ## 4. Upgrades on a unit
 

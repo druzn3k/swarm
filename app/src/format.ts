@@ -97,8 +97,7 @@ export function formatNumber(value: Decimal.Value | null | undefined, opts: Numb
   if (!val.isFinite()) return val.isNegative() ? "-∞" : "∞";
   const abs = val.abs();
   if (abs.lessThan(maxSmall)) {
-    // like the old formatter: "1.5" and "0.25", but "1.00" (zeros after a nonzero digit only)
-    return val.toPrecision(sigfigs, Decimal.ROUND_FLOOR).replace(/(\.\d*[1-9])0+$/, "$1");
+    return trimZeros(val.toPrecision(sigfigs, Decimal.ROUND_FLOOR));
   }
   if (abs.lessThan(minSuffix)) {
     return grouped(Math.floor(val.toNumber()));
@@ -106,11 +105,20 @@ export function formatNumber(value: Decimal.Value | null | undefined, opts: Numb
   const index = Math.floor(val.e / 3);
   const suffix = suffixFor(notation, flavor, index);
   if (suffix == null) {
-    return val.toExponential(sigfigs - 1, Decimal.ROUND_FLOOR).replace("e+", "e");
+    return trimZeros(val.toExponential(sigfigs - 1, Decimal.ROUND_FLOOR).replace("e+", "e"));
   }
   // 1000^index, built from its exponent: Decimal#pow is slow and this runs for every number on screen, every tick
   const prefix = val.dividedBy(new DecFloor(`1e${index * 3}`)).toPrecision(sigfigs, Decimal.ROUND_FLOOR);
-  return prefix + suffix;
+  return trimZeros(prefix) + suffix;
+}
+
+/**
+ * Drops trailing zeros after the decimal point: "8.00000" -> "8",
+ * "1.50e300" -> "1.5e300". The old game kept them ("8.00000 million"); this
+ * app drops them on purpose, as they add digits without adding information.
+ */
+export function trimZeros(s: string): string {
+  return s.replace(/(\.\d*?)0+(?=\D|$)/, "$1").replace(/\.(?=\D|$)/, "");
 }
 
 export interface PercentOptions {
