@@ -7,6 +7,7 @@ import { FormatContext } from "./format";
 import type { ReactNode } from "react";
 import { useOptionsFormatter } from "./game/options";
 import "./styles.css";
+import "./styles/wide.css";
 
 function FormatProvider({ children }: { children: ReactNode }) {
   return <FormatContext.Provider value={useOptionsFormatter()}>{children}</FormatContext.Provider>;

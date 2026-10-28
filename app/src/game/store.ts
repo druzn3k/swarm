@@ -26,6 +26,8 @@ export interface GameStoreOptions {
 export class GameStore {
   readonly engine: Engine;
   private version = 0;
+  /** Counts player actions (act), so throttled readers can catch up at once. */
+  actions = 0;
   private listeners = new Set<() => void>();
   /** offline gains since the game was last closed; null when there's nothing to show or it was dismissed */
   welcomeBack: WelcomeBack | null = null;
@@ -109,6 +111,7 @@ export class GameStore {
    * instead of throwing, e.g. when the player can't afford it any more.
    */
   act(fn: (engine: Engine) => void): unknown {
+    this.actions++;
     try {
       fn(this.engine);
       return undefined;

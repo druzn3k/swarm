@@ -29,6 +29,20 @@ export function visibleUpgrades(unit: Unit, klass: "upgrade" | "ability" = "upgr
   return (unit.upgrades.byClass[klass] ?? []).filter((u) => u.isVisible());
 }
 
+/**
+ * The unit the laptop layout shows next to a tab's list when the route names
+ * none: the one last opened on the tab (the old game's tab.lastselected), else
+ * the tab's lead unit, else its first visible unit.
+ */
+export function defaultUnit(game: Game, tabName: string): string {
+  const tab = tabByName(game, tabName);
+  if (!tab) return "";
+  const last = tab.lastselected;
+  if (last && last.isVisible() && tab.indexByUnitName[last.name] !== undefined) return last.name;
+  if (tab.leadunit.isVisible()) return tab.leadunit.name;
+  return visibleUnits(tab)[0]?.name ?? "";
+}
+
 export function tabTitle(tab: Tab): string {
   return tab.name === "all" ? "All units" : (tab.leadunit.unittype.plural as string);
 }

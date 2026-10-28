@@ -756,6 +756,10 @@ h3 {
   width: 28px;
   height: 28px;
 }
+/* label and count: grid items of the button on the phone (styles/wide.css lays them out on the strip) */
+.tab-text {
+  display: contents;
+}
 .tab-label {
   font-family: var(--display);
   font-size: 9px;

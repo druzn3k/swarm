@@ -1,0 +1,394 @@
+/* Laptop layout, from 1000px wide (layout.ts WIDE_MIN): the tabs become a
+   strip under the header, a tab or unit route splits into the tab's list
+   (left) and a unit's screen (right), other screens get a wide single column,
+   and the type steps up a size. The hive is drawn at a whole-number scale of
+   its 160x84 art so its pixels stay square. Below 1000px nothing here
+   applies: the phone layout is styles.css alone. */
+@media (min-width: 1000px) {
+  :root {
+    --scene-scale: 3;
+    --head-h: 84px;
+    --strip-h: 64px;
+    --top: calc(var(--head-h) + var(--strip-h));
+  }
+  html {
+    scroll-padding-top: calc(var(--top) + 16px);
+    scroll-padding-bottom: 16px;
+  }
+  body {
+    font-size: 17px;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    padding-bottom: 8px;
+  }
+  #root {
+    max-width: 1400px;
+  }
+  .wrap.wide {
+    gap: 18px;
+  }
+
+  /* header: brand on the left, roomy resource tiles on the right */
+  .app-header {
+    height: var(--head-h);
+    padding-block: 12px 8px;
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 340px));
+    gap: 16px;
+  }
+  .brand {
+    font-size: 26px;
+    letter-spacing: 2px;
+  }
+  .brand small {
+    font-size: 12px;
+    letter-spacing: 3px;
+  }
+  .res {
+    padding: 8px 14px;
+    column-gap: 12px;
+  }
+  .res img {
+    width: 36px;
+    height: 36px;
+  }
+  .res b {
+    font-size: 20px;
+  }
+  .res span {
+    font-size: 14px;
+  }
+
+  /* --- tab strip ------------------------------------------------------- */
+  .tabbar.strip {
+    position: sticky;
+    inset: var(--head-h) auto auto;
+    height: var(--strip-h);
+    z-index: 5;
+    padding: 6px;
+    margin-top: -18px; /* sits right under the header */
+    box-shadow: 0 var(--px) 0 0 var(--chitin);
+  }
+  .strip ul {
+    max-width: none;
+    height: 100%;
+    display: flex;
+    gap: 4px;
+  }
+  .strip li {
+    flex: 0 1 240px;
+    min-width: 0;
+  }
+  /* More sits at the far end, however many tabs are unlocked */
+  .strip li:last-child {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+  .strip .tab-btn {
+    grid-template-columns: 32px minmax(0, 1fr);
+    justify-items: start;
+    align-content: center;
+    align-items: center;
+    column-gap: 10px;
+    height: 100%;
+    min-height: 0;
+    padding: 4px 14px;
+    text-align: left;
+  }
+  .strip .tab-btn:hover {
+    background: var(--burrow);
+  }
+  .strip .tab-btn[aria-current="page"],
+  .strip .tab-more[aria-expanded="true"] {
+    background: var(--burrow-hi);
+  }
+  .strip .tab-more[aria-expanded="true"] {
+    box-shadow: inset 0 -3px 0 var(--chitin-hi);
+  }
+  .strip .tab-text {
+    display: grid;
+    min-width: 0;
+    max-width: 100%;
+    line-height: 1.25;
+  }
+  .strip .tab-btn img,
+  .strip .more-glyph {
+    width: 32px;
+    height: 32px;
+  }
+  .strip .tab-label {
+    font-size: 13px;
+  }
+  .strip .tab-count {
+    font-size: 14px;
+  }
+  .strip .tab-extra {
+    margin-top: 0;
+    font-size: 12px;
+  }
+  /* counts and extras side by side, so every tab is two lines */
+  .strip .tab-text:has(.tab-extra) {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  .strip .tab-text:has(.tab-extra) .tab-label {
+    grid-column: 1 / -1;
+  }
+  .strip .tab-extra {
+    align-self: end;
+  }
+  .strip .tab-btn .upgrade-dot {
+    top: 6px;
+    left: 6px;
+    right: auto;
+  }
+
+  /* --- More: a panel under the strip's More button --------------------- */
+  .sheet-backdrop.popover {
+    background: transparent;
+    display: block;
+  }
+  .sheet.popover {
+    position: fixed;
+    width: 400px;
+    max-width: calc(100vw - 32px);
+    padding: 14px 16px 16px;
+    box-shadow:
+      0 calc(-1 * var(--px)) 0 0 var(--chitin),
+      0 var(--px) 0 0 var(--chitin),
+      calc(-1 * var(--px)) 0 0 0 var(--chitin),
+      var(--px) 0 0 0 var(--chitin),
+      0 0 0 6px var(--edge),
+      0 18px 40px rgba(0, 0, 0, 0.55);
+    animation: pop-down 120ms steps(3);
+  }
+  @keyframes pop-down {
+    from {
+      transform: translateY(-12px);
+      opacity: 0;
+    }
+  }
+
+  /* --- split: list | unit ---------------------------------------------- */
+  .split {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  /* the list scrolls on its own and stays put while the unit changes */
+  .split-side {
+    position: sticky;
+    top: calc(var(--top) + 6px);
+    max-height: calc(100vh - var(--top) - 14px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--burrow-hi) transparent;
+    scroll-padding-block: 12px;
+    padding: 6px 4px 12px; /* room for the pixel frames and focus outlines */
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+  .split-side > * {
+    width: calc(160px * var(--scene-scale));
+  }
+  .split-side .scene canvas {
+    width: calc(160px * var(--scene-scale));
+    height: calc(84px * var(--scene-scale));
+  }
+  .split-side .tab-title {
+    margin-top: 2px;
+  }
+  .split-main {
+    padding-top: 6px;
+    align-content: start;
+  }
+  /* the list is right there: no "back to the tab" button */
+  .split-main .unit-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-top: 0;
+  }
+  .split-main .unit-nav .back {
+    display: none;
+  }
+
+  /* the unit on the right is marked in the list */
+  .unit-card[aria-current] {
+    background: var(--burrow-hi);
+    box-shadow: inset 5px 0 0 var(--amber);
+  }
+  .unit-card[aria-current] .chevron {
+    border-left-color: var(--amber);
+  }
+
+  /* other screens: one comfortable column, with lists two across */
+  .page-wide {
+    width: 100%;
+    max-width: 960px;
+    justify-self: center;
+  }
+  .page-wide .choices,
+  .page-wide .ach-list,
+  .page-wide .stat-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .page-wide .ach-list > li {
+    display: grid;
+  }
+
+  /* --- a size up ------------------------------------------------------- */
+  .tab-title {
+    font-size: 18px;
+  }
+  .unit-card {
+    grid-template-columns: 56px minmax(0, 1fr) auto 12px;
+    gap: 14px;
+    min-height: 76px;
+    padding: 10px 14px;
+  }
+  .unit-card img {
+    width: 56px;
+    height: 56px;
+  }
+  .unit-name {
+    font-size: 16px;
+  }
+  .unit-rate {
+    font-size: 15px;
+  }
+  .unit-count {
+    font-size: 21px;
+  }
+  .unit-count small {
+    font-size: 13px;
+  }
+  .unit-hero {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 18px;
+    padding: 16px 18px;
+  }
+  .unit-hero img {
+    width: 96px;
+    height: 96px;
+  }
+  .unit-hero h1 {
+    font-size: 26px;
+  }
+  .unit-hero .owned {
+    font-size: 16px;
+  }
+  .unit-nav a,
+  .unit-nav span.icon-btn {
+    font-size: 13px;
+  }
+  .unit-nav .step-count {
+    font-size: 12px;
+  }
+  .section {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+  .section h2 {
+    font-size: 14px;
+  }
+  .lol,
+  .upgrade .desc,
+  .upgrade .cost,
+  .help,
+  .placeholder {
+    font-size: 15px;
+  }
+  .upgrade {
+    padding: 14px;
+  }
+  .upgrade-name {
+    font-size: 15px;
+  }
+  .upgrade-level,
+  .bar-label,
+  .chart-rows li {
+    font-size: 14px;
+  }
+  .btn {
+    font-size: 14px;
+  }
+  .btn-verb {
+    font-size: 11px;
+  }
+  .btn-amount {
+    font-size: 16px;
+  }
+  .hint {
+    font-size: 16px;
+  }
+  .page h1 {
+    font-size: 26px;
+  }
+  .page {
+    gap: 16px;
+  }
+  .ascend-summary {
+    font-size: 14px;
+  }
+  .choice-label,
+  .option-title,
+  .save-block > label,
+  .stat-row h3 {
+    font-size: 14px;
+  }
+  .choice-example,
+  .option-example,
+  .chip,
+  .advanced {
+    font-size: 15px;
+  }
+  .ach-title {
+    font-size: 15px;
+  }
+  .ach-desc,
+  .ach-points {
+    font-size: 16px;
+  }
+  .ach-long {
+    font-size: 14px;
+  }
+  .ach-date,
+  .stat dt {
+    font-size: 13px;
+  }
+  .stat dd {
+    font-size: 16px;
+  }
+  .app-footer {
+    font-size: 14px;
+  }
+}
+
+/* the hive grows with the window, but leaves room for the list on short screens */
+@media (min-width: 1280px) and (min-height: 860px) {
+  :root {
+    --scene-scale: 4;
+  }
+}
+@media (min-width: 1800px) {
+  #root {
+    max-width: 1680px;
+  }
+}
+@media (min-width: 1800px) and (min-height: 1000px) {
+  :root {
+    --scene-scale: 5;
+  }
+}
+@media (min-width: 2400px) {
+  #root {
+    max-width: 1880px;
+  }
+}
+@media (min-width: 2400px) and (min-height: 1300px) {
+  :root {
+    --scene-scale: 6;
+  }
+}

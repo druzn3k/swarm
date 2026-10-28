@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { RefObject } from "react";
 import type { Game, Unit } from "@swarmsim/engine";
 import { useGameValue } from "../game/GameContext";
 import { useFormat } from "../format";
@@ -32,32 +33,52 @@ function tabInfos(game: Game, fmt: Formatter): TabInfo[] {
   return out;
 }
 
-/** Bottom tab bar: the unlocked resource tabs plus "More". Re-renders only when what it shows changes. */
-export function TabBar({ current, moreOpen, onMore }: { current?: string; moreOpen: boolean; onMore: () => void }) {
+/**
+ * The unlocked resource tabs plus "More": a bottom bar on the phone, a strip
+ * under the header on the laptop layout (`wide`). Re-renders only when what it
+ * shows changes.
+ */
+export function TabBar({
+  current,
+  moreOpen,
+  onMore,
+  wide = false,
+  moreRef,
+}: {
+  current?: string;
+  moreOpen: boolean;
+  onMore: () => void;
+  wide?: boolean;
+  moreRef?: RefObject<HTMLButtonElement>;
+}) {
   const fmt = useFormat();
   const snapshot = useGameValue((s) => JSON.stringify(tabInfos(s.game, fmt)));
   const tabs = useMemo(() => JSON.parse(snapshot) as TabInfo[], [snapshot]);
   return (
-    <nav className="tabbar" aria-label="Swarm tabs">
-      <ul style={{ gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}>
+    <nav className={wide ? "tabbar strip" : "tabbar"} aria-label="Swarm tabs">
+      <ul style={wide ? undefined : { gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}>
         {tabs.map(({ name, label, count, extra, upgradable }) => (
           <li key={name}>
             <a className="tab-btn" href={tabHref(name)} aria-current={current === name ? "page" : undefined} data-tab={name}>
               <SpriteIcon name={name} tab={name} size={28} />
-              <span className="tab-label">{label}</span>
-              <span className="tab-count num">{count}</span>
-              {extra && <span className="tab-count tab-extra num">{extra}</span>}
+              <span className="tab-text">
+                <span className="tab-label">{label}</span>
+                <span className="tab-count num">{count}</span>
+                {extra && <span className="tab-count tab-extra num">{extra}</span>}
+              </span>
               {upgradable && <span className="upgrade-dot" role="img" aria-label="New upgrade available" />}
             </a>
           </li>
         ))}
         <li>
-          <button type="button" className="tab-btn" aria-haspopup="dialog" aria-expanded={moreOpen} onClick={onMore}>
+          <button type="button" className="tab-btn tab-more" aria-haspopup="dialog" aria-expanded={moreOpen} onClick={onMore} ref={moreRef}>
             <span className="more-glyph" aria-hidden="true">
               ⋯
             </span>
-            <span className="tab-label">More</span>
-            <span className="tab-count">&nbsp;</span>
+            <span className="tab-text">
+              <span className="tab-label">More</span>
+              <span className="tab-count">&nbsp;</span>
+            </span>
           </button>
         </li>
       </ul>

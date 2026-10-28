@@ -13,6 +13,21 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
   in code. Single dark theme by design.
 - **Phone first:** one column, large touch targets (48px+), bottom tab bar,
   no hover-only information, works from 360px wide. Usable on desktop too.
+- **Laptop layout (phase D):** from 1000px wide (`src/layout.ts`
+  `WIDE_MIN`, `styles/wide.css`). A tab or unit route splits in two: the
+  tab's hive, title, extras and unit list on the left (its own scroll, so it
+  stays put), a unit's screen on the right (`<main>`, where the skip link
+  goes). With no unit in the route (`#/tab/<tab>`) the right shows the unit
+  last opened on that tab this session (the old game's `tab.lastselected`),
+  else the tab's lead unit (meat, larvae, territory, energy, mutagen). The
+  old wide page showed only the table until a unit was picked; an empty half
+  screen helps nobody. A unit picked from "all units" keeps that list. Other
+  screens are one column up to 960px. Tabs are a strip under the header and
+  More drops down from it as an anchored panel. The hive is drawn at a
+  whole-number scale of its 160×84 art: 3× (480px), 4× from 1280×860, 5× from
+  1800×1000, 6× from 2400×1300. Type steps up a size. Tutorial and
+  welcome-back cards go at the top of the right column. Below 1000px the phone
+  layout is unchanged.
 - **Saves:** localStorage under the app's own key. Import and export use the
   old game's save format, so players can bring a swarmsim.com save over.
 - **Routing:** hash routes, so the app works from any static host

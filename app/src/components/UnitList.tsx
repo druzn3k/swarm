@@ -1,6 +1,6 @@
 import type { Tab, Unit } from "@swarmsim/engine";
 import { memo } from "react";
-import { useGameValue, useStore } from "../game/GameContext";
+import { useGameValue, useGameValueEvery, useStore } from "../game/GameContext";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
 import { unitLabel, visibleUnits } from "../game/selectors";
@@ -25,18 +25,35 @@ function rateText(unit: Unit, tab: Tab, fmt: Formatter): string {
 
 const SEP = "\u0001";
 
-/** One unit's card. Re-renders only when its text changes. */
-const UnitCard = memo(function UnitCard({ unit, tab, quickBuy }: { unit: Unit; tab: Tab; quickBuy: boolean }) {
+/**
+ * One unit's card. Re-renders only when its text changes. Next to a unit's
+ * screen (laptop layout), cards refresh on every other tick, half of them on
+ * each (`phase`), so the list costs half as much per tick.
+ */
+const UnitCard = memo(function UnitCard({
+  unit,
+  tab,
+  quickBuy,
+  current,
+  phase,
+}: {
+  unit: Unit;
+  tab: Tab;
+  quickBuy: boolean;
+  current: boolean;
+  phase?: number;
+}) {
   const fmt = useFormat();
-  const snapshot = useGameValue(() => {
+  const every = phase === undefined ? 1 : 2;
+  const snapshot = useGameValueEvery(() => {
     const cap = unit.capValue() ? `${fmt.percent(unit.capPercent(), { floor: true })} full` : "";
     return [fmt.num(unit.count()), rateText(unit, tab, fmt), cap, unit.isNewlyUpgradable() ? "1" : ""].join(SEP);
-  });
+  }, every, phase);
   const [count, rate, cap, upgradable] = snapshot.split(SEP);
   const name = unitLabel(unit, true);
   return (
     <li className="card">
-      <a className="unit-card" href={unitHref(unit.name)} data-unit={unit.name}>
+      <a className="unit-card" href={unitHref(unit.name)} data-unit={unit.name} aria-current={current ? "true" : undefined}>
         <SpriteIcon name={unit.name} tab={unit.unittype.tab} />
         <span className="unit-names">
           <span className="unit-name">{name}</span>
@@ -52,13 +69,17 @@ const UnitCard = memo(function UnitCard({ unit, tab, quickBuy }: { unit: Unit; t
         )}
       </a>
       {/* the old table's buy dropdown, with advanced unit data on */}
-      {quickBuy && <QuickBuy unit={unit} />}
+      {quickBuy && <QuickBuy unit={unit} every={every} phase={phase} />}
     </li>
   );
 });
 
-/** The visible units of a tab, as cards that open the unit screen. Re-renders when the list changes; cards update themselves. */
-export function UnitList({ tab }: { tab: Tab }) {
+/**
+ * The visible units of a tab, as cards that open the unit screen. Re-renders
+ * when the list changes; cards update themselves. `selected` (laptop layout)
+ * marks the card of the unit shown next to the list.
+ */
+export function UnitList({ tab, selected }: { tab: Tab; selected?: string }) {
   const { game } = useStore();
   const names = useGameValue(() => visibleUnits(tab).map((u) => u.name).join(","));
   const [{ showAdvancedUnitData }] = useOptions();
@@ -67,8 +88,15 @@ export function UnitList({ tab }: { tab: Tab }) {
       {names
         .split(",")
         .filter(Boolean)
-        .map((n) => (
-          <UnitCard key={n} unit={game.unit(n)} tab={tab} quickBuy={showAdvancedUnitData} />
+        .map((n, i) => (
+          <UnitCard
+            key={n}
+            unit={game.unit(n)}
+            tab={tab}
+            quickBuy={showAdvancedUnitData}
+            current={n === selected}
+            phase={selected === undefined ? undefined : i % 2}
+          />
         ))}
     </ul>
   );

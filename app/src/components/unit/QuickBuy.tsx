@@ -4,7 +4,7 @@
 // it is open.
 import { useState } from "react";
 import type { Unit, Upgrade } from "@swarmsim/engine";
-import { useGame, useGameValue, useStore } from "../../game/GameContext";
+import { useGame, useGameValueEvery, useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { StackButton } from "./BuyUnit";
 
@@ -61,15 +61,15 @@ function QuickBuyBody({ unit }: { unit: Unit }) {
   );
 }
 
-/** "Buy up to N" under a unit card. Re-renders when its label changes. */
-export function QuickBuy({ unit }: { unit: Unit }) {
+/** "Buy up to N" under a unit card. Re-renders when its label changes; refreshes like its card (`every`, `phase`). */
+export function QuickBuy({ unit, every = 1, phase = 0 }: { unit: Unit; every?: number; phase?: number }) {
   const fmt = useFormat();
   const [open, setOpen] = useState(false);
-  const label = useGameValue(() => {
+  const label = useGameValueEvery(() => {
     if (!unit.isBuyButtonVisible()) return null;
     const max = unit.maxCostMet();
     return max.isZero() ? "Can't buy" : `Buy up to ${fmt.num(max.times(unit.twinMult()))}`;
-  });
+  }, every, phase);
   if (label == null) return null;
   return (
     <details className="quickbuy" open={open} onToggle={(e) => setOpen(e.currentTarget.open)} data-quickbuy={unit.name}>
