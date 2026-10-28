@@ -558,14 +558,20 @@ h3 {
 }
 .upgrade-top {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+}
+.upgrade-top > .px-icon {
+  flex: none;
+  background: var(--burrow);
 }
 .upgrade-name {
   font-family: var(--display);
   font-size: 14px;
   text-transform: capitalize;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .upgrade-level {
   color: var(--dust);

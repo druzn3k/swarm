@@ -13,6 +13,7 @@ import type { Gain } from "../../game/progression";
 import { unitNoun } from "../../game/selectors";
 import { CostList } from "../CostList";
 import { ProgressBar } from "../ProgressBar";
+import { UpgradeIcon } from "../Icon";
 import { StackButton } from "../unit/BuyUnit";
 import { upgradeEta } from "../unit/UpgradeItem";
 import "../../styles/progression.css";
@@ -64,6 +65,7 @@ export function AbilityItem({ upgrade }: { upgrade: Upgrade }) {
   return (
     <li className={"upgrade ability" + (shown ? "" : " upgrade-hidden")} data-upgrade={upgrade.name} aria-labelledby={titleId}>
       <div className="upgrade-top">
+        <UpgradeIcon name={upgrade.name} size={32} />
         <h3 className="upgrade-name" id={titleId}>
           {t.label}
         </h3>
