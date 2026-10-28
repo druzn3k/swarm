@@ -45,7 +45,7 @@ export interface NumberOptions {
   flavor?: Flavor;
   /** significant figures for suffixed numbers. Default: 3 (short), 5 (full) */
   sigfigs?: number;
-  /** numbers below this are written out in full. Default 1e5 */
+  /** numbers below this are written out in full. Default 1e5 (also for the old `longnum`, whose `minsuffix: 1e6` was a typo the formatter ignored) */
   minSuffix?: number;
   /** numbers below this keep their decimals (e.g. energy). Default 0 */
   maxSmall?: number;
@@ -86,8 +86,8 @@ export function formatNumber(value: Decimal.Value | null | undefined, opts: Numb
   if (!val.isFinite()) return val.isNegative() ? "-∞" : "∞";
   const abs = val.abs();
   if (abs.lessThan(maxSmall)) {
-    // (the old formatter kept "1.00000"; trailing zeros are dropped here)
-    return val.toPrecision(sigfigs, Decimal.ROUND_FLOOR).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+    // like the old formatter: "1.5" and "0.25", but "1.00" (zeros after a nonzero digit only)
+    return val.toPrecision(sigfigs, Decimal.ROUND_FLOOR).replace(/(\.\d*[1-9])0+$/, "$1");
   }
   if (abs.lessThan(minSuffix)) {
     return Math.floor(val.toNumber()).toLocaleString("en-US");
@@ -157,6 +157,8 @@ export interface DurationOptions {
   format?: DurationFormat;
   /** estimate is an upper bound: adds "or less" */
   nonexact?: boolean;
+  /** number notation for very long durations ("123.456 thousand years"), like the old filter's longnum */
+  notation?: Notation;
 }
 
 /**
@@ -184,7 +186,7 @@ export function formatDuration(value: number | Decimal | null | undefined, opts:
   }
   // abbreviated
   let text: string;
-  if (secs >= 100 * YEAR) text = `${formatNumber(secs / YEAR, { flavor: "full", sigfigs: 6, minSuffix: 1e6 })} years`;
+  if (secs >= 100 * YEAR) text = `${formatNumber(secs / YEAR, { flavor: "full", sigfigs: 6, notation: opts.notation })} years`;
   else if (secs >= YEAR) text = `${plural(Math.floor(secs / YEAR), "year", "years")} ${plural(Math.floor((secs % YEAR) / MONTH), "month", "months")}`;
   else if (secs >= MONTH) text = `${plural(Math.floor(secs / MONTH), "month", "months")} ${plural(Math.floor((secs % MONTH) / DAY), "day", "days")}`;
   else if (secs >= DAY) text = `${plural(Math.floor(secs / DAY), "day", "days")} ${plural(Math.floor((secs % DAY) / HOUR), "hour", "hours")}`;
@@ -199,7 +201,7 @@ export interface Formatter {
   settings: FormatSettings;
   /** short number, like the old `bignum` filter: "1.23M" */
   num(value: Decimal.Value | null | undefined, maxSmall?: number): string;
-  /** long number, like the old `longnum` filter: "1.2345 million" */
+  /** long number, like the old `longnum` filter: "123.456 thousand", "8.00000 million" */
   long(value: Decimal.Value | null | undefined, maxSmall?: number): string;
   percent(value: Decimal.Value | null | undefined, opts?: PercentOptions): string;
   duration(secs: number | Decimal | null | undefined, opts?: Omit<DurationOptions, "format">): string;
@@ -215,9 +217,9 @@ export function createFormatter(overrides: Partial<FormatSettings> = {}): Format
   const f: Formatter = {
     settings,
     num: (v, maxSmall = 0) => formatNumber(v, { notation, flavor: "short", maxSmall }),
-    long: (v, maxSmall = 0) => formatNumber(v, { notation, flavor: "full", sigfigs: 6, minSuffix: 1e6, maxSmall }),
+    long: (v, maxSmall = 0) => formatNumber(v, { notation, flavor: "full", sigfigs: 6, maxSmall }),
     percent: (v, opts) => formatPercent(v, opts),
-    duration: (secs, opts) => formatDuration(secs, { ...opts, format: settings.durationFormat }),
+    duration: (secs, opts) => formatDuration(secs, { ...opts, format: settings.durationFormat, notation }),
     velocityUnit: (about) => settings.resolveVelocityUnit?.(about) ?? settings.velocityUnit,
     rate: (perSecond, about) => {
       const vu = f.velocityUnit(about);

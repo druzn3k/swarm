@@ -26,7 +26,8 @@ describe("formatNumber", () => {
   it("keeps decimals below maxSmall", () => {
     expect(formatNumber(1.25, { maxSmall: 2 })).toBe("1.25");
     expect(formatNumber(0.5, { maxSmall: 2 })).toBe("0.5");
-    expect(formatNumber(1, { maxSmall: 2, sigfigs: 6 })).toBe("1");
+    // like the old formatter, zeros after the point stay unless a nonzero digit precedes them
+    expect(formatNumber(1, { maxSmall: 2, sigfigs: 6 })).toBe("1.00000");
   });
   it("handles odd input", () => {
     expect(formatNumber(undefined)).toBe("");
