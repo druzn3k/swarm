@@ -1,0 +1,12 @@
+{
+  "name": "@swarmsim/mockup",
+  "private": true,
+  "license": "GPL-3.0",
+  "description": "Pixel-art, phone-first UI mock-up running on @swarmsim/engine",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0"
+  }
+}
