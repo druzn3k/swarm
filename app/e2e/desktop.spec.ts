@@ -107,7 +107,8 @@ test("top tab strip: navigation, remembered unit per tab, keyboard order and ski
   await card(page, "queen").click();
   await expect(unitHeading(page)).toHaveText(/^queen$/i);
   await strip.locator('a[data-tab="territory"]').click();
-  await expect(unitHeading(page)).toHaveText(/^territory$/i);
+  // the territory unit has nothing to buy, so the tab opens on swarmlings
+  await expect(unitHeading(page)).toHaveText(/^swarmling$/i);
   await strip.locator('a[data-tab="meat"]').click();
   await expect(page).toHaveURL(/#\/tab\/meat$/);
   await expect(unitHeading(page)).toHaveText(/^queen$/i);
