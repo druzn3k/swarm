@@ -922,4 +922,11 @@ h3 {
     font-size: 8px;
     letter-spacing: 0;
   }
+  .unit-name {
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+  .unit-count {
+    font-size: 16px;
+  }
 }
