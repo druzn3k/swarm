@@ -1,0 +1,307 @@
+/* Progression (phase B1): More-sheet actions, abilities, upgrade notify
+   settings, ascension, welcome back and tutorial hints. Uses the tokens from
+   styles.css. */
+
+/* --- More sheet actions ------------------------------------------------- */
+.more-glyph-sm {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  background: var(--burrow-hi);
+  color: var(--amber);
+  font-size: 13px;
+  line-height: 1;
+}
+.sheet-item:disabled .more-glyph-sm {
+  color: var(--dust);
+}
+.more-status {
+  font-size: 13px;
+  color: var(--dust);
+  min-height: 1.4em;
+}
+.more-status:empty {
+  min-height: 0;
+}
+
+/* --- upgrade notify setting ------------------------------------------- */
+.notify {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 13px;
+  color: var(--dust);
+}
+.notify label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.notify-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--burrow-hi);
+  box-shadow: 0 0 0 2px var(--edge);
+}
+.notify-dot.on {
+  background: var(--amber);
+}
+.notify-select {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 240px;
+  min-height: var(--touch);
+  padding: 6px 8px;
+  border: 0;
+  background: var(--burrow);
+  color: var(--bone);
+  font: inherit;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 3px var(--burrow-hi);
+}
+.notify-select:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--amber);
+}
+.upgrade-hidden .upgrade-name {
+  color: var(--dust);
+}
+.upgrade-hidden {
+  opacity: 0.9;
+}
+
+/* --- abilities --------------------------------------------------------- */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 10px;
+  margin: -8px -6px -8px 0;
+  border: 0;
+  background: none;
+  color: var(--dust);
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  flex: none;
+}
+.toggle-box {
+  width: 18px;
+  height: 18px;
+  background: var(--burrow);
+  box-shadow: inset 0 0 0 3px var(--burrow-hi);
+  position: relative;
+}
+.toggle[aria-pressed="true"] {
+  color: var(--bone);
+}
+.toggle[aria-pressed="true"] .toggle-box {
+  background: var(--amber);
+  box-shadow: inset 0 0 0 3px var(--amber-dark);
+}
+.toggle[aria-pressed="true"] .toggle-box::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  background: var(--edge);
+}
+.ability .upgrade-top {
+  align-items: center;
+}
+.cast-result {
+  font-size: 14px;
+  color: var(--amber);
+}
+.cast-result:empty {
+  display: none;
+}
+.cast-flash {
+  display: block;
+  padding: 8px 10px;
+  background: var(--burrow);
+  box-shadow: inset 4px 0 0 var(--amber);
+  animation: cast-flash 600ms steps(3);
+}
+@keyframes cast-flash {
+  from {
+    background: var(--amber-dark);
+    color: var(--bone);
+  }
+}
+
+/* --- confirm-in-page --------------------------------------------------- */
+.btn.btn-wide {
+  width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  padding-block: 10px;
+}
+.btn.btn-danger {
+  background: var(--flesh);
+  box-shadow:
+    inset 0 -4px 0 #9c3a44,
+    0 3px 0 var(--edge);
+}
+.confirm {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: #3a1a22;
+  box-shadow: inset 4px 0 0 var(--flesh);
+}
+.confirm:focus {
+  outline: none;
+}
+.confirm:focus-visible {
+  outline: 3px solid var(--amber);
+}
+.confirm-text {
+  font-size: 15px;
+}
+
+/* --- ascension --------------------------------------------------------- */
+.ascend p {
+  font-size: 15px;
+}
+.ascend b {
+  font-weight: 400;
+  color: var(--amber);
+}
+.ascend .ascend-sub {
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dust);
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 3px dashed var(--burrow-hi);
+}
+.cap-note {
+  grid-template-columns: minmax(0, 1fr);
+  font-size: 14px;
+}
+.cap-note b {
+  color: var(--flesh);
+}
+.ascend-summary {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  color: inherit;
+  text-decoration: none;
+  min-height: var(--touch);
+  font-size: 13px;
+}
+.ascend-summary:hover {
+  background: var(--burrow-hi);
+}
+.ascend-summary-title {
+  font-family: var(--display);
+  font-size: 15px;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+.ascend-summary-title::after {
+  content: " ›";
+  color: var(--dust);
+}
+
+/* --- welcome back & tutorial hints ------------------------------------ */
+.hint {
+  background: var(--burrow);
+  padding: 12px 12px 12px 16px;
+  box-shadow:
+    inset 4px 0 0 var(--chitin-hi),
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge);
+  font-size: 15px;
+}
+.hint .icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.tutorial {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  margin-top: 6px;
+}
+.hint-body {
+  display: grid;
+  gap: 8px;
+}
+.hint-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.hint-head h2 {
+  font-size: 15px;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+.welcome {
+  box-shadow:
+    inset 4px 0 0 var(--amber),
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge);
+  margin-top: 6px;
+}
+.gains {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.gains a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 8px;
+  background: var(--earth);
+  color: var(--bone);
+  text-decoration: none;
+}
+.gains a:hover {
+  background: var(--burrow-hi);
+}
+.gains b {
+  font-family: var(--display);
+  font-weight: 400;
+  color: var(--amber);
+  font-size: 14px;
+}
+.gain-name {
+  text-transform: capitalize;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tut-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--amber);
+  box-shadow: 0 0 0 2px var(--edge);
+  vertical-align: middle;
+  margin-inline: 2px;
+}
+.sheet-item:disabled:hover {
+  background: var(--earth);
+}

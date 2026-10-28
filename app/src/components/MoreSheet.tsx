@@ -1,7 +1,8 @@
-// The "More" bottom sheet: links to the meta screens, and (phase B) the
-// buy-all-upgrades and undo actions.
+// The "More" bottom sheet: the buy-all-upgrades and undo actions, and links
+// to the meta screens.
 import { useEffect, useRef } from "react";
 import { href, tabHref } from "../router";
+import { MoreActions } from "./progression/MoreActions";
 
 const LINKS = [
   { label: "Achievements", to: href({ name: "achievements" }) },
@@ -49,20 +50,7 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
             ✕
           </button>
         </div>
-        {/* PHASE B (B1): actions go here — "Buy all N upgrades", "Buy cheapest N
-            upgrades" (25%), and "Undo" with its countdown. Keep them above the links. */}
-        <ul data-slot="more-actions" aria-label="Actions">
-          <li>
-            <button type="button" className="sheet-item" disabled>
-              Buy all upgrades <small>coming soon</small>
-            </button>
-          </li>
-          <li>
-            <button type="button" className="sheet-item" disabled>
-              Undo <small>coming soon</small>
-            </button>
-          </li>
-        </ul>
+        <MoreActions />
         <hr />
         <ul aria-label="Screens">
           {LINKS.map((l) => (

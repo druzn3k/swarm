@@ -4,10 +4,14 @@
 // bindings live in ./GameContext.tsx.
 import { createGame } from "@swarmsim/engine";
 import type { Clock, Engine, SaveStorage } from "@swarmsim/engine";
+import { computeWelcomeBack } from "./welcomeback";
+import type { WelcomeBack } from "./welcomeback";
 
 export const SAVE_ID = "swarmhive-v1";
 export const TICK_MILLIS = 100;
 export const SAVE_MILLIS = 5000;
+/** how often the "game is still open" time is stored, for welcome back (old: 60s) */
+export const HEARTBEAT_MILLIS = 60000;
 
 export interface GameStoreOptions {
   storage?: SaveStorage;
@@ -15,12 +19,16 @@ export interface GameStoreOptions {
   saveId?: string;
   /** a save string to import instead of loading the stored one */
   save?: string;
+  /** show the welcome-back summary even after a short absence */
+  forceWelcomeBack?: boolean;
 }
 
 export class GameStore {
   readonly engine: Engine;
   private version = 0;
   private listeners = new Set<() => void>();
+  /** offline gains since the game was last closed; null when there's nothing to show or it was dismissed */
+  welcomeBack: WelcomeBack | null = null;
 
   constructor(opts: GameStoreOptions = {}) {
     this.engine = createGame({
@@ -34,6 +42,22 @@ export class GameStore {
     events.on("command", () => this.bump());
     events.on("achieve", () => this.bump());
     events.on("reset", () => this.bump());
+    // computed before the first heartbeat, which would make it look like we never left
+    this.welcomeBack = computeWelcomeBack(this.game, this.engine.session, { force: opts.forceWelcomeBack });
+    events.on("import", (args: { success?: boolean } | undefined) => {
+      if (args?.success) {
+        this.welcomeBack = computeWelcomeBack(this.game, this.engine.session, { force: true, ignoreHeartbeat: true });
+        this.bump();
+      }
+    });
+    events.on("reset", () => {
+      this.welcomeBack = null;
+    });
+  }
+
+  dismissWelcomeBack(): void {
+    this.welcomeBack = null;
+    this.bump();
   }
 
   get game() {
@@ -99,17 +123,23 @@ export class GameStore {
   start(win: Window = window): () => void {
     const tick = win.setInterval(() => this.tick(), TICK_MILLIS);
     const save = win.setInterval(() => this.save(), SAVE_MILLIS);
+    const heartbeat = win.setInterval(() => this.engine.session.onHeartbeat(), HEARTBEAT_MILLIS);
+    this.engine.session.onHeartbeat();
     const onVisibility = () => {
       if (win.document.visibilityState === "hidden") this.save();
       else this.tick();
     };
-    const onPageHide = () => this.save();
+    const onPageHide = () => {
+      this.save();
+      this.engine.session.onClose();
+    };
     win.document.addEventListener("visibilitychange", onVisibility);
     win.addEventListener("pagehide", onPageHide);
     this.tick();
     return () => {
       win.clearInterval(tick);
       win.clearInterval(save);
+      win.clearInterval(heartbeat);
       win.document.removeEventListener("visibilitychange", onVisibility);
       win.removeEventListener("pagehide", onPageHide);
       this.save();

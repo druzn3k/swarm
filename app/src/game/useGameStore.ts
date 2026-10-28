@@ -4,7 +4,9 @@ import { GameStore } from "./store";
 import { safeLocalStorage } from "./storage";
 
 export function createBrowserStore(): GameStore {
-  return new GameStore({ storage: safeLocalStorage() });
+  // "?forcewelcome" in the url shows the welcome-back summary (the old game's switch)
+  const forceWelcomeBack = /[?&]forcewelcome\b/.test(window.location.hash + window.location.search);
+  return new GameStore({ storage: safeLocalStorage(), forceWelcomeBack });
 }
 
 /** Start ticking/autosaving while mounted. */

@@ -139,7 +139,7 @@ export function OptionsScreen() {
           />
           <span className="choice-label">Show advanced unit data</span>
         </label>
-        <p className="muted small">Show more detailed numbers on each unit's screen: what your maximum costs as a share of your stock, and how fast your income could buy it.</p>
+        <p className="muted small">Show more detailed numbers on each unit's screen: what your maximum costs as a share of your stock, how fast your income could buy it, and a notify setting on each upgrade.</p>
       </div>
 
       <section className="section card" aria-labelledby="save-title">
