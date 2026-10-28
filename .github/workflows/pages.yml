@@ -1,6 +1,6 @@
-# Publishes the pixel mock-up (mockup/) to GitHub Pages on every push to master,
-# by pushing the built files to the `gh-pages` branch. In Settings > Pages,
-# set Source to "Deploy from a branch", branch `gh-pages`, folder `/ (root)`.
+# Publishes the pixel mock-up (mockup/) to GitHub Pages on every push to master.
+# Needs Settings > Pages > Source set to "GitHub Actions" (done once by hand;
+# the workflow's own token isn't allowed to switch Pages on).
 name: deploy mock-up to GitHub Pages
 
 on:
@@ -9,7 +9,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 # one deploy at a time
 concurrency:
@@ -17,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -29,15 +31,17 @@ jobs:
     - run: pnpm install --frozen-lockfile
     - run: pnpm --filter @swarmsim/mockup test
     - run: pnpm --filter @swarmsim/mockup build
-    # gh-pages holds only the latest build, so it's replaced on every deploy
-    - name: push to gh-pages
-      working-directory: mockup/dist
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        touch .nojekyll
-        git init -q -b gh-pages
-        git add -A
-        git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-          commit -q -m "Deploy mock-up from ${GITHUB_SHA}"
-        git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+    - uses: actions/configure-pages@v5
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: mockup/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v4
