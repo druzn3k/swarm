@@ -9,6 +9,8 @@ import { useStore } from "../game/GameContext";
 import { useRoute } from "../router";
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
+/** How often the hive re-reads the population on its own (counts drift slowly; purchases update it at once). */
+const POPULATION_MILLIS = 500;
 
 /** Runs a scene's animation loop, honouring reduced motion. */
 function animate(scene: HiveScene): { stop: () => void } {
@@ -46,7 +48,14 @@ export function HiveCanvas({ tab: tabProp }: { tab?: string }) {
     if (!canvas || !canvas.getContext("2d")) return;
     const scene = new HiveScene(canvas, tab);
     let lastPop = "";
+    let lastAt = -Infinity;
+    let dirty = false;
+    // reading every unit's count is one of the bigger costs of a tick: a few times a second is plenty
     const update = () => {
+      const now = performance.now();
+      if (!dirty && now - lastAt < POPULATION_MILLIS) return;
+      dirty = false;
+      lastAt = now;
       const pop = population(store.game);
       const key = JSON.stringify(pop);
       if (key === lastPop) return;
@@ -58,6 +67,7 @@ export function HiveCanvas({ tab: tabProp }: { tab?: string }) {
     const anim = animate(scene);
     const unsubscribe = store.subscribe(update);
     const offCommand = store.events.on("command", (cmd) => {
+      dirty = true;
       if (cmd.unitname) scene.burst(cmd.unitname);
       else if (cmd.upgrade) scene.burst(cmd.upgrade.unit.name);
     });

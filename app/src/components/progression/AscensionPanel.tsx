@@ -2,7 +2,7 @@
 // Shown on the mutagen unit screen; the mutagen tab gets a short summary that
 // links there.
 import { useState } from "react";
-import type { Engine, Game } from "@swarmsim/engine";
+import type { Decimal, Engine, Game } from "@swarmsim/engine";
 import { useGame } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { unitHref } from "../../router";
@@ -12,8 +12,7 @@ import { useOptions } from "../../game/options";
 import "../../styles/progression.css";
 
 /** Seconds until energy covers the ascension cost; undefined when unknown, capped or already affordable. */
-export function ascendEtaSecs(game: Game): number | undefined {
-  const cost = game.ascendCost();
+export function ascendEtaSecs(game: Game, cost: Decimal = game.ascendCost()): number | undefined {
   if (game.ascendCostCapDiff(cost).greaterThan(0) || game.ascendCostPercent(cost).greaterThanOrEqualTo(1)) return undefined;
   try {
     return game.ascendCostDurationSecs(cost);
@@ -23,13 +22,13 @@ export function ascendEtaSecs(game: Game): number | undefined {
   }
 }
 
-function AscendProgress({ game }: { game: Game }) {
+// game.ascendCost() is costly (it adds up the energy spent this ascension): work it out once per render and pass it on
+function AscendProgress({ game, cost }: { game: Game; cost: Decimal }) {
   const fmt = useFormat();
-  const cost = game.ascendCost();
   const energy = game.unit("energy").count();
   const pct = game.ascendCostPercent(cost);
   const capDiff = game.ascendCostCapDiff(cost);
-  const eta = fmt.duration(ascendEtaSecs(game));
+  const eta = fmt.duration(ascendEtaSecs(game, cost));
   return (
     <>
       <ProgressBar value={pct.toNumber()} ready={pct.greaterThanOrEqualTo(1)} label="Energy toward ascension" />
@@ -62,6 +61,7 @@ export function AscensionPanel() {
   const canAscend = !cost.greaterThan(energy);
   const respecSpent = game.respecSpent();
   const freeRespecs = game.unit("freeRespec").count();
+  const respecCost = game.respecCost();
 
   const run = (fn: (engine: Engine) => void, done: string) => {
     const err = store.act(fn);
@@ -83,7 +83,7 @@ export function AscensionPanel() {
         Ascending now will cost <b className="num">{fmt.long(cost)}</b> energy. Spend energy elsewhere to reduce this cost; you've spent{" "}
         <span className="num">{fmt.long(game.ascendEnergySpent())}</span> energy.
       </p>
-      <AscendProgress game={game} />
+      <AscendProgress game={game} cost={cost} />
       <ConfirmButton
         label="Ascend - activate mutagen and restart"
         confirmLabel="Ascend"
@@ -103,7 +103,7 @@ export function AscensionPanel() {
         upgrades to 0, and resets your next ascension's energy cost to <span className="num">{fmt.long(game.ascendCost({ spent: 0 }))}</span>.
       </p>
       <p>
-        Respeccing now will cost <b className="num">{fmt.long(game.respecCost())}</b> energy ({fmt.percent(game.respecCostRate)} of your next ascension's cost).
+        Respeccing now will cost <b className="num">{fmt.long(respecCost)}</b> energy ({fmt.percent(game.respecCostRate)} of your next ascension's cost).
       </p>
       <ConfirmButton
         quiet
@@ -112,7 +112,7 @@ export function AscensionPanel() {
         disabled={respecSpent.isZero() || !game.isRespecCostMet()}
         warning={
           <>
-            Respec for <b className="num">{fmt.long(game.respecCost())}</b> energy? All mutagen units and upgrades go back to 0 and you get{" "}
+            Respec for <b className="num">{fmt.long(respecCost)}</b> energy? All mutagen units and upgrades go back to 0 and you get{" "}
             <b className="num">{fmt.long(respecSpent.times(game.respecRate()))}</b> mutagen back.
           </>
         }
@@ -169,7 +169,7 @@ export function AscendSummary() {
   const cost = game.ascendCost();
   const pct = game.ascendCostPercent(cost);
   const pre = game.unit("premutagen").count();
-  const eta = fmt.duration(ascendEtaSecs(game));
+  const eta = fmt.duration(ascendEtaSecs(game, cost));
   return (
     <a className="card ascend-summary" href={unitHref("mutagen")} data-slot="ascend-summary">
       <span className="ascend-summary-title">Ascend</span>

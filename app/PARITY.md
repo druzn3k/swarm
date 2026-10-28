@@ -164,6 +164,15 @@ the end.
 | Accessibility (landmarks, headings, labels, live regions, contrast) | ⚠️ | ✅ | axe-core found no violations on any screen; manual pass: no skip link, confirms didn't close with Escape or return focus (import, reset), opacity lowered contrast of masked achievements, default placeholder color. Muted text (`--dust`) is 7.4:1 on `--burrow` and 8.0:1 on `--earth` (AA). Fixed. |
 | 360px layout | ⚠️ | ✅ | Header rate, tab bar labels/counts and prev/next names were cut off. |
 
+## Phase D: laptop layout
+
+| Feature | Old | App | Notes |
+|---|---|---|---|
+| Wide unit page: list beside the unit (`views/unit.html` sidebar) | ✅ | ✅ | `components/Split.tsx`, from 1000px. The old list sat on the left at `col-lg-3`; here it holds the hive too. |
+| Tab links go to the last unit selected on the tab (`tab.url(lastselected)`) | ✅ | ✅ | Laptop layout: `#/tab/<tab>` shows `tab.lastselected`, else the lead unit (`game/selectors.ts defaultUnit`). The old main page showed only the table until a unit was picked; the app always fills the right column. |
+| Close button back to the table | ✅ | ⚠️ | No close/back button next to the list (it is in view); prev/next stay. |
+| Re-render cost, laptop layout (late save, 1440×900, CPU 4×) | — | ✅ | Tick+render mean: meat tab 8.3 ms, drone 12.8 ms (was 16.2 before these fixes), queen 13.1 ms, energy 11.4 ms, mutagen tab 10.1 ms (was 15.3), all units 9.2 ms. List cards next to a unit refresh every other tick, half on each; ascension cost is worked out once per render; the hive re-reads counts twice a second. |
+
 ## Counts
 
 | | ✅ | ⚠️ | ❌ |
@@ -173,7 +182,7 @@ the end.
 
 ## Remaining intentional differences
 
-- Tab bar is phone-shaped (bottom bar, More sheet) and units are listed lowest tier first.
+- Tab bar is a bottom bar with a More sheet on phones and a strip with a More panel from 1000px; units are listed lowest tier first.
 - No keyboard hotkeys.
 - Unavailable buy buttons are shown disabled instead of omitted.
 - Confirm steps before ascend, respec, reset and import.
