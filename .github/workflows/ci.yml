@@ -7,18 +7,49 @@ on:
     branches: [ "master", "production" ]
   pull_request:
     branches: [ "master", "production" ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  # tables, swarmsim-ts, engine and mockup: a pnpm workspace on current Node
+  packages:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22.x"
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm test:packages
+    # random-spawn seeds once depended on the player's timezone; keep the engine timezone-proof
+    - run: pnpm --filter @swarmsim/engine exec jest
+      env:
+        TZ: Asia/Tokyo
+
+  # the old AngularJS game: Yarn 1, Node 16, Ruby compass. Left as-is until it's retired.
+  legacy:
+    runs-on: ubuntu-latest
+    env:
+      # the root package.json names pnpm; let Yarn 1 run anyway
+      SKIP_YARN_COREPACK_CHECK: "1"
+    steps:
+    - uses: actions/checkout@v4
+    # build the packages it consumes with current Node and pnpm...
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22.x"
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm --filter @swarmsim/tables build && pnpm --filter @swarmsim/ts build
+    # ...then switch to the old toolchain (no pnpm calls after this point)
+    - uses: actions/setup-node@v4
       with:
         node-version: "16.x"
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: 3.1
     - run: gem install compass
-    - run: yarn --frozen-lockfile
-    - run: yarn test
+    - run: sh scripts/legacy-install.sh
+    - run: cd swarmsim-coffee && yarn test

@@ -1,3 +1,5 @@
+// re-exported so UIs share the engine's decimal.js (7.1.1) instance
+export { default as Decimal } from "decimal.js";
 export * from "./data";
 export * from "./util";
 export * from "./spreadsheetutil";

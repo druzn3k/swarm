@@ -10,6 +10,7 @@
     "oracle:golden": "ts-node --transpile-only oracle/generate.ts"
   },
   "dependencies": {
+    "@swarmsim/tables": "workspace:*",
     "decimal.js": "7.1.1",
     "lodash": "4.17.21",
     "lz-string": "1.4.4",

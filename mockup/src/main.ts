@@ -1,7 +1,6 @@
 // Phone-first pixel UI mock-up, running the real @swarmsim/engine.
-import Decimal from "decimal.js";
-import { createGame, numberSuffixesShort } from "../../engine/src";
-import type { Unit, Upgrade, Tab } from "../../engine/src";
+import { Decimal, createGame, numberSuffixesShort } from "@swarmsim/engine";
+import type { Unit, Upgrade, Tab } from "@swarmsim/engine";
 import { HiveScene, Population } from "./scene";
 import { spriteDataUrl, spriteFor } from "./sprites";
 

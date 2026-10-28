@@ -5,6 +5,7 @@
         "resolveJsonModule": true,
         "outDir": "dist",
         "target": "ES6",
+        "lib": ["ES2019", "DOM"],
         "noImplicitAny": true,
         "jsx": "react",
         "strict": true

@@ -2,4 +2,8 @@
 set -eux
 cd "`dirname "$0"`"
 ./setup/rvm.sh
-yarn install
+corepack enable
+pnpm install
+pnpm --filter @swarmsim/tables build
+pnpm --filter @swarmsim/ts build
+pnpm legacy:install

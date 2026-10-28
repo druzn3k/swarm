@@ -8,9 +8,7 @@
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": { "*": ["../engine/node_modules/*", "../engine/node_modules/@types/*"] }
+    "noEmit": true
   },
-  "include": ["src", "../engine/src/typings"]
+  "include": ["src", "node_modules/@swarmsim/engine/src/typings"]
 }

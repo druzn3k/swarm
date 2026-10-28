@@ -10,8 +10,6 @@ const result = await build({
   target: "es2019",
   write: false,
   define: { "process.env.NODE_ENV": '"production"' },
-  // share the engine's decimal.js, so Decimal instances match
-  nodePaths: ["../engine/node_modules"],
 });
 const js = result.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
 const html = readFileSync("src/index.html", "utf8").replace("<!--APP-->", () => `<script>${js}</script>`);

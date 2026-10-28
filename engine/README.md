@@ -46,9 +46,9 @@ const exported = session.exportSave();
 ## Tests
 
 ```sh
-yarn test            # typecheck + all Jest suites
-TZ=Asia/Tokyo yarn test
-yarn oracle:golden   # regenerate test/golden/*.json from the ORIGINAL engine
+pnpm test            # typecheck + all Jest suites
+TZ=Asia/Tokyo pnpm test
+pnpm oracle:golden   # regenerate test/golden/*.json from the ORIGINAL engine
 ```
 
 - `oracle/` runs the original CoffeeScript engine headlessly in Node (a tiny
