@@ -23,6 +23,8 @@
   }
   [hidden] { display: none !important; }
   html, body { background: var(--earth); color: var(--bone); }
+  :root { padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; }
   body {
     font-family: var(--body);
     font-size: 16px;
@@ -117,6 +119,7 @@
 
   .meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--dust); font-size: 13px; padding-block: 8px; }
   .meta p { margin: 0; max-width: 40ch; }
+  .meta a { color: var(--bone); }
   .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
   /* bottom tab bar */
@@ -197,6 +200,7 @@
 
   <div class="meta">
     <p>Pixel mock-up on the new TypeScript engine. Progress saves in this browser.</p>
+    <p>Unofficial fork of <a href="https://www.swarmsim.com">Swarm Simulator</a> by Evan Rosson. Free software under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a>. <a href="https://github.com/druzn3k/swarm">Source code</a>.</p>
     <button class="chip" id="reset" type="button">Start over</button>
     <div class="confirm" id="reset-confirm" hidden>
       <span>Erase this hive?</span>
