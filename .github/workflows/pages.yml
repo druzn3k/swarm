@@ -29,9 +29,9 @@ jobs:
     - run: pnpm install --frozen-lockfile
     - run: pnpm --filter @swarmsim/mockup test
     - run: pnpm --filter @swarmsim/mockup build
+    # needs Settings > Pages > Source set to "GitHub Actions" once; the
+    # workflow's own token isn't allowed to switch Pages on
     - uses: actions/configure-pages@v5
-      with:
-        enablement: true
     - uses: actions/upload-pages-artifact@v3
       with:
         path: mockup/dist
