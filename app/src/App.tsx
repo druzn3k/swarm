@@ -16,6 +16,7 @@ import { AboutScreen } from "./screens/AboutScreen";
 import { AchievementToast } from "./components/meta/AchievementToast";
 import { WelcomeBack } from "./components/progression/WelcomeBack";
 import { TutorialHint } from "./components/progression/TutorialHint";
+import { ArtGalleryScreen } from "./screens/ArtGalleryScreen";
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -31,6 +32,8 @@ function Screen({ route }: { route: Route }) {
       return <OptionsScreen />;
     case "about":
       return <AboutScreen />;
+    case "art":
+      return <ArtGalleryScreen />;
   }
 }
 

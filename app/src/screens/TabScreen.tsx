@@ -18,7 +18,6 @@ export function TabScreen({ tab: name }: { tab: string }) {
   if (!tab || !visible) return null;
   return (
     <>
-      {/* PHASE B (B3): per-tab hive scenes (territory war band, energy nexus, mutagen lab) */}
       <HiveCanvas />
       <h1 className="tab-title">{tabTitle(tab)}</h1>
       {/* on the larva tab the old game listed achievement points here */}
