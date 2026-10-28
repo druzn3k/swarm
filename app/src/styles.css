@@ -35,6 +35,9 @@ body {
 }
 html {
   -webkit-text-size-adjust: 100%;
+  /* keep focused and scrolled-to items clear of the sticky header and the tab bar */
+  scroll-padding-top: 90px;
+  scroll-padding-bottom: calc(var(--nav-h) + 16px);
 }
 body {
   margin: 0;
