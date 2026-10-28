@@ -69,3 +69,14 @@ describe("scenes", () => {
     expect(sceneFor("all")).toBe("meat");
   });
 });
+
+describe("population log10", () => {
+  it("matches decimal.js log10 closely, also past float range", async () => {
+    const { fastLog10 } = await import("./population");
+    const { Decimal } = await import("@swarmsim/engine");
+    for (const v of ["1", "7", "12345", "9.99e299", "1e300", "3.5e301", "1.23e5000", "9.99999e123456"]) {
+      const d = new Decimal(v);
+      expect(Math.abs(fastLog10(d) - d.log(10).toNumber())).toBeLessThan(1e-6);
+    }
+  });
+});

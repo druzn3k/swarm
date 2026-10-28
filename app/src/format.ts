@@ -53,6 +53,17 @@ export interface NumberOptions {
 
 const DecFloor = Decimal.clone({ rounding: Decimal.ROUND_FLOOR });
 
+// toLocaleString() with options builds a new Intl.NumberFormat per call; these run for every number, every tick
+const numberFormats = new Map<number, Intl.NumberFormat>();
+function grouped(n: number, places = 0): string {
+  let f = numberFormats.get(places);
+  if (!f) {
+    f = new Intl.NumberFormat("en-US", { minimumFractionDigits: places, maximumFractionDigits: places });
+    numberFormats.set(places, f);
+  }
+  return f.format(n);
+}
+
 function suffixFor(notation: Notation, flavor: Flavor, index: number): string | undefined {
   if (index < 0) return "";
   switch (notation) {
@@ -90,14 +101,15 @@ export function formatNumber(value: Decimal.Value | null | undefined, opts: Numb
     return val.toPrecision(sigfigs, Decimal.ROUND_FLOOR).replace(/(\.\d*[1-9])0+$/, "$1");
   }
   if (abs.lessThan(minSuffix)) {
-    return Math.floor(val.toNumber()).toLocaleString("en-US");
+    return grouped(Math.floor(val.toNumber()));
   }
   const index = Math.floor(val.e / 3);
   const suffix = suffixFor(notation, flavor, index);
   if (suffix == null) {
     return val.toExponential(sigfigs - 1, Decimal.ROUND_FLOOR).replace("e+", "e");
   }
-  const prefix = val.dividedBy(new DecFloor(1000).pow(index)).toPrecision(sigfigs, Decimal.ROUND_FLOOR);
+  // 1000^index, built from its exponent: Decimal#pow is slow and this runs for every number on screen, every tick
+  const prefix = val.dividedBy(new DecFloor(`1e${index * 3}`)).toPrecision(sigfigs, Decimal.ROUND_FLOOR);
   return prefix + suffix;
 }
 
@@ -118,7 +130,7 @@ export function formatPercent(value: Decimal.Value | null | undefined, opts: Per
   const places = opts.places ?? 0;
   const n = d.toNumber();
   if (!isFinite(n)) return n > 0 ? "∞%" : "?";
-  return n.toLocaleString("en-US", { minimumFractionDigits: places, maximumFractionDigits: places }) + "%";
+  return grouped(n, places) + "%";
 }
 
 // --- durations ----------------------------------------------------------------

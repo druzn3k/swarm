@@ -4,7 +4,7 @@
 // it is open.
 import { useState } from "react";
 import type { Unit, Upgrade } from "@swarmsim/engine";
-import { useStore } from "../../game/GameContext";
+import { useGame, useGameValue, useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { StackButton } from "./BuyUnit";
 
@@ -46,28 +46,38 @@ function UpgradeButtons({ upgrade }: { upgrade: Upgrade }) {
   );
 }
 
-/** "Buy up to N" under a unit card. Re-renders with its parent (the unit list), every tick. */
+/** The open dropdown: re-renders every tick. */
+function QuickBuyBody({ unit }: { unit: Unit }) {
+  useGame();
+  return (
+    <div className="quickbuy-body">
+      <UnitButtons unit={unit} />
+      {unit.upgrades.list
+        .filter((u) => u.isVisible())
+        .map((u) => (
+          <UpgradeButtons key={u.name} upgrade={u} />
+        ))}
+    </div>
+  );
+}
+
+/** "Buy up to N" under a unit card. Re-renders when its label changes. */
 export function QuickBuy({ unit }: { unit: Unit }) {
   const fmt = useFormat();
   const [open, setOpen] = useState(false);
-  if (!unit.isBuyButtonVisible()) return null;
-  const max = unit.maxCostMet();
-  const label = max.isZero() ? "Can't buy" : `Buy up to ${fmt.num(max.times(unit.twinMult()))}`;
-  const upgrades = unit.upgrades.list.filter((u) => u.isVisible());
+  const label = useGameValue(() => {
+    if (!unit.isBuyButtonVisible()) return null;
+    const max = unit.maxCostMet();
+    return max.isZero() ? "Can't buy" : `Buy up to ${fmt.num(max.times(unit.twinMult()))}`;
+  });
+  if (label == null) return null;
   return (
     <details className="quickbuy" open={open} onToggle={(e) => setOpen(e.currentTarget.open)} data-quickbuy={unit.name}>
       <summary>
         <span className="num">{label}</span>
         <span className="sr-only"> {String(unit.unittype.plural)}</span>
       </summary>
-      {open && (
-        <div className="quickbuy-body">
-          <UnitButtons unit={unit} />
-          {upgrades.map((u) => (
-            <UpgradeButtons key={u.name} upgrade={u} />
-          ))}
-        </div>
-      )}
+      {open && <QuickBuyBody unit={unit} />}
     </details>
   );
 }

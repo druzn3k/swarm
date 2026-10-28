@@ -1,5 +1,6 @@
 import type { Tab, Unit } from "@swarmsim/engine";
-import { useGame } from "../game/GameContext";
+import { memo } from "react";
+import { useGameValue, useStore } from "../game/GameContext";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
 import { unitLabel, visibleUnits } from "../game/selectors";
@@ -22,10 +23,16 @@ function rateText(unit: Unit, tab: Tab, fmt: Formatter): string {
   return "";
 }
 
-function UnitCard({ unit, tab, quickBuy }: { unit: Unit; tab: Tab; quickBuy: boolean }) {
+const SEP = "\u0001";
+
+/** One unit's card. Re-renders only when its text changes. */
+const UnitCard = memo(function UnitCard({ unit, tab, quickBuy }: { unit: Unit; tab: Tab; quickBuy: boolean }) {
   const fmt = useFormat();
-  const cap = unit.capValue();
-  const upgradable = unit.isNewlyUpgradable();
+  const snapshot = useGameValue(() => {
+    const cap = unit.capValue() ? `${fmt.percent(unit.capPercent(), { floor: true })} full` : "";
+    return [fmt.num(unit.count()), rateText(unit, tab, fmt), cap, unit.isNewlyUpgradable() ? "1" : ""].join(SEP);
+  });
+  const [count, rate, cap, upgradable] = snapshot.split(SEP);
   const name = unitLabel(unit, true);
   return (
     <li className="card">
@@ -33,11 +40,11 @@ function UnitCard({ unit, tab, quickBuy }: { unit: Unit; tab: Tab; quickBuy: boo
         <SpriteIcon name={unit.name} tab={unit.unittype.tab} />
         <span className="unit-names">
           <span className="unit-name">{name}</span>
-          <span className="unit-rate num">{rateText(unit, tab, fmt)}</span>
+          <span className="unit-rate num">{rate}</span>
         </span>
         <span className="unit-count num">
-          {fmt.num(unit.count())}
-          {cap && <small>{fmt.percent(unit.capPercent(), { floor: true })} full</small>}
+          {count}
+          {cap && <small>{cap}</small>}
         </span>
         <span className="chevron" aria-hidden="true" />
         {upgradable && (
@@ -48,17 +55,21 @@ function UnitCard({ unit, tab, quickBuy }: { unit: Unit; tab: Tab; quickBuy: boo
       {quickBuy && <QuickBuy unit={unit} />}
     </li>
   );
-}
+});
 
-/** The visible units of a tab, as cards that open the unit screen. Re-renders every tick. */
+/** The visible units of a tab, as cards that open the unit screen. Re-renders when the list changes; cards update themselves. */
 export function UnitList({ tab }: { tab: Tab }) {
-  useGame();
+  const { game } = useStore();
+  const names = useGameValue(() => visibleUnits(tab).map((u) => u.name).join(","));
   const [{ showAdvancedUnitData }] = useOptions();
   return (
     <ul className="unit-list">
-      {visibleUnits(tab).map((u) => (
-        <UnitCard key={u.name} unit={u} tab={tab} quickBuy={showAdvancedUnitData} />
-      ))}
+      {names
+        .split(",")
+        .filter(Boolean)
+        .map((n) => (
+          <UnitCard key={n} unit={game.unit(n)} tab={tab} quickBuy={showAdvancedUnitData} />
+        ))}
     </ul>
   );
 }

@@ -2,15 +2,16 @@
 // swarmsim-coffee/app/scripts/directives/tutorial.coffee. 0 means none.
 // The step numbers are the old ones (11 sits between 3 and 4; 100 follows the
 // first ascension).
-import type { Game } from "@swarmsim/engine";
+import type { Decimal, Game } from "@swarmsim/engine";
 
 export function tutorialStep(game: Game): number {
   return (game.cache.tutorialStep ??= computeStep(game));
 }
 
 function computeStep(game: Game): number {
-  const units = game.countUnits();
-  const upgrades = game.countUpgrades();
+  // only a few counts matter; game.countUnits() would count every unit each tick
+  const units = lazyCounts((n) => game.unit(n).count());
+  const upgrades = lazyCounts((n) => game.upgrade(n).count());
   if (!units.ascension.isZero()) {
     // (almost) no tutorial messages after the first ascension
     return game.cache.firstSpawn.ascension ? 100 : 0;
@@ -33,4 +34,8 @@ function computeStep(game: Game): number {
   }
   if (units.drone.greaterThan(0)) return 2;
   return 1;
+}
+
+function lazyCounts(count: (name: string) => Decimal): Record<string, Decimal> {
+  return new Proxy({} as Record<string, Decimal>, { get: (cache, name: string) => (cache[name] ??= count(name)) });
 }
