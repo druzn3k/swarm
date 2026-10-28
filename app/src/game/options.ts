@@ -18,6 +18,8 @@ export interface Options {
   velocityUnit: string;
   durationFormat: DurationFormat;
   showAdvancedUnitData: boolean;
+  /** the territory production chart (old options.showCharts, default on) */
+  showCharts: boolean;
 }
 
 export const OPTION_DEFAULTS: Options = {
@@ -25,6 +27,7 @@ export const OPTION_DEFAULTS: Options = {
   velocityUnit: "sec",
   durationFormat: "abbreviated",
   showAdvancedUnitData: false,
+  showCharts: true,
 };
 
 export const NOTATIONS: Notation[] = ["standard-decimal", "scientific-e", "hybrid", "engineering"];
@@ -72,6 +75,7 @@ export function readOptions(session: HasState): Options {
     ),
     durationFormat: pick(o.durationFormat, DURATION_FORMATS, OPTION_DEFAULTS.durationFormat),
     showAdvancedUnitData: !!o.showAdvancedUnitData,
+    showCharts: o.showCharts == null ? true : !!o.showCharts,
   };
 }
 
@@ -82,6 +86,7 @@ export function writeOption<K extends keyof Options>(game: Game, key: K, value: 
     velocityUnit: (v) => VELOCITY_UNITS.some((u) => u.name === v),
     durationFormat: (v) => DURATION_FORMATS.includes(v as DurationFormat),
     showAdvancedUnitData: (v) => typeof v === "boolean",
+    showCharts: (v) => typeof v === "boolean",
   };
   if (!valid[key](value)) throw new Error(`invalid option for ${key}: ${String(value)}`);
   game.withUnreifiedSave(() => {
@@ -113,7 +118,7 @@ export function formatterFor(game: Game, options: Options): Formatter {
 
 const optionsKey = (s: GameStore) => {
   const o = readOptions(s.engine.session);
-  return `${o.notation}|${o.velocityUnit}|${o.durationFormat}|${o.showAdvancedUnitData ? 1 : 0}`;
+  return `${o.notation}|${o.velocityUnit}|${o.durationFormat}|${o.showAdvancedUnitData ? 1 : 0}|${o.showCharts ? 1 : 0}`;
 };
 
 /** The current options (re-renders when they change, e.g. after an import) and a setter. */

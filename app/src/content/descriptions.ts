@@ -1,7 +1,6 @@
-// Descriptions the spreadsheet leaves as "-": the old game rendered these from
-// templates (swarmsim-coffee/app/views/desc/). Phase A carries over their
-// static text. PHASE B: port the live parts (production numbers, mutagen
-// chances, ability outputs) as React components.
+// Static fallbacks for descriptions the spreadsheet leaves as "-". The live
+// templates (swarmsim-coffee/app/views/desc/) are ported in
+// ./LiveDescription.tsx; these are used if a template can't be rendered.
 
 export const unitDescriptions: Record<string, string> = {
   cocoon:

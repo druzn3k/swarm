@@ -5,7 +5,7 @@ import type { Upgrade } from "@swarmsim/engine";
 import { useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import type { Formatter } from "../../format";
-import { upgradeDescription } from "../../content/descriptions";
+import { UpgradeDescription } from "../../content/LiveDescription";
 import { CostList } from "../CostList";
 import { ProgressBar } from "../ProgressBar";
 
@@ -35,7 +35,6 @@ export function UpgradeItem({ upgrade, ability = false, footer }: { upgrade: Upg
   // the old game's special case: only twin upgrades get a buy-max button
   const twin = !ability && upgrade.name.indexOf("twin") >= 0;
   const max = upgrade.maxCostMet();
-  const desc = upgradeDescription(upgrade.name, t.description);
   const buy = () => store.act(({ commands }) => commands.buyUpgrade({ upgrade, num: 1, ui: "button" }));
   const buyMax = () => store.act(({ commands }) => commands.buyMaxUpgrade({ upgrade, percent: 1, ui: "button" }));
   return (
@@ -44,7 +43,7 @@ export function UpgradeItem({ upgrade, ability = false, footer }: { upgrade: Upg
         <h3 className="upgrade-name">{t.label}</h3>
         {t.maxlevel != 1 && !ability && <span className="upgrade-level num">Lv {fmt.num(upgrade.count())}</span>}
       </div>
-      {desc && <p className="desc">{desc}</p>}
+      <UpgradeDescription upgrade={upgrade} />
       {t.lol && <p className="lol">{t.lol}</p>}
       <p className="cost">
         {ability ? (

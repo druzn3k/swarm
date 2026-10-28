@@ -15,6 +15,7 @@ describe("options", () => {
       velocityUnit: "sec",
       durationFormat: "abbreviated",
       showAdvancedUnitData: false,
+      showCharts: true,
     });
     expect(OPTION_DEFAULTS.notation).toBe("standard-decimal");
   });
@@ -25,11 +26,13 @@ describe("options", () => {
     writeOption(game, "velocityUnit", "hr");
     writeOption(game, "durationFormat", "human");
     writeOption(game, "showAdvancedUnitData", true);
+    writeOption(game, "showCharts", false);
     expect(session.state.options).toMatchObject({
       notation: "engineering",
       velocityUnit: "hr",
       durationFormat: "human",
       showAdvancedUnitData: true,
+      showCharts: false,
     });
     expect(readOptions(session).velocityUnit).toBe("hr");
     // saved to storage right away

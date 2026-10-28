@@ -3,13 +3,14 @@ import { useGame } from "../game/GameContext";
 import { useFormat } from "../format";
 import { findUnit, isUnitBuyable, unitLabel } from "../game/selectors";
 import { parseQuery, tabHref, useHash } from "../router";
-import { unitDescription } from "../content/descriptions";
+import { UnitDescription } from "../content/LiveDescription";
 import { SpriteIcon } from "../components/Icon";
 import { UnitNav } from "../components/unit/UnitNav";
 import { CapInfo, OwnedLine, ProductionLines } from "../components/unit/UnitInfo";
 import { BuyUnit } from "../components/unit/BuyUnit";
 import { UpgradeList } from "../components/unit/UpgradeList";
 import { AbilityList } from "../components/unit/AbilityList";
+import { TerritoryChart } from "../components/unit/TerritoryChart";
 import { AscensionPanel } from "../components/progression/AscensionPanel";
 
 export function UnitScreen({ unit: key }: { unit: string }) {
@@ -25,7 +26,6 @@ export function UnitScreen({ unit: key }: { unit: string }) {
   if (!unit || !valid) return null;
 
   const t = unit.unittype;
-  const desc = unitDescription(unit.name, t.description);
   const initial = parseQuery(hash).get("num") ?? "";
   return (
     <>
@@ -40,14 +40,17 @@ export function UnitScreen({ unit: key }: { unit: string }) {
         </div>
       </div>
       <section className="section card" aria-label="About this unit">
-        {desc && <p className="desc">{desc}</p>}
+        <UnitDescription unit={unit} />
         {t.lol && <p className="lol">{t.lol}</p>}
         <OwnedLine unit={unit} />
         <ProductionLines unit={unit} />
       </section>
       <CapInfo unit={unit} />
       {unit.name === "mutagen" && <AscensionPanel />}
+      {unit.name === "territory" && <TerritoryChart />}
       {isUnitBuyable(unit) && <BuyUnit key={unit.name + "?" + initial} unit={unit} initial={initial} />}
+      {/* the old crystal page converted crystals to energy here */}
+      {unit.name === "crystal" && <BuyUnit key={"energy?" + initial} unit={game.unit("energy")} initial={initial} />}
       <UpgradeList unit={unit} />
       <AbilityList unit={unit} />
     </>

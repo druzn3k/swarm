@@ -583,6 +583,50 @@ h3 {
   padding: 10px 12px;
 }
 
+/* territory production chart */
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.btn-small {
+  min-height: 40px;
+  font-size: 11px;
+}
+.chart-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.chart-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 4.5em;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.chart-label {
+  text-transform: capitalize;
+  overflow-wrap: anywhere;
+}
+.chart-bar {
+  display: block;
+  height: 12px;
+  background: var(--earth);
+}
+.chart-fill {
+  display: block;
+  height: 100%;
+  background: var(--flesh);
+}
+.chart-value {
+  text-align: right;
+  color: var(--dust);
+}
+
 /* --- pages (achievements, about, ...) ---------------------------------- */
 .page {
   display: grid;
