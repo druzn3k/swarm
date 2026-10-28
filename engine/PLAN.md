@@ -30,7 +30,7 @@ engine/
 ## Phases
 
 1. **Scaffold** — package, jest, data loading. (done)
-2. **In parallel:**
+2. **In parallel:** (done)
    - **Oracle**: run the original CoffeeScript services in Node with a tiny
      Angular DI shim, and generate golden snapshots for scripted scenarios
      (fresh game over time, buying units, buying upgrades, abilities, ascend,
@@ -38,10 +38,10 @@ engine/
    - **Leaf modules**: `util`, `spreadsheetutil`, `parsenumber`, `seedrand`,
      `tab`, and the type tables (`UnitTypes`, `UpgradeTypes`,
      `AchievementTypes`, `effecttypes` definitions), with their specs ported.
-3. **Core runtime**: `Effect`, `ProducerPath(s)`, `Unit`, `Upgrade`,
+3. **Core runtime** (done): `Effect`, `ProducerPath(s)`, `Unit`, `Upgrade`,
    `Achievement` + listener, `Cache`, `Game`, `Session` (state, save
    encode/decode), `Commands`, `Statistics`. Specs ported; golden tests pass.
-4. **Review & parity hardening**: diff against goldens, fill gaps, document
+4. **Review & parity hardening** (done): diff against goldens, fill gaps, document
    the public API in `README.md`.
 
 ## Out of scope (UI/platform concerns, stay with the UI layer)

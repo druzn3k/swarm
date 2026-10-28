@@ -5,7 +5,7 @@
   "license": "GPL-3.0",
   "main": "src/index.ts",
   "scripts": {
-    "test": "jest",
+    "test": "tsc --noEmit && jest",
     "typecheck": "tsc --noEmit",
     "oracle:golden": "ts-node --transpile-only oracle/generate.ts"
   },
