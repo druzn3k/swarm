@@ -9,7 +9,7 @@ export const SAVE_KEY = "swarmhive-v1";
 
 export interface CraftOptions {
   /** unit counts */
-  units?: Record<string, number>;
+  units?: Record<string, number | string>;
   /** upgrade levels */
   upgrades?: Record<string, number>;
   /** pretend the game was last open this many seconds ago */
