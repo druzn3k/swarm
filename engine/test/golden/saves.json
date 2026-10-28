@@ -1,0 +1,6260 @@
+{
+ "name": "saves",
+ "description": "importSave/exportSave round trips: right after import, exportSave returns the imported string verbatim; save() re-encodes with the clock's date. Also an old 1.0.0 save, and re-importing our own export.",
+ "oldEngineVersion": "swarmsim-coffee 1.1.17",
+ "start": {
+  "now": "2020-01-01T00:00:00.000Z"
+ },
+ "initial": {
+  "units": {
+   "invisiblehatchery": {
+    "count": "1",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "meat": {
+    "count": "35",
+    "velocity": "0",
+    "isVisible": true,
+    "eachCost": [],
+    "maxCostMet": "Infinity",
+    "maxCostMet25": "Infinity",
+    "isCostMet": true,
+    "isBuyButtonVisible": false,
+    "isBuyable": false,
+    "twinMult": "1",
+    "capValue": null,
+    "eachProduction": {},
+    "totalProduction": {},
+    "stats": {},
+    "suffix": ""
+   },
+   "larva": {
+    "count": "10",
+    "velocity": "1",
+    "isVisible": true,
+    "eachCost": [
+     {
+      "unit": "cocoon",
+      "val": "1"
+     }
+    ],
+    "maxCostMet": "0",
+    "maxCostMet25": "0",
+    "isCostMet": false,
+    "isBuyButtonVisible": false,
+    "isBuyable": false,
+    "twinMult": "1",
+    "capValue": null,
+    "eachProduction": {},
+    "totalProduction": {},
+    "stats": {
+     "base": "0",
+     "prod": "1"
+    },
+    "suffix": ""
+   },
+   "cocoon": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "territory": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "energy": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "respecEnergy": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mtxEnergy": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "nexus": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "crystal": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": true,
+    "eachCost": [],
+    "maxCostMet": "Infinity",
+    "maxCostMet25": "Infinity",
+    "isCostMet": true,
+    "isBuyButtonVisible": false,
+    "isBuyable": false,
+    "twinMult": "1",
+    "capValue": null,
+    "eachProduction": {},
+    "totalProduction": {},
+    "stats": {},
+    "suffix": ""
+   },
+   "mutagen": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "premutagen": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "ascension": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "freeRespec": {
+    "count": "4",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "drone": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": true,
+    "eachCost": [
+     {
+      "unit": "meat",
+      "val": "10"
+     },
+     {
+      "unit": "larva",
+      "val": "1"
+     }
+    ],
+    "maxCostMet": "3",
+    "maxCostMet25": "0",
+    "isCostMet": true,
+    "isBuyButtonVisible": true,
+    "isBuyable": true,
+    "twinMult": "1",
+    "capValue": null,
+    "eachProduction": {
+     "meat": "1"
+    },
+    "totalProduction": {
+     "meat": "0"
+    },
+    "stats": {
+     "prod": "1",
+     "twin": "1"
+    },
+    "suffix": ""
+   },
+   "queen": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "nest": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "greaterqueen": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "hive": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "hivequeen": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "empress": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "prophet": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "goddess": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "pantheon": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "pantheon2": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "pantheon3": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "pantheon4": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "pantheon5": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "overmind": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "overmind2": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "overmind3": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "overmind4": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "overmind5": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "overmind6": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "swarmling": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "stinger": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "spider": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mosquito": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "locust": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "roach": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "giantspider": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "centipede": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "wasp": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "devourer": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "goon": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "nightbug": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "moth": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "bat": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutanthatchery": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantbat": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantclone": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantswarmwarp": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantrush": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutanteach": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantfreq": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantnexus": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantarmy": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   },
+   "mutantmeat": {
+    "count": "0",
+    "velocity": "0",
+    "isVisible": false
+   }
+  },
+  "upgrades": {
+   "hatchery": {
+    "count": "0",
+    "isVisible": true,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "300",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false,
+    "maxCostMet": "0",
+    "isCostMet": false,
+    "isBuyable": false,
+    "isAutobuyable": true,
+    "isNewlyUpgradable": false,
+    "costMetPercent": "0.11666666666666666667",
+    "estimateSecsUntilBuyable": {
+     "val": "Infinity",
+     "unit": "meat",
+     "cacheSafe": 1
+    }
+   },
+   "expansion": {
+    "count": "0",
+    "isVisible": true,
+    "totalCost": [
+     {
+      "unit": "territory",
+      "val": "10",
+      "factor": "2.45"
+     }
+    ],
+    "isUpgradable": false,
+    "maxCostMet": "0",
+    "isCostMet": false,
+    "isBuyable": false,
+    "isAutobuyable": true,
+    "isNewlyUpgradable": false,
+    "costMetPercent": "0",
+    "estimateSecsUntilBuyable": {
+     "val": "Infinity",
+     "unit": "territory",
+     "cacheSafe": 1
+    }
+   },
+   "achievementbonus": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "5000000",
+      "factor": "10000"
+     },
+     {
+      "unit": "territory",
+      "val": "500",
+      "factor": "10000"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "cocooning": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3.33333e+21",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "droneprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "drone",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "queenprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "queen",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nestprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "nest",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "greaterqueenprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "greaterqueen",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "hiveprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "hive",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "hivequeenprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "hivequeen",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "empressprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "empress",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "prophetprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "prophet",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "goddessprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "goddess",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheonprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon2prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon2",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon3prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon3",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon4prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon4",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon5prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon5",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmindprod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind2prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind2",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind3prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind3",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind4prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind4",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind5prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind5",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind6prod": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind6",
+      "val": "66",
+      "factor": "666"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "dronetwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "queen",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "queentwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "nest",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nesttwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "greaterqueen",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "greaterqueentwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "hive",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "hivetwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "hivequeen",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "hivequeentwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "empress",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "empresstwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "prophet",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "prophettwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "goddess",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "goddesstwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheontwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon2",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon2twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon3",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon3twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon4",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon4twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "pantheon5",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "pantheon5twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind",
+      "val": "1",
+      "factor": "10"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmindtwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind2",
+      "val": "1",
+      "factor": "12"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind2twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind3",
+      "val": "1",
+      "factor": "14"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind3twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind4",
+      "val": "1",
+      "factor": "16"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind4twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind5",
+      "val": "1",
+      "factor": "18"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind5twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "overmind6",
+      "val": "1",
+      "factor": "20"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "overmind6twin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [],
+    "isUpgradable": false
+   },
+   "swarmlingtwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "stingertwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "spidertwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mosquitotwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "locusttwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "roachtwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "giantspidertwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "centipedetwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "wasptwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "devourertwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "goontwin": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "100",
+      "factor": "500"
+     },
+     {
+      "unit": "larva",
+      "val": "1",
+      "factor": "50"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "swarmlingempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "1.14921e+32",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "stingerempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "5.17144e+34",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "spiderempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "2.32715e+37",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mosquitoempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "1.04722e+40",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "locustempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "4.71247e+42",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "roachempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "2.12061e+45",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "giantspiderempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "9.54276e+47",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "centipedeempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "4.29424e+50",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "waspempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "1.93241e+53",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "devourerempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "8.69584e+55",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "goonempower": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3.91313e+58",
+      "factor": "1.53228e+29"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nexus1": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3333333333333",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nexus2": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3333330000000000",
+      "factor": "1"
+     },
+     {
+      "unit": "energy",
+      "val": "625",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nexus3": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3333330000000000000",
+      "factor": "1"
+     },
+     {
+      "unit": "energy",
+      "val": "2500",
+      "factor": "1"
+     },
+     {
+      "unit": "larva",
+      "val": "3333333",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nexus4": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3.33333e+21",
+      "factor": "1"
+     },
+     {
+      "unit": "energy",
+      "val": "10000",
+      "factor": "1"
+     },
+     {
+      "unit": "larva",
+      "val": "33333330",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "nexus5": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "meat",
+      "val": "3.33333e+24",
+      "factor": "1"
+     },
+     {
+      "unit": "energy",
+      "val": "36000",
+      "factor": "1"
+     },
+     {
+      "unit": "larva",
+      "val": "3333333000",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "larvarush": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "energy",
+      "val": "1600",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "swarmwarp": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "energy",
+      "val": "2000",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "meatrush": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "energy",
+      "val": "1600",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "territoryrush": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "energy",
+      "val": "1600",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "clonelarvae": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "energy",
+      "val": "12000",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatehidden": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatehatchery": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatebat": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutateclone": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutateswarmwarp": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutaterush": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutateeach": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatefreq": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatenexus": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatearmy": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "mutatemeat": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "mutagen",
+      "val": "1",
+      "factor": "15625"
+     }
+    ],
+    "isUpgradable": false
+   },
+   "clonearmy": {
+    "count": "0",
+    "isVisible": false,
+    "totalCost": [
+     {
+      "unit": "energy",
+      "val": "2500",
+      "factor": "1"
+     }
+    ],
+    "isUpgradable": false
+   }
+  },
+  "achievements": {
+   "earned": {},
+   "points": 0
+  },
+  "ascendInfo": {
+   "ascendEnergySpent": "0",
+   "ascendCost": "5000000",
+   "ascendCostPercent": "0",
+   "respecCost": "1500000",
+   "respecCostPercent": "0",
+   "isRespecCostMet": false,
+   "respecSpent": "0"
+  },
+  "state": {
+   "unittypes": {
+    "invisiblehatchery": "1",
+    "meat": "35",
+    "larva": "10",
+    "cocoon": "0",
+    "territory": "0",
+    "energy": "0",
+    "respecEnergy": "0",
+    "mtxEnergy": "0",
+    "nexus": "0",
+    "crystal": "0",
+    "mutagen": "0",
+    "premutagen": "0",
+    "ascension": "0",
+    "freeRespec": "4",
+    "drone": "0",
+    "queen": "0",
+    "nest": "0",
+    "greaterqueen": "0",
+    "hive": "0",
+    "hivequeen": "0",
+    "empress": "0",
+    "prophet": "0",
+    "goddess": "0",
+    "pantheon": "0",
+    "pantheon2": "0",
+    "pantheon3": "0",
+    "pantheon4": "0",
+    "pantheon5": "0",
+    "overmind": "0",
+    "overmind2": "0",
+    "overmind3": "0",
+    "overmind4": "0",
+    "overmind5": "0",
+    "overmind6": "0",
+    "swarmling": "0",
+    "stinger": "0",
+    "spider": "0",
+    "mosquito": "0",
+    "locust": "0",
+    "roach": "0",
+    "giantspider": "0",
+    "centipede": "0",
+    "wasp": "0",
+    "devourer": "0",
+    "goon": "0",
+    "nightbug": "0",
+    "moth": "0",
+    "bat": "0",
+    "mutanthatchery": "0",
+    "mutantbat": "0",
+    "mutantclone": "0",
+    "mutantswarmwarp": "0",
+    "mutantrush": "0",
+    "mutanteach": "0",
+    "mutantfreq": "0",
+    "mutantnexus": "0",
+    "mutantarmy": "0",
+    "mutantmeat": "0"
+   },
+   "date": {
+    "started": "2020-01-01T00:00:00.000Z",
+    "restarted": "2020-01-01T00:00:00.000Z",
+    "saved": "2020-01-01T00:00:00.000Z",
+    "loaded": "2020-01-01T00:00:00.000Z",
+    "reified": "2020-01-01T00:00:00.000Z",
+    "closed": "2020-01-01T00:00:00.000Z"
+   },
+   "options": {},
+   "upgrades": {},
+   "statistics": {
+    "byUnit": {},
+    "byUpgrade": {},
+    "clicks": 0
+   },
+   "achievements": {},
+   "watched": {},
+   "skippedMillis": 0,
+   "version": {
+    "started": "1.1.17",
+    "saved": "1.1.17"
+   }
+  }
+ },
+ "steps": [
+  {
+   "action": {
+    "do": "exportSave"
+   },
+   "now": "2020-01-01T00:00:00.000Z",
+   "result": "MS4xLjE3|Q2hlYXRlciA6KAoKN4IgrgdglgLjCeAHApgZxALlFCA3KqUARgDbIAWAhjAMbnIBO8mIAjCADQgC2y1LAZgCsnECUoNclFqwAMomgHsliiC3lcYjBrEVN1o5BEYBzZhhAaQDNChoBRYwzMGu3GAA9Hp85dHGPMHQLKxomVBhKElceMEiTIxjEG244ygS1ENFKVBojQlUYgDMbZAAlW2QaFgAWUQATBlVkGIBHMGRErK5jCJiTG2pGds7Mvy5yKFwW7pBJ6ZGu8ZBkbmS0YOXkxUR6GH7FevqNpMoIGHpC2cQzi+RVACZT88uIAWe71Trr29eRWcU0wY3Bw9RigMYIIg9SeAKBUPq7zhkNB32WEOBoP+6PhoIAbDFUAB3CTcEg4EyEmAUxiExBQY4MGLcRSodq6GIkZRBfazJqUOj9KC3VD0xkxPLnKAoY4xEmimLHXCKMA2JmzEyKK7LaAmcgwIhgSmzFkXGJEfgmtIvah0Ri+KypSLnC285ZO240LnGZnWmDE0kkhiIX3OmAMILkUO3PiCq1hkrIVrR84BIIpyLAh2iD3nXiWvwAXy49SGmFAEQkWjBFgesjrAFpZKwm6wACqyWQYTvd2QAOk7sgAWqIbJWGNWWHXG83Wx2uz3OwPOyOuKhKNMayBp7JW3PFwv+4PV2JFJRjlud3vm/Pe73l8PR8goEUoMhL/Xd7Obwf78eFFyqDvlOn7Xu2v5Lv+xYgDs1KqMEwDQWAiADOeaDltBlbUhEUA0AhIBEPAACq0C8ohXCEURKEMGhGFcF6uEANbBLI0ECpMyDTLw5wIdBJK0PQNbkSAqCMdKMoALJQCQ5IsVwQIFJkFaZpOFisH26msAA7KI66bjIGkaTphaFkAA="
+  },
+  {
+   "action": {
+    "do": "save"
+   },
+   "now": "2020-01-01T00:00:00.000Z",
+   "result": "MS4xLjE3|Q2hlYXRlciA6KAoKN4IgrgdglgLjCeAHApgZxALlFCA3KqUARgDbIAWAhjAMbnIBO8mIAjCADQgC2y1LAZgCsnECUoNclFqwAMomgHsliiC3lcYjBrEVN1o5BEYBzZhhAaQDNChoBRYwzMGu3GAA9Hp85dHGPMHQLKxomVBhKElceMEiTIxjEG244ygS1ENFKVBojQlUYgDMbZAAlW2QaFgAWUQATBlVkGIBHMGRErK5jCJiTG2pGds7Mvy5yKFwW7pBJ6ZGu8ZBkbmS0YOXkxUR6GH7FevqNpMoIGHpC2cQzi+RVACZT88uIAWe71Trr29eRWcU0wY3Bw9RigMYIIg9SeAKBUPq7zhkNB32WEOBoP+6PhoIAbDFUAB3CTcEg4EyEmAUxiExBQY4MGLcRSodq6GIkZRBfazJqUOj9KC3VD0xkxPLnKAoY4xEmimLHXCKMA2JmzEyKK7LaAmcgwIhgSmzFkXGJEfgmtIvah0Ri+KypSLnC285ZO240LnGZnWmDE0kkhiIX3OmAMILkUO3PiCq1hkrIVrR84BIIpyLAh2iD3nXiWvwAXy49SGmFAEQkWjBFgesjrAFpZKwm6wACqyWQYTvd2QAOk7sgAWqIbJWGNWWHXG83Wx2uz3OwPOyOuKhKNMayBp7JW3PFwv+4PV9ZkFAilBkFud3vm/Pe73l8OFFzUFep/Xd7O7wfH8eQMWIA7NSqjBMAgFgIgAyUMcYGAZW1IRFANBgSARDwAAqtAvLgVw6EYVBDAwTMuEgF6yEANbBLIgECpMyDTLw5xwVwJK0PQNakagFHSjKACyUAkOS1FcECBSZBWmaThYrB9rJrAAOyiOum4yHJclKYWhZAA=="
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2022-12-13T21:00:00.000Z"
+   },
+   "now": "2022-12-13T21:00:00.000Z"
+  },
+  {
+   "action": {
+    "do": "importSave",
+    "save": "MS4xLjE0|Q2hlYXRlciA6KAoKN4IgrgdglgLjCeAHApgZxALlFCA3KqUARgDbIAWAhjAMbnIBO8mIAjCADQgC2y1LAZgCsnECUoNclFqwAMomgHsliiC3lcYjBrEVN1o5BEYBzZhhAaQDNChoBRYwzMGu3GAA9Hp85dHGPMHQLKxomVBhKElceMEiTIxjEG244ygS1ENFKVBojQlUYgDMbZAAlW2QaFgAWUQATBlVkGIBHMGRErK5jCJiTG2pGds7Mvy5yKFwW7pBJ6ZGu8ZBkbmS0YOXkxUR6GH7FevqNpMoIGHpC2cQzi+RVACZT88uIAWe71Trr29eRWcU0wY3Bw9RigMYIIg9SeAKBUPq7zhkNB32WEOBoP+6PhoIAbDFUAB3CTcEg4EyEmAUxiExBQY4MGLcRSodq6GIkZRBfazJqUOj9KC3VD0xkxPLnKAoY4xEmimLHXCKMA2JmzEyKK7LaAmcgwIhgSmzFkXGJEfgmtIvah0Ri+KypSLnC285ZO240LnGZnWmDE0kkhiIX3OmAMILkUO3PiCq1hkrIVrR84BIIpyLAh2iD3nXiWvwAXy49SGmFAEQkWjBFgesgeDwAtKwm6wBAAVOsYB4AdgwsiEADo8QIHgAtUQ2SsMassOsN5utjtd3v9ocj8eiVCUaY1kDz1tLzuyDACAAcp7xg4eQiEE64NigRSgyD3B8XzeXJ9XA+Ho/vIBeqyr5zvWh6fse3Z9r+G4TsWIA7NSqjBMA8FgIgAyUMcKHwZW1IRFANAoSARDwAAqtAvKoVwpFkRhDBYTM1GAeSNAANbBLI8ECpMyDTLw5zEcchrGniACcsh4rIXFcCStD0DWzGoGx0oygAslAJDkpxXBAgUmQVpms4WKwg6mawdRcNuu4yGZZl1IWhZAA"
+   },
+   "now": "2022-12-13T21:00:00.000Z",
+   "snapshot": {
+    "units": {
+     "invisiblehatchery": {
+      "count": "1",
+      "velocity": "0"
+     },
+     "meat": {
+      "count": "35",
+      "velocity": "0"
+     },
+     "larva": {
+      "count": "1984.368",
+      "velocity": "1"
+     },
+     "cocoon": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "territory": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "energy": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "respecEnergy": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mtxEnergy": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "nexus": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "crystal": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutagen": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "premutagen": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "ascension": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "freeRespec": {
+      "count": "4",
+      "velocity": "0"
+     },
+     "drone": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "queen": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "nest": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "greaterqueen": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "hive": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "hivequeen": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "empress": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "prophet": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "goddess": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "pantheon": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "pantheon2": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "pantheon3": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "pantheon4": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "pantheon5": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "overmind": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "overmind2": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "overmind3": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "overmind4": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "overmind5": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "overmind6": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "swarmling": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "stinger": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "spider": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mosquito": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "locust": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "roach": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "giantspider": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "centipede": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "wasp": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "devourer": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "goon": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "nightbug": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "moth": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "bat": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutanthatchery": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantbat": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantclone": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantswarmwarp": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantrush": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutanteach": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantfreq": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantnexus": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantarmy": {
+      "count": "0",
+      "velocity": "0"
+     },
+     "mutantmeat": {
+      "count": "0",
+      "velocity": "0"
+     }
+    }
+   }
+  },
+  {
+   "action": {
+    "do": "exportSave"
+   },
+   "now": "2022-12-13T21:00:00.000Z",
+   "result": "MS4xLjE0|Q2hlYXRlciA6KAoKN4IgrgdglgLjCeAHApgZxALlFCA3KqUARgDbIAWAhjAMbnIBO8mIAjCADQgC2y1LAZgCsnECUoNclFqwAMomgHsliiC3lcYjBrEVN1o5BEYBzZhhAaQDNChoBRYwzMGu3GAA9Hp85dHGPMHQLKxomVBhKElceMEiTIxjEG244ygS1ENFKVBojQlUYgDMbZAAlW2QaFgAWUQATBlVkGIBHMGRErK5jCJiTG2pGds7Mvy5yKFwW7pBJ6ZGu8ZBkbmS0YOXkxUR6GH7FevqNpMoIGHpC2cQzi+RVACZT88uIAWe71Trr29eRWcU0wY3Bw9RigMYIIg9SeAKBUPq7zhkNB32WEOBoP+6PhoIAbDFUAB3CTcEg4EyEmAUxiExBQY4MGLcRSodq6GIkZRBfazJqUOj9KC3VD0xkxPLnKAoY4xEmimLHXCKMA2JmzEyKK7LaAmcgwIhgSmzFkXGJEfgmtIvah0Ri+KypSLnC285ZO240LnGZnWmDE0kkhiIX3OmAMILkUO3PiCq1hkrIVrR84BIIpyLAh2iD3nXiWvwAXy49SGmFAEQkWjBFgesgeDwAtKwm6wBAAVOsYB4AdgwsiEADo8QIHgAtUQ2SsMassOsN5utjtd3v9ocj8eiVCUaY1kDz1tLzuyDACAAcp7xg4eQiEE64NigRSgyD3B8XzeXJ9XA+Ho/vIBeqyr5zvWh6fse3Z9r+G4TsWIA7NSqjBMA8FgIgAyUMcKHwZW1IRFANAoSARDwAAqtAvKoVwpFkRhDBYTM1GAeSNAANbBLI8ECpMyDTLw5zEcchrGniACcsh4rIXFcCStD0DWzGoGx0oygAslAJDkpxXBAgUmQVpms4WKwg6mawdRcNuu4yGZZl1IWhZAA"
+  },
+  {
+   "action": {
+    "do": "save"
+   },
+   "now": "2022-12-13T21:00:00.000Z",
+   "result": "MS4xLjE3|Q2hlYXRlciA6KAoKN4IgrgdglgLjCeAHApgZxALlFCA3KqUARgDbIAWAhjAMbnIBO8mIAjCADQgC2y1LAZgCsnECUoNclFqwCcADgAsAOgEA2eaJoB7HdogsADKJiMGsbUyOjkERgHNmGEMa4M0KGgFE7DR9a5uGAAPHwcnF1E7YLB0Z1cQGiZUGEoSAJ4wVPtbDMR3bizKHIN40UpUGltCfQyAM3dkACUPZBoWRVEAEwZ9ZAyARzBkXLKuOxSM+3dqRiGR0siucihcfrGQFbX50aWQZG58tDi9/O1Eehgp7S6u47zKCBh6Wo3ER+fkfQAmB6eXiACP6ffSdN4fAEiDbaNYMbg4LoZGGMeEQLq/aGw1FdIGYlEIsF7ZFwhFQolYhFqDKoADuEm4JBw9mpMCZjGpiCgdwYGW42lQQwsGRIuliVw2vUodCmUA+qE53IyVSeUBQdwydPlGTuuG0YHcPI29m0rz20Hs5BgRDAzI2fOeGSI/DtRX+1DojAiCUKqSeTvFex9HxoIrsvNdMFp9LpDEQ4d9MAYsXI8Y+fGlLoTDWQA1TT2isTzqThXtEQaevGdkQAvlwurNMKAUhJTIjnN9DN9vgBaVg91gCAAqHYw3wA7BhDEJlGoBN8AFqidzNhitlgdru9/tDkfjyfT2cL0SoShrNsgDf97fD1iTwx35SGJ+LtzIKB1KDIc+Xre9ne3p8HyfQwX0SEVUC/ddOyvP9h3vPcpxnOdF1rEBzlZfQ4mAVCwEQaZKDuLDUObVkUigGgsJAIh4AAVWgcVsK4aiaLwhgCPWRiwPIgBrOJDFQqUVmQNZeCeSi7mtW01FkQw1CfVC6Voeg2041BuNVNUAFkoBIRk+K4WEalKJtizXZxWGUCzWE6LgTzPGRLMsscQGrasgA"
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2022-12-14T00:00:00.000Z"
+   },
+   "now": "2022-12-14T00:00:00.000Z"
+  },
+  {
+   "action": {
+    "do": "importSave",
+    "save": "MS4xLjE0|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="
+   },
+   "now": "2022-12-14T00:00:00.000Z",
+   "snapshot": {
+    "units": {
+     "invisiblehatchery": {
+      "count": "1",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "meat": {
+      "count": "4.1202839716168325601e+24",
+      "velocity": "858991721400831070210",
+      "isVisible": true,
+      "eachCost": [],
+      "maxCostMet": "Infinity",
+      "maxCostMet25": "Infinity",
+      "isCostMet": true,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {},
+      "suffix": ""
+     },
+     "larva": {
+      "count": "44032347.121034943275",
+      "velocity": "3406.3221659570880823",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "cocoon",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "0",
+      "maxCostMet25": "0",
+      "isCostMet": false,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {
+       "base": "21",
+       "prod": "154.83282572532218556"
+      },
+      "suffix": ""
+     },
+     "cocoon": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "territory": {
+      "count": "320367493362381830.2",
+      "velocity": "24213098672661.8",
+      "isVisible": true,
+      "eachCost": [],
+      "maxCostMet": "Infinity",
+      "maxCostMet25": "Infinity",
+      "isCostMet": true,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {},
+      "suffix": ""
+     },
+     "energy": {
+      "count": "15276.5364",
+      "velocity": "0.3",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "crystal",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "2000",
+      "maxCostMet25": "500",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "1",
+      "capValue": "30000",
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {
+       "capFlat": "0",
+       "capBase": "30000",
+       "capMult": "1",
+       "power": "1",
+       "power.clonelarvae": "1",
+       "power.swarmwarp": "1",
+       "power.larvarush": "1",
+       "power.meatrush": "1",
+       "power.territoryrush": "1"
+      },
+      "suffix": ""
+     },
+     "respecEnergy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mtxEnergy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "nexus": {
+      "count": "3",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [],
+      "maxCostMet": "Infinity",
+      "maxCostMet25": "Infinity",
+      "isCostMet": true,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {
+       "energy": "0.1"
+      },
+      "totalProduction": {
+       "energy": "0.3"
+      },
+      "stats": {
+       "prod": "1"
+      },
+      "suffix": ""
+     },
+     "crystal": {
+      "count": "2000",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [],
+      "maxCostMet": "Infinity",
+      "maxCostMet25": "Infinity",
+      "isCostMet": true,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {},
+      "suffix": ""
+     },
+     "mutagen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "premutagen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "ascension": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "freeRespec": {
+      "count": "4",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "drone": {
+      "count": "13421745646887985472",
+      "velocity": "1908597475845984",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "10"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "2",
+      "capValue": null,
+      "eachProduction": {
+       "meat": "64"
+      },
+      "totalProduction": {
+       "meat": "858991721400831070210"
+      },
+      "stats": {
+       "prod": "64",
+       "twin": "2"
+      },
+      "suffix": ""
+     },
+     "queen": {
+      "count": "59643671120187.377212",
+      "velocity": "4370911944",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "810"
+       },
+       {
+        "unit": "drone",
+        "val": "100"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "8",
+      "capValue": null,
+      "eachProduction": {
+       "drone": "32"
+      },
+      "totalProduction": {
+       "drone": "1908597475845984"
+      },
+      "stats": {
+       "prod": "16",
+       "twin": "8"
+      },
+      "suffix": ""
+     },
+     "nest": {
+      "count": "182121331.524",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "72900"
+       },
+       {
+        "unit": "queen",
+        "val": "1000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "32",
+      "capValue": null,
+      "eachProduction": {
+       "queen": "24"
+      },
+      "totalProduction": {
+       "queen": "4370911944"
+      },
+      "stats": {
+       "prod": "8",
+       "twin": "32"
+      },
+      "suffix": ""
+     },
+     "greaterqueen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "6561000"
+       },
+       {
+        "unit": "nest",
+        "val": "10000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "18212",
+      "maxCostMet25": "4553",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {
+       "nest": "4"
+      },
+      "totalProduction": {
+       "nest": "0"
+      },
+      "stats": {
+       "prod": "1",
+       "twin": "1"
+      },
+      "suffix": ""
+     },
+     "hive": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "hivequeen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "empress": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "prophet": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "goddess": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon2": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon3": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon4": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon5": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind2": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind3": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind4": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind5": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind6": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "swarmling": {
+      "count": "80",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "750"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "2",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "0.07"
+      },
+      "totalProduction": {
+       "territory": "5.6"
+      },
+      "stats": {
+       "twin": "2",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "stinger": {
+      "count": "84",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "337500"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "4",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "3.15"
+      },
+      "totalProduction": {
+       "territory": "264.6"
+      },
+      "stats": {
+       "twin": "4",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "spider": {
+      "count": "28184",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "151875000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "8",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "141.75"
+      },
+      "totalProduction": {
+       "territory": "3995082"
+      },
+      "stats": {
+       "twin": "8",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "mosquito": {
+      "count": "184536",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "68343750000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "8",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "6378.75"
+      },
+      "totalProduction": {
+       "territory": "1177109010"
+      },
+      "stats": {
+       "twin": "8",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "locust": {
+      "count": "87624",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "30754687500000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "8",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "287043.75"
+      },
+      "totalProduction": {
+       "territory": "25151921550"
+      },
+      "stats": {
+       "twin": "8",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "roach": {
+      "count": "297840",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "13839600000000000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "44032347",
+      "maxCostMet25": "11008086",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "16",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "12916968.75"
+      },
+      "totalProduction": {
+       "territory": "3847189972500"
+      },
+      "stats": {
+       "twin": "16",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "giantspider": {
+      "count": "34992",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "6227820000000000000"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "661593",
+      "maxCostMet25": "165398",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "16",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "581263593.8"
+      },
+      "totalProduction": {
+       "territory": "20339575674249.6"
+      },
+      "stats": {
+       "twin": "16",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "centipede": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "2.80252e+21"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "1470",
+      "maxCostMet25": "367",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "8",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "26156861719"
+      },
+      "totalProduction": {
+       "territory": "0"
+      },
+      "stats": {
+       "twin": "8",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "wasp": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "1.26113e+24"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "3",
+      "maxCostMet25": "0",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {
+       "territory": "1177058777344"
+      },
+      "totalProduction": {
+       "territory": "0"
+      },
+      "stats": {
+       "twin": "1",
+       "prod": "1",
+       "cost.meat": "1",
+       "empower": "0"
+      },
+      "suffix": ""
+     },
+     "devourer": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "goon": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "nightbug": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "energy",
+        "val": "10"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "1527",
+      "maxCostMet25": "381",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {},
+      "suffix": ""
+     },
+     "moth": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "bat": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutanthatchery": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantbat": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantclone": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantswarmwarp": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantrush": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutanteach": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantfreq": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantnexus": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantarmy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantmeat": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     }
+    },
+    "upgrades": {
+     "hatchery": {
+      "count": "21",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3e+23",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "2",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "0.02734279905389441867",
+      "estimateSecsUntilBuyable": {
+       "val": "14312.448895856253289",
+       "unit": "meat",
+       "cacheSafe": 1
+      }
+     },
+     "expansion": {
+      "count": "40",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "territory",
+        "val": "36867473315527956.249",
+        "factor": "2.45"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "2",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "0.87292056800248106221",
+      "estimateSecsUntilBuyable": {
+       "val": "1161.4497810806066984",
+       "unit": "territory",
+       "cacheSafe": 1
+      }
+     },
+     "achievementbonus": {
+      "count": "4",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "5e+22",
+        "factor": "10000"
+       },
+       {
+        "unit": "territory",
+        "val": "5000000000000000000",
+        "factor": "10000"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "0",
+      "isCostMet": false,
+      "isBuyable": false,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.06407349867247636604",
+      "estimateSecsUntilBuyable": {
+       "val": "193268.63405224688326",
+       "unit": "territory",
+       "cacheSafe": 1
+      }
+     },
+     "cocooning": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.33333e+21",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "droneprod": {
+      "count": "6",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "drone",
+        "val": "5759560048811158656",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "1",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "0.0019975107617239374279",
+      "estimateSecsUntilBuyable": {
+       "val": "220717.35908933746438",
+       "unit": "drone",
+       "cacheSafe": 1
+      }
+     },
+     "queenprod": {
+      "count": "4",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "queen",
+        "val": "12984967058976",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "1",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "0.0053953247542198926037",
+      "estimateSecsUntilBuyable": {
+       "val": "1967856.9294959021537",
+       "unit": "queen",
+       "cacheSafe": 1
+      }
+     },
+     "nestprod": {
+      "count": "3",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "nest",
+        "val": "19496947536",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "0",
+      "isCostMet": false,
+      "isBuyable": false,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.0093410176740601760216",
+      "estimateSecsUntilBuyable": {
+       "val": "Infinity",
+       "unit": "nest",
+       "cacheSafe": 1
+      }
+     },
+     "greaterqueenprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "greaterqueen",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hiveprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hive",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hivequeenprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hivequeen",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "empressprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "empress",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "prophetprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "prophet",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goddessprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "goddess",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheonprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon2prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon2",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon3prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon3",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon4prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon4",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon5prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon5",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmindprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind2prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind2",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind3prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind3",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind4prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind4",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind5prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind5",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind6prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind6",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "dronetwin": {
+      "count": "1",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "queen",
+        "val": "10",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "13",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.48532560009077377212",
+      "estimateSecsUntilBuyable": {
+       "val": "11774.988984066026929",
+       "unit": "queen",
+       "cacheSafe": 1
+      }
+     },
+     "queentwin": {
+      "count": "3",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "nest",
+        "val": "1000",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "6",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.071010331524",
+      "estimateSecsUntilBuyable": {
+       "val": "Infinity",
+       "unit": "nest",
+       "cacheSafe": 1
+      }
+     },
+     "nesttwin": {
+      "count": "5",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "greaterqueen",
+        "val": "100000",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "0",
+      "isCostMet": false,
+      "isBuyable": false,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0",
+      "estimateSecsUntilBuyable": {
+       "val": "Infinity",
+       "unit": "greaterqueen",
+       "cacheSafe": 1
+      }
+     },
+     "greaterqueentwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hive",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hivetwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hivequeen",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hivequeentwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "empress",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "empresstwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "prophet",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "prophettwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "goddess",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goddesstwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheontwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon2",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon2twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon3",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon3twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon4",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon4twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon5",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon5twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmindtwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind2",
+        "val": "1",
+        "factor": "12"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind2twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind3",
+        "val": "1",
+        "factor": "14"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind3twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind4",
+        "val": "1",
+        "factor": "16"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind4twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind5",
+        "val": "1",
+        "factor": "18"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind5twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind6",
+        "val": "1",
+        "factor": "20"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind6twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [],
+      "isUpgradable": false
+     },
+     "swarmlingtwin": {
+      "count": "1",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "50000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "50",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "4",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12049535078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.790470313805791",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "stingertwin": {
+      "count": "2",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "25000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "2500",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "3",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12049551078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.775791725708722",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "spidertwin": {
+      "count": "3",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "12500000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "125000",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "2",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12050351078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.041862320855272",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "mosquitotwin": {
+      "count": "3",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "12500000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "125000",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "2",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12050351078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.041862320855272",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "locusttwin": {
+      "count": "3",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "12500000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "125000",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "2",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12050351078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.041862320855272",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "roachtwin": {
+      "count": "4",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "6250000000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "6250000",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "1",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12090351078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80649.345392078182778",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "giantspidertwin": {
+      "count": "4",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "6250000000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "6250000",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "1",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12090351078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80649.345392078182778",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "centipedetwin": {
+      "count": "3",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "12500000000",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "125000",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "2",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": false,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.12050351078731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.041862320855272",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "wasptwin": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "5",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "0.12049534758731181848",
+      "estimateSecsUntilBuyable": {
+       "val": "80686.790763885567733",
+       "unit": "larva",
+       "cacheSafe": 1
+      }
+     },
+     "devourertwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goontwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "swarmlingempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "1.14921e+32",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "stingerempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "5.17144e+34",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "spiderempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "2.32715e+37",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mosquitoempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "1.04722e+40",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "locustempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "4.71247e+42",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "roachempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "2.12061e+45",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "giantspiderempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "9.54276e+47",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "centipedeempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "4.29424e+50",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "waspempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "1.93241e+53",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "devourerempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "8.69584e+55",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goonempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.91313e+58",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus1": {
+      "count": "1",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3333333333333",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus2": {
+      "count": "1",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3333330000000000",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "625",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus3": {
+      "count": "1",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3333330000000000000",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "2500",
+        "factor": "1"
+       },
+       {
+        "unit": "larva",
+        "val": "3333333",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus4": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.33333e+21",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "10000",
+        "factor": "1"
+       },
+       {
+        "unit": "larva",
+        "val": "33333330",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "1",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "1",
+      "estimateSecsUntilBuyable": {
+       "val": "Infinity",
+       "unit": null
+      }
+     },
+     "nexus5": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.33333e+24",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "36000",
+        "factor": "1"
+       },
+       {
+        "unit": "larva",
+        "val": "3333333000",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "larvarush": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "1600",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "9",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.54783525",
+      "estimateSecsUntilBuyable": {
+       "val": "2411.5453333333333333",
+       "unit": "energy",
+       "cacheSafe": 1
+      }
+     },
+     "swarmwarp": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "2000",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "7",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.6382682",
+      "estimateSecsUntilBuyable": {
+       "val": "2411.5453333333333333",
+       "unit": "energy",
+       "cacheSafe": 1
+      }
+     },
+     "meatrush": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "1600",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "9",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.54783525",
+      "estimateSecsUntilBuyable": {
+       "val": "2411.5453333333333333",
+       "unit": "energy",
+       "cacheSafe": 1
+      }
+     },
+     "territoryrush": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "1600",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "9",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0.54783525",
+      "estimateSecsUntilBuyable": {
+       "val": "2411.5453333333333333",
+       "unit": "energy",
+       "cacheSafe": 1
+      }
+     },
+     "clonelarvae": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "12000",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatehidden": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatehatchery": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatebat": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutateclone": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutateswarmwarp": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutaterush": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutateeach": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatefreq": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatenexus": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatearmy": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatemeat": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "clonearmy": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "2500",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     }
+    },
+    "achievements": {
+     "earned": {
+      "tutorial": 252906735,
+      "expansion1": 252748175,
+      "expansion2": 253535030,
+      "drone1": 252590201,
+      "drone2": 252661348,
+      "queen1": 252642533,
+      "queen2": 252924209,
+      "nest1": 253007628,
+      "nest2": 253895928,
+      "nest3": 267376391,
+      "greaterqueen1": 254421739,
+      "swarmling1": 252691505,
+      "spider1": 253169154,
+      "mosquito1": 254456665,
+      "locust1": 256001010,
+      "roach1": 256261290,
+      "giantspider1": 267481161,
+      "nexus1": 253841746,
+      "changelog": 1502,
+      "import": 279415673,
+      "clickme": 253401994,
+      "debug": 253409271
+     },
+     "points": 360
+    },
+    "ascendInfo": {
+     "ascendEnergySpent": "3125",
+     "ascendCost": "4788017",
+     "ascendCostPercent": "0.0031905768922708503332",
+     "respecCost": "1436406",
+     "respecCostPercent": "0.010635249643902907674",
+     "isRespecCostMet": false,
+     "respecSpent": "0"
+    },
+    "state": {
+     "unittypes": {
+      "invisiblehatchery": "1",
+      "meat": "1.1562356659316217338e+21",
+      "larva": "221427.04157512729756",
+      "cocoon": "0",
+      "territory": "8947117032239862.885",
+      "energy": "11418.0417",
+      "respecEnergy": "0",
+      "mtxEnergy": "0",
+      "nexus": "3",
+      "crystal": "2000",
+      "mutagen": "0",
+      "premutagen": "0",
+      "ascension": "0",
+      "freeRespec": "4",
+      "drone": "442755808839979607.1",
+      "queen": "3426535886551.721212",
+      "nest": "182121331.524",
+      "greaterqueen": "0",
+      "hive": "0",
+      "hivequeen": "0",
+      "empress": "0",
+      "prophet": "0",
+      "goddess": "0",
+      "pantheon": "0",
+      "pantheon2": "0",
+      "pantheon3": "0",
+      "pantheon4": "0",
+      "pantheon5": "0",
+      "overmind": "0",
+      "overmind2": "0",
+      "overmind3": "0",
+      "overmind4": "0",
+      "overmind5": "0",
+      "overmind6": "0",
+      "swarmling": "80",
+      "stinger": "84",
+      "spider": "28184",
+      "mosquito": "184536",
+      "locust": "87624",
+      "roach": "297840",
+      "giantspider": "34992",
+      "centipede": "0",
+      "wasp": "0",
+      "devourer": "0",
+      "goon": "0",
+      "nightbug": "0",
+      "moth": "0",
+      "bat": "0",
+      "mutanthatchery": "0",
+      "mutantbat": "0",
+      "mutantclone": "0",
+      "mutantswarmwarp": "0",
+      "mutantrush": "0",
+      "mutanteach": "0",
+      "mutantfreq": "0",
+      "mutantnexus": "0",
+      "mutantarmy": "0",
+      "mutantmeat": "0"
+     },
+     "date": {
+      "started": "2022-12-10T18:06:56.214Z",
+      "restarted": "2022-12-10T18:06:56.214Z",
+      "saved": "2022-12-13T23:43:51.893Z",
+      "reified": "2022-12-13T20:25:38.351Z",
+      "closed": "2022-12-10T18:06:56.214Z",
+      "addUnitTimed-crystal": "2022-12-13T20:22:33.149Z",
+      "loaded": "2022-12-14T00:00:00.000Z"
+     },
+     "options": {
+      "isCustomTheme": false,
+      "theme": "darkly",
+      "showAdvancedUnitData": true
+     },
+     "upgrades": {
+      "dronetwin": "1",
+      "droneprod": "6",
+      "hatchery": "21",
+      "swarmlingtwin": "1",
+      "expansion": "40",
+      "queenprod": "4",
+      "stingertwin": "2",
+      "achievementbonus": "4",
+      "queentwin": "3",
+      "spidertwin": "3",
+      "mosquitotwin": "3",
+      "nestprod": "3",
+      "nexus1": "1",
+      "nesttwin": "5",
+      "locusttwin": "3",
+      "nexus2": "1",
+      "roachtwin": "4",
+      "giantspidertwin": "4",
+      "nexus3": "1",
+      "centipedetwin": "3"
+     },
+     "statistics": {
+      "byUnit": {
+       "drone": {
+        "clicks": 19,
+        "num": "761",
+        "twinnum": "1418",
+        "elapsedFirst": 252590201
+       },
+       "queen": {
+        "clicks": 40,
+        "num": "113895",
+        "twinnum": "617054",
+        "elapsedFirst": 252642533
+       },
+       "swarmling": {
+        "clicks": 2,
+        "num": "40",
+        "twinnum": "80",
+        "elapsedFirst": 252691505
+       },
+       "stinger": {
+        "clicks": 2,
+        "num": "21",
+        "twinnum": "84",
+        "elapsedFirst": 252891324
+       },
+       "nest": {
+        "clicks": 41,
+        "num": "14423205",
+        "twinnum": "322059474",
+        "elapsedFirst": 253007628
+       },
+       "spider": {
+        "clicks": 7,
+        "num": "3523",
+        "twinnum": "28184",
+        "elapsedFirst": 253107265
+       },
+       "greaterqueen": {
+        "clicks": 5,
+        "num": "11111",
+        "twinnum": "11111",
+        "elapsedFirst": 254421739
+       },
+       "mosquito": {
+        "clicks": 3,
+        "num": "23067",
+        "twinnum": "184536",
+        "elapsedFirst": 254456665
+       },
+       "locust": {
+        "clicks": 1,
+        "num": "10953",
+        "twinnum": "87624",
+        "elapsedFirst": 256001010
+       },
+       "roach": {
+        "clicks": 4,
+        "num": "18706",
+        "twinnum": "297840",
+        "elapsedFirst": 256261290
+       },
+       "giantspider": {
+        "clicks": 1,
+        "num": "2187",
+        "twinnum": "34992",
+        "elapsedFirst": 267481161
+       }
+      },
+      "byUpgrade": {
+       "dronetwin": {
+        "clicks": 1,
+        "num": "1",
+        "elapsedFirst": 252654921
+       },
+       "droneprod": {
+        "clicks": 6,
+        "num": "6",
+        "elapsedFirst": 252660549
+       },
+       "hatchery": {
+        "clicks": 16,
+        "num": "21",
+        "elapsedFirst": 252683061
+       },
+       "swarmlingtwin": {
+        "clicks": 1,
+        "num": "1",
+        "elapsedFirst": 252690403
+       },
+       "expansion": {
+        "clicks": 32,
+        "num": "40",
+        "elapsedFirst": 252748175
+       },
+       "queenprod": {
+        "clicks": 4,
+        "num": "4",
+        "elapsedFirst": 252833714
+       },
+       "stingertwin": {
+        "clicks": 1,
+        "num": "2",
+        "elapsedFirst": 252886163
+       },
+       "achievementbonus": {
+        "clicks": 4,
+        "num": "4",
+        "elapsedFirst": 252979780
+       },
+       "queentwin": {
+        "clicks": 3,
+        "num": "3",
+        "elapsedFirst": 253015712
+       },
+       "spidertwin": {
+        "clicks": 1,
+        "num": "3",
+        "elapsedFirst": 253105616
+       },
+       "mosquitotwin": {
+        "clicks": 1,
+        "num": "3",
+        "elapsedFirst": 253203288
+       },
+       "nestprod": {
+        "clicks": 3,
+        "num": "3",
+        "elapsedFirst": 253237172
+       },
+       "nexus1": {
+        "clicks": 1,
+        "num": "1",
+        "elapsedFirst": 253841746
+       },
+       "nesttwin": {
+        "clicks": 5,
+        "num": "5",
+        "elapsedFirst": 254428400
+       },
+       "locusttwin": {
+        "clicks": 1,
+        "num": "3",
+        "elapsedFirst": 254461189
+       },
+       "nexus2": {
+        "clicks": 1,
+        "num": "1",
+        "elapsedFirst": 255951390
+       },
+       "roachtwin": {
+        "clicks": 2,
+        "num": "4",
+        "elapsedFirst": 255998663
+       },
+       "giantspidertwin": {
+        "clicks": 2,
+        "num": "4",
+        "elapsedFirst": 256268055
+       },
+       "nexus3": {
+        "clicks": 1,
+        "num": "1",
+        "elapsedFirst": 267342858
+       },
+       "centipedetwin": {
+        "clicks": 1,
+        "num": "3",
+        "elapsedFirst": 267522137
+       }
+      },
+      "clicks": 212
+     },
+     "achievements": {
+      "changelog": 1502,
+      "drone1": 252590201,
+      "queen1": 252642533,
+      "drone2": 252661348,
+      "swarmling1": 252691505,
+      "expansion1": 252748175,
+      "tutorial": 252906735,
+      "queen2": 252924209,
+      "nest1": 253007628,
+      "spider1": 253169154,
+      "clickme": 253401994,
+      "debug": 253409271,
+      "expansion2": 253535030,
+      "nexus1": 253841746,
+      "nest2": 253895928,
+      "greaterqueen1": 254421739,
+      "mosquito1": 254456665,
+      "locust1": 256001010,
+      "roach1": 256261290,
+      "nest3": 267376391,
+      "giantspider1": 267481161,
+      "import": 279415673
+     },
+     "watched": {
+      "dronetwin": -1,
+      "queenprod": 2,
+      "droneprod": 2,
+      "swarmlingtwin": 0,
+      "stingertwin": 0,
+      "queentwin": -1,
+      "nestprod": 2,
+      "spidertwin": 0,
+      "mosquitotwin": 0,
+      "locusttwin": 0,
+      "roachtwin": 0,
+      "giantspidertwin": 0,
+      "centipedetwin": 0
+     },
+     "skippedMillis": 0,
+     "version": {
+      "started": "1.1.14",
+      "saved": "1.1.14"
+     },
+     "achievementsShown": {
+      "earned": true,
+      "unearned": true,
+      "masked": true,
+      "order": "default",
+      "reverse": false
+     }
+    }
+   }
+  },
+  {
+   "action": {
+    "do": "exportSave"
+   },
+   "now": "2022-12-14T00:00:00.000Z",
+   "result": "MS4xLjE0|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="
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2022-12-14T00:10:00.000Z"
+   },
+   "now": "2022-12-14T00:10:00.000Z"
+  },
+  {
+   "action": {
+    "do": "save"
+   },
+   "now": "2022-12-14T00:10:00.000Z",
+   "result": "MS4xLjE3|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"
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "drone",
+    "num": 1
+   },
+   "now": "2022-12-14T00:10:00.000Z",
+   "commands": [
+    {
+     "unitname": "drone",
+     "now": "2022-12-14T00:10:00.000Z",
+     "elapsed": 280983786,
+     "attempt": "1",
+     "num": "1",
+     "twinnum": "2",
+     "name": "buyUnit"
+    }
+   ]
+  },
+  {
+   "action": {
+    "do": "exportSave"
+   },
+   "now": "2022-12-14T00:10:00.000Z",
+   "result": "MS4xLjE3|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"
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2022-12-14T01:00:00.000Z"
+   },
+   "now": "2022-12-14T01:00:00.000Z"
+  },
+  {
+   "action": {
+    "do": "importSave",
+    "save": "MS4wLjA=|Q2hlYXRlciA6KAoKN4IglgJiBcIG4AYB0AmEAaEALApgQwCcAXAI3yIEkpZFVpdDTyMQBXAOzCKIE8AHHAGcYoMOzhhBYEgBscWPEQDGuAjxggAjCwC2zWCgCsAZhSmkhgOzbMMwnDwbNAFgCcbpADZDzlkoD2Af7sGggsRDgEBFz+aqEsOOyRAObqsGGYBEICSgCiSQSp8ZhJAB6swum6rER4yYnFIHxZOjV1DVWYeIJKiVLBjQBmWTgAStk4Shq+mBAEwThOliwAjqw4HSAZIEmCRI3JWYqRaxshndhgcIsXWFc4p5vbODrNQpVbLM3+fLj7F8l/BAIO9Gnw8OwiLgBhdwZDoew0LCIVCcMFjGCUQjfMj4Wj2IZGv5rgQdGJqJ9MMTImT2BAkZSQNTSeSMRdmbSIDjGRzyYT2STOZ5GoIAO6EHQyMTJEVEaWREV8SAKi46fyCNYxRoyQIVf6M+Z4FQHMAowRKkEERq9SFgAQgxri82NEFwfysLJWgH+GGMzjJLCkVgy1X+KGNEiKRqtWrwxQqSJpRkxlGR/XbFOQpQ6pLRtqQsUS8UEPh52NEAgVLBllH4Y2q/NEYYPGuQsoVVu1UlJjONvRRqoAX1mxxEID2jBwFJQCE0hgAtAgUPPNJoACoIBDQFAADmgmlcSGMlhQAC0WFkJ8QpxoZ3PF8vVxut7v94fj2eWII8Ndp7OF0uK7rggzjQMeYGeEgLjGOemQ4GAgxgDeBj/g+QEbqB4HGJBS6eLBIDZuqyEgHeAGPsBL57geR4nuew5MnwcrBJUwD0awfCHHgIIsfRE5ynsYBKCxIAkDwACqnD/KAcwLGO2aCQA1pUxglKwOhLOEopiOwakaZgOB2HwghTgAYmABB7DAKDuAgxiDvRoliRxBBcTcrGYPJShKTAdldCoSHXHoBZjnwrCyIJER7No+4oCgmizPMSTRdZzi2R5CjsPUOohtZhieJ4liGLMOAkMGMAuK4eXeM4vEKXa9oALJgDIUqVAgmAkv05ygFeEQUpoSDIGE9lAAAA"
+   },
+   "now": "2022-12-14T01:00:00.000Z",
+   "snapshot": {
+    "units": {
+     "invisiblehatchery": {
+      "count": "1",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "meat": {
+      "count": "4205205680.129",
+      "velocity": "17",
+      "isVisible": true,
+      "eachCost": [],
+      "maxCostMet": "Infinity",
+      "maxCostMet25": "Infinity",
+      "isCostMet": true,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {},
+      "suffix": ""
+     },
+     "larva": {
+      "count": "247365093.628",
+      "velocity": "1",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "cocoon",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "0",
+      "maxCostMet25": "0",
+      "isCostMet": false,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {
+       "base": "0",
+       "prod": "1"
+      },
+      "suffix": ""
+     },
+     "cocoon": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "territory": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "energy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "respecEnergy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mtxEnergy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "nexus": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "crystal": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [],
+      "maxCostMet": "Infinity",
+      "maxCostMet25": "Infinity",
+      "isCostMet": true,
+      "isBuyButtonVisible": false,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {},
+      "totalProduction": {},
+      "stats": {},
+      "suffix": ""
+     },
+     "mutagen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "premutagen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "ascension": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "freeRespec": {
+      "count": "4",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "drone": {
+      "count": "17",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "10"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "247365093",
+      "maxCostMet25": "61841273",
+      "isCostMet": true,
+      "isBuyButtonVisible": true,
+      "isBuyable": true,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {
+       "meat": "1"
+      },
+      "totalProduction": {
+       "meat": "17"
+      },
+      "stats": {
+       "prod": "1",
+       "twin": "1"
+      },
+      "suffix": ""
+     },
+     "queen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": true,
+      "eachCost": [
+       {
+        "unit": "meat",
+        "val": "810"
+       },
+       {
+        "unit": "drone",
+        "val": "100"
+       },
+       {
+        "unit": "larva",
+        "val": "1"
+       }
+      ],
+      "maxCostMet": "0",
+      "maxCostMet25": "0",
+      "isCostMet": false,
+      "isBuyButtonVisible": true,
+      "isBuyable": false,
+      "twinMult": "1",
+      "capValue": null,
+      "eachProduction": {
+       "drone": "2"
+      },
+      "totalProduction": {
+       "drone": "0"
+      },
+      "stats": {
+       "prod": "1",
+       "twin": "1"
+      },
+      "suffix": ""
+     },
+     "nest": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "greaterqueen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "hive": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "hivequeen": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "empress": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "prophet": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "goddess": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon2": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon3": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon4": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "pantheon5": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind2": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind3": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind4": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind5": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "overmind6": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "swarmling": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "stinger": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "spider": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mosquito": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "locust": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "roach": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "giantspider": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "centipede": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "wasp": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "devourer": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "goon": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "nightbug": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "moth": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "bat": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutanthatchery": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantbat": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantclone": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantswarmwarp": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantrush": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutanteach": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantfreq": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantnexus": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantarmy": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     },
+     "mutantmeat": {
+      "count": "0",
+      "velocity": "0",
+      "isVisible": false
+     }
+    },
+    "upgrades": {
+     "hatchery": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "300",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": true,
+      "maxCostMet": "8",
+      "isCostMet": true,
+      "isBuyable": true,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": true,
+      "costMetPercent": "0.029062412670966666667",
+      "estimateSecsUntilBuyable": {
+       "val": "1713419271.7571176471",
+       "unit": "meat",
+       "cacheSafe": 1
+      }
+     },
+     "expansion": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "territory",
+        "val": "10",
+        "factor": "2.45"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "0",
+      "isCostMet": false,
+      "isBuyable": false,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0",
+      "estimateSecsUntilBuyable": {
+       "val": "Infinity",
+       "unit": "territory",
+       "cacheSafe": 1
+      }
+     },
+     "achievementbonus": {
+      "count": "0",
+      "isVisible": true,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "5000000",
+        "factor": "10000"
+       },
+       {
+        "unit": "territory",
+        "val": "500",
+        "factor": "10000"
+       }
+      ],
+      "isUpgradable": false,
+      "maxCostMet": "0",
+      "isCostMet": false,
+      "isBuyable": false,
+      "isAutobuyable": true,
+      "isNewlyUpgradable": false,
+      "costMetPercent": "0",
+      "estimateSecsUntilBuyable": {
+       "val": "Infinity",
+       "unit": "territory",
+       "cacheSafe": 1
+      }
+     },
+     "cocooning": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.33333e+21",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "droneprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "drone",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "queenprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "queen",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nestprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "nest",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "greaterqueenprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "greaterqueen",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hiveprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hive",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hivequeenprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hivequeen",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "empressprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "empress",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "prophetprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "prophet",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goddessprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "goddess",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheonprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon2prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon2",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon3prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon3",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon4prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon4",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon5prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon5",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmindprod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind2prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind2",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind3prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind3",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind4prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind4",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind5prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind5",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind6prod": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind6",
+        "val": "66",
+        "factor": "666"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "dronetwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "queen",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "queentwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "nest",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nesttwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "greaterqueen",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "greaterqueentwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hive",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hivetwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "hivequeen",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "hivequeentwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "empress",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "empresstwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "prophet",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "prophettwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "goddess",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goddesstwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheontwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon2",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon2twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon3",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon3twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon4",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon4twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "pantheon5",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "pantheon5twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind",
+        "val": "1",
+        "factor": "10"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmindtwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind2",
+        "val": "1",
+        "factor": "12"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind2twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind3",
+        "val": "1",
+        "factor": "14"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind3twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind4",
+        "val": "1",
+        "factor": "16"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind4twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind5",
+        "val": "1",
+        "factor": "18"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind5twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "overmind6",
+        "val": "1",
+        "factor": "20"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "overmind6twin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [],
+      "isUpgradable": false
+     },
+     "swarmlingtwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "stingertwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "spidertwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mosquitotwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "locusttwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "roachtwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "giantspidertwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "centipedetwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "wasptwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "devourertwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goontwin": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "100",
+        "factor": "500"
+       },
+       {
+        "unit": "larva",
+        "val": "1",
+        "factor": "50"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "swarmlingempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "1.14921e+32",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "stingerempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "5.17144e+34",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "spiderempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "2.32715e+37",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mosquitoempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "1.04722e+40",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "locustempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "4.71247e+42",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "roachempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "2.12061e+45",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "giantspiderempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "9.54276e+47",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "centipedeempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "4.29424e+50",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "waspempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "1.93241e+53",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "devourerempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "8.69584e+55",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "goonempower": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.91313e+58",
+        "factor": "1.53228e+29"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus1": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3333333333333",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus2": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3333330000000000",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "625",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus3": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3333330000000000000",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "2500",
+        "factor": "1"
+       },
+       {
+        "unit": "larva",
+        "val": "3333333",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus4": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.33333e+21",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "10000",
+        "factor": "1"
+       },
+       {
+        "unit": "larva",
+        "val": "33333330",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "nexus5": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "meat",
+        "val": "3.33333e+24",
+        "factor": "1"
+       },
+       {
+        "unit": "energy",
+        "val": "36000",
+        "factor": "1"
+       },
+       {
+        "unit": "larva",
+        "val": "3333333000",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "larvarush": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "1600",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "swarmwarp": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "2000",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "meatrush": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "1600",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "territoryrush": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "1600",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "clonelarvae": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "12000",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatehidden": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatehatchery": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatebat": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutateclone": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutateswarmwarp": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutaterush": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutateeach": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatefreq": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatenexus": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatearmy": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "mutatemeat": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "mutagen",
+        "val": "1",
+        "factor": "15625"
+       }
+      ],
+      "isUpgradable": false
+     },
+     "clonearmy": {
+      "count": "0",
+      "isVisible": false,
+      "totalCost": [
+       {
+        "unit": "energy",
+        "val": "2500",
+        "factor": "1"
+       }
+      ],
+      "isUpgradable": false
+     }
+    },
+    "achievements": {
+     "earned": {
+      "drone1": 29403,
+      "changelog": 2956675,
+      "debug": 14956654,
+      "publictest1": 1221
+     },
+     "points": 50
+    },
+    "ascendInfo": {
+     "ascendEnergySpent": "0",
+     "ascendCost": "5000000",
+     "ascendCostPercent": "0",
+     "respecCost": "1500000",
+     "respecCostPercent": "0",
+     "isRespecCostMet": false,
+     "respecSpent": "0"
+    },
+    "state": {
+     "id": "v0.2",
+     "heartbeatId": "v0.2:heartbeat",
+     "unittypes": {
+      "invisiblehatchery": "1",
+      "meat": "253232.571",
+      "larva": "14949.654",
+      "cocoon": "0",
+      "territory": "0",
+      "energy": "0",
+      "respecEnergy": "0",
+      "nexus": "0",
+      "mutagen": "0",
+      "premutagen": "0",
+      "ascension": "0",
+      "freeRespec": "4",
+      "drone": "17",
+      "queen": "0",
+      "nest": "0",
+      "greaterqueen": "0",
+      "hive": "0",
+      "hivequeen": "0",
+      "empress": "0",
+      "prophet": "0",
+      "goddess": "0",
+      "pantheon": "0",
+      "pantheon2": "0",
+      "pantheon3": "0",
+      "pantheon4": "0",
+      "pantheon5": "0",
+      "overmind": "0",
+      "overmind2": "0",
+      "overmind3": "0",
+      "overmind4": "0",
+      "overmind5": "0",
+      "overmind6": "0",
+      "swarmling": "0",
+      "stinger": "0",
+      "spider": "0",
+      "mosquito": "0",
+      "locust": "0",
+      "roach": "0",
+      "giantspider": "0",
+      "centipede": "0",
+      "wasp": "0",
+      "devourer": "0",
+      "goon": "0",
+      "nightbug": "0",
+      "moth": "0",
+      "bat": "0",
+      "mutanthatchery": "0",
+      "mutantbat": "0",
+      "mutantclone": "0",
+      "mutantswarmwarp": "0",
+      "mutantrush": "0",
+      "mutanteach": "0",
+      "mutantfreq": "0",
+      "mutantnexus": "0",
+      "mutantarmy": "0",
+      "mutantmeat": "0"
+     },
+     "date": {
+      "started": "2015-02-11T00:28:19.372Z",
+      "restarted": "2015-02-11T00:28:19.372Z",
+      "saved": "2015-02-11T04:37:36.143Z",
+      "reified": "2015-02-11T04:37:36.026Z",
+      "closed": "2015-02-11T00:28:19.372Z",
+      "loaded": "2022-12-14T01:00:00.000Z"
+     },
+     "options": {},
+     "upgrades": {},
+     "statistics": {
+      "byUnit": {
+       "drone": {
+        "clicks": 3,
+        "num": "17",
+        "twinnum": "17",
+        "elapsedFirst": 29403
+       }
+      },
+      "byUpgrade": {},
+      "clicks": 3
+     },
+     "achievements": {
+      "publictest1": 1221,
+      "drone1": 29403,
+      "changelog": 2956675,
+      "debug": 14956654
+     },
+     "skippedMillis": 0,
+     "version": {
+      "started": "1.0.0"
+     },
+     "watched": {}
+    }
+   }
+  },
+  {
+   "action": {
+    "do": "save"
+   },
+   "now": "2022-12-14T01:00:00.000Z",
+   "result": "MS4xLjE3|Q2hlYXRlciA6KAoKN4IglgJiBcIG4AYB0AmEAaEALApgQwCcAXAI3yIEkpZFVpdDTyMQBXAOzCKIE8AHHAGcYoMOzhhBYEgBscWPEQDGuAjxggAjCwC2zWABYUCAKzGTANgAcyTSgCcLGYTh4NKAwHYAzBZMJ7byQLFCsWJQB7SIj2DQQWIhwCAi4ItTiWHHYkgHN1WHjMAiEBJQBRbII8jMxsgA9WYQLdViI8HKyakD5inVb2zubMPEElLKkYroAzYpwAJRKcJQ0DFggCGJwNTU8WAEdWHEGQQpBswSIunOLFJIOj2KHsMDgtp6wXnHvj05wdHqETROLB6ET4uEuTxyEQgEEBXT4eHYRFwkyeiORqPYaHRSJROBi3gReKxq1xmIJ7BMXQirwIOjE1GBmFpSQZ7AgOOZIFZ9MZRKevPZEDJ3KFjOpgrpwosXUEAHdCDoZGIcnKiKqknK+JAtU8dBFBAdUl0ZFFGpDuRs8CormA8YIdXCCF0xsiwAI4V1FY6unC4BFWMUXVCImjuZwclhSKw1fqIiiuiRFF0+m1MYoVEl8ty03jk5bTnnkUozdlU/1kQqlYqCHwK+miARGlgG3j8Lb9ZWiDMvm3kfVGv22vSc0Xu3oU/qiHUKrkx+E1Bc8DIMgBfTAQW4iEDL4g4JnGTQmAC0CBQJ80mgAKggENBQtBNPYkN5PCgAFosYp7xKHhDHmeF5Xre96Ps+r7vl+mCCHgrz/igwHAQYt6aNAd7ocgd4INBIDFGAUxgAe7jnkhl4oQBmGYUg2G4aWhrEbAR6nuel43hh4Evm+n4gBuPJ8BqMRNMAfGsHw1x4HCwl8cuGoXGASjCSAJA8AAqpwkKgOsmw7qWCkANZNN4tSsDo2y7JgRDymI7CmeZmTOHwggHgAYmABAXDADgGAg3hrnxKmqeJBCSW8ImYHpSiGTAfnDCoRGvHoVY7nwrCyApiQXNoT6IZom4bNk2Xeb5EUKOwHRmnGDiWBYngmJuOAkLGMCaAY9g1SYBgyfpHqegAsmAMgqk0CCYHSEyPKAv6MVoNE0SwsHwdsSCaCtux8Yqyi4NQIlrkAA=="
+  }
+ ]
+}

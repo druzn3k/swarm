@@ -11,6 +11,8 @@ env:
 
 jobs:
   build-and-push-image:
+    # publishes to the swarmsim org's registry and deploy pipeline; forks have neither
+    if: github.repository == 'swarmsim/swarm'
     runs-on: ubuntu-latest
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:

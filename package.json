@@ -1,16 +1,18 @@
 {
     "license": "GPL-3.0",
     "scripts": {
-        "install:link": "(cd tables && yarn link) && (cd swarmsim-ts && yarn link && yarn link @swarmsim/tables) && (cd swarmsim-coffee && yarn link @swarmsim/tables && yarn link @swarmsim/ts)",
-        "install": "yarn run install:link && (cd tables && yarn install) && (cd swarmsim-ts && yarn install) && (cd swarmsim-coffee && yarn install)",
-        "start": "(cd tables && yarn build) && (cd swarmsim-ts && yarn build) && concurrently -k 'cd swarmsim-coffee && yarn start' 'cd swarmsim-ts && yarn watch'",
-        "build": "(cd tables && yarn build) && (cd swarmsim-ts && yarn build) && (cd swarmsim-coffee && yarn build && cp -rp dist ..)",
-        "build:docker": "(cd tables && yarn build) && (cd swarmsim-ts && yarn build) && (cd swarmsim-coffee && yarn build:docker && cp -rp dist ..)",
+        "legacy:install": "sh scripts/legacy-install.sh",
+        "start": "pnpm --filter @swarmsim/tables build && pnpm --filter @swarmsim/ts build && concurrently -k 'cd swarmsim-coffee && SKIP_YARN_COREPACK_CHECK=1 yarn start' 'pnpm --filter @swarmsim/ts watch'",
+        "build": "pnpm --filter @swarmsim/tables build && pnpm --filter @swarmsim/ts build && cd swarmsim-coffee && SKIP_YARN_COREPACK_CHECK=1 yarn build && cp -rp dist ..",
+        "build:docker": "pnpm --filter @swarmsim/tables build && pnpm --filter @swarmsim/ts build && cd swarmsim-coffee && SKIP_YARN_COREPACK_CHECK=1 yarn build:docker && cp -rp dist ..",
         "start:dist": "serve dist",
-        "test": "(cd tables && yarn build && yarn test) && (cd swarmsim-ts && yarn build && yarn test) && (cd swarmsim-coffee && yarn test)"
+        "test": "pnpm test:packages && pnpm test:legacy",
+        "test:packages": "pnpm -r build && pnpm -r test",
+        "test:legacy": "cd swarmsim-coffee && SKIP_YARN_COREPACK_CHECK=1 yarn test"
     },
     "devDependencies": {
         "concurrently": "^7.6.0",
         "serve": "^14.1.2"
-    }
+    },
+    "packageManager": "pnpm@10.34.9"
 }

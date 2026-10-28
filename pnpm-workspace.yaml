@@ -1,0 +1,15 @@
+# The old AngularJS game (swarmsim-coffee) is deliberately NOT in the
+# workspace: it keeps its own Yarn 1 setup until it is retired.
+packages:
+  - tables
+  - swarmsim-ts
+  - engine
+  - mockup
+
+# dependencies allowed to run install scripts
+onlyBuiltDependencies:
+  - esbuild
+  - "@parcel/watcher"
+  - "@swc/core"
+  - lmdb
+  - msgpackr-extract
