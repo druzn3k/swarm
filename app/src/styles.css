@@ -406,6 +406,10 @@ h3 {
 .unit-screen img {
   -webkit-user-drag: none;
 }
+.unit-screen.swiping {
+  user-select: none;
+  cursor: grabbing;
+}
 /* stepped to a neighbour: the new unit slides in from that side, in pixel steps */
 .unit-screen.slide-next {
   animation: slide-from-right 160ms steps(4);
@@ -695,18 +699,17 @@ h3 {
 /* "+N" floating up from the button that bought it */
 .buy-pop {
   position: absolute;
-  top: 2px;
+  top: -10px;
   left: calc(12px + (100% - 40px) / 6);
   transform: translateX(-50%);
   pointer-events: none;
   font-family: var(--display);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1;
+  padding: 3px 5px;
   color: var(--amber);
-  text-shadow:
-    2px 0 0 var(--edge),
-    -2px 0 0 var(--edge),
-    0 2px 0 var(--edge),
-    0 -2px 0 var(--edge);
+  background: var(--edge);
+  box-shadow: 0 0 0 2px var(--amber-dark);
   white-space: nowrap;
   animation: buy-pop 700ms steps(6) forwards;
   z-index: 1;

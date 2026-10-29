@@ -36,9 +36,15 @@ export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: str
     if (!valid) window.location.replace(tabHref(unit?.tab?.name ?? "meat"));
   }, [valid, unit]);
 
-  // the cards above and below in the list shown with the unit
-  const list = listTab ? tabByName(game, listTab) : undefined;
-  const { above, below } = unit && valid ? unitNeighbours(list && list.indexByUnitName[unit.name] !== undefined ? list : unit.tab!, unit) : {};
+  // the cards above and below in the list shown with the unit (they change
+  // when a unit is unlocked: re-read once a second, and after player actions)
+  const near = useGameValueEvery(() => {
+    if (!unit || !valid) return ",";
+    const list = listTab ? tabByName(game, listTab) : undefined;
+    const n = unitNeighbours(list && list.indexByUnitName[unit.name] !== undefined ? list : unit.tab!, unit);
+    return `${n.above?.name ?? ""},${n.below?.name ?? ""}`;
+  }, 10);
+  const [above, below] = near.split(",").map((n) => (n ? game.unit(n) : undefined));
   const surface = useRef<HTMLDivElement>(null);
   useSwipe(surface, (dir) => {
     const to = dir === "next" ? below : above;

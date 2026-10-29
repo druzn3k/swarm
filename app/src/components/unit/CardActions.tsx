@@ -107,14 +107,14 @@ export function CardActions({
     <div className="card-actions" data-actions={unit.name}>
       <div className="card-actions-row" role="group" aria-label={`Quick buy: ${plural}`}>
         <button type="button" className="btn btn-mini" disabled={!one} onClick={() => buyUnit(0, "one")}>
-          <span className="btn-verb">{verb}</span>
+          <span className="btn-verb">{verb}</span>{" "}
           <span className="btn-amount num">
             +{one || fmt.num(unit.twinMult())}
             <span className="sr-only"> {one === "1" ? String(unit.unittype.label) : plural}</span>
           </span>
         </button>
         <button type="button" className="btn btn-mini" disabled={!max} onClick={() => buyUnit(1, "max")}>
-          <span className="btn-verb">max</span>
+          <span className="btn-verb">max</span>{" "}
           <span className="btn-amount num">
             {max || "–"}
             <span className="sr-only"> {plural}</span>
@@ -129,7 +129,7 @@ export function CardActions({
           title={upgrade ? `Buy ${upgrade.type.label}` : undefined}
           data-upgrade-target={upgrade?.name}
         >
-          <span className="btn-verb">upgrade</span>
+          <span className="btn-verb">upgrade</span>{" "}
           <span className="btn-amount btn-upgrade">{upgrade ? <UpgradeIcon name={upgrade.name} size={20} /> : "–"}</span>
         </button>
         {pop && (
