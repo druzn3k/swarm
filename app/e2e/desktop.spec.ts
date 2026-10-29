@@ -71,7 +71,7 @@ test("picking a unit shows it on the right and keeps the list where it was", asy
   expect(await side(page).evaluate((el) => el.scrollTop)).toBe(before);
   // focus stays on the card; the change is announced
   await expect(card(page, "queen")).toBeFocused();
-  await expect(side(page).getByRole("status")).toHaveText(/showing queens/i);
+  await expect(side(page).locator('[data-slot="split-status"]')).toHaveText(/showing queens/i);
 
   // next unit (the card below; the button goes away with the old unit): focus moves to the unit
   await page.locator("main").getByRole("link", { name: /^next/i }).click();

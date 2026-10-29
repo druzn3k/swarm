@@ -1,12 +1,12 @@
 import type { Tab, Unit } from "@swarmsim/engine";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { useGameValue, useGameValueEvery, useStore } from "../game/GameContext";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
 import { unitLabel, visibleUnits } from "../game/selectors";
 import { unitHref } from "../router";
 import { SpriteIcon } from "./Icon";
-import { QuickBuy } from "./unit/QuickBuy";
+import { CardActions, ROW_EVERY } from "./unit/CardActions";
 import { useOptions } from "../game/options";
 
 function rateText(unit: Unit, tab: Tab, fmt: Formatter): string {
@@ -33,15 +33,19 @@ const SEP = "\u0001";
 const UnitCard = memo(function UnitCard({
   unit,
   tab,
-  quickBuy,
+  advanced,
   current,
   phase,
+  index,
+  announce,
 }: {
   unit: Unit;
   tab: Tab;
-  quickBuy: boolean;
+  advanced: boolean;
   current: boolean;
   phase?: number;
+  index: number;
+  announce: (text: string) => void;
 }) {
   const fmt = useFormat();
   const every = phase === undefined ? 1 : 2;
@@ -52,7 +56,7 @@ const UnitCard = memo(function UnitCard({
   const [count, rate, cap, upgradable] = snapshot.split(SEP);
   const name = unitLabel(unit, true);
   return (
-    <li className="card">
+    <li className="card unit-item">
       <a className="unit-card" href={unitHref(unit.name)} data-unit={unit.name} aria-current={current ? "true" : undefined}>
         <SpriteIcon name={unit.name} tab={unit.unittype.tab} />
         <span className="unit-names">
@@ -64,40 +68,48 @@ const UnitCard = memo(function UnitCard({
           {cap && <small>{cap}</small>}
         </span>
         <span className="chevron" aria-hidden="true" />
-        {upgradable && (
-          <span className="upgrade-dot" role="img" aria-label="New upgrade available" title="New upgrade available" />
-        )}
+        {upgradable && <span className="upgrade-dot" role="img" aria-label="New upgrade available" title="New upgrade available" />}
       </a>
-      {/* the old table's buy dropdown, with advanced unit data on */}
-      {quickBuy && <QuickBuy unit={unit} every={every} phase={phase} />}
+      {/* buy without opening the unit (a sibling of the link: no buttons inside <a>) */}
+      <CardActions unit={unit} every={ROW_EVERY * every} phase={index} advanced={advanced} announce={announce} />
     </li>
   );
 });
 
 /**
- * The visible units of a tab, as cards that open the unit screen. Re-renders
- * when the list changes; cards update themselves. `selected` (laptop layout)
+ * The visible units of a tab, as cards that open the unit screen, with a row
+ * of quick buys under the buyable ones. Re-renders when the list changes;
+ * cards update themselves. `selected` (laptop layout)
  * marks the card of the unit shown next to the list.
  */
 export function UnitList({ tab, selected }: { tab: Tab; selected?: string }) {
   const { game } = useStore();
   const names = useGameValue(() => visibleUnits(tab).map((u) => u.name).join(","));
   const [{ showAdvancedUnitData }] = useOptions();
+  // what the last quick buy did, for screen readers (one status line for the list)
+  const [said, announce] = useState("");
   return (
-    <ul className="unit-list">
-      {names
-        .split(",")
-        .filter(Boolean)
-        .map((n, i) => (
-          <UnitCard
-            key={n}
-            unit={game.unit(n)}
-            tab={tab}
-            quickBuy={showAdvancedUnitData}
-            current={n === selected}
-            phase={selected === undefined ? undefined : i % 2}
-          />
-        ))}
-    </ul>
+    <>
+      <ul className="unit-list">
+        {names
+          .split(",")
+          .filter(Boolean)
+          .map((n, i) => (
+            <UnitCard
+              key={n}
+              unit={game.unit(n)}
+              tab={tab}
+              advanced={showAdvancedUnitData}
+              current={n === selected}
+              phase={selected === undefined ? undefined : i % 2}
+              index={i}
+              announce={announce}
+            />
+          ))}
+      </ul>
+      <p className="sr-only" role="status" data-slot="buy-status">
+        {said}
+      </p>
+    </>
   );
 }

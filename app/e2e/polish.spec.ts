@@ -71,17 +71,19 @@ test("tabs: locked ones are hidden, mutagen shows inactive mutagen", async ({ pa
   await expect(page.locator('.tabbar a[data-tab="mutagen"]')).toHaveCount(0);
 });
 
-test("quick buy under unit cards with advanced unit data", async ({ page }) => {
+test("advanced unit data: the old dropdown's other choices under the card's buy row", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await loadWith(page, { ...LATE, options: { showAdvancedUnitData: true } }, "./#/tab/meat");
   const quick = page.locator('[data-quickbuy="drone"]');
-  await expect(quick.locator("summary")).toContainText(/Buy up to/);
+  await expect(quick.locator("summary")).toContainText(/25%, each upgrade/);
   await quick.locator("summary").click();
   const drones = page.locator('a.unit-card[data-unit="drone"] .unit-count');
   const before = await drones.textContent();
-  await quick.getByRole("button", { name: /^buy \d/i }).first().click();
+  await quick.getByRole("button", { name: /^hatch 25%/i }).click();
   await expect(drones).not.toHaveText(before!);
   await expect(quick).toContainText(/faster drones/i);
+  // no dropdown on units that can't be bought
+  await expect(page.locator('[data-quickbuy="meat"]')).toHaveCount(0);
 });
 
 test("More sheet traps focus, makes the page inert and returns focus", async ({ page }) => {

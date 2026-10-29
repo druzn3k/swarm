@@ -1,27 +1,30 @@
 // The old unit table's quick-buy dropdown (views/buyunit-dropdown.html),
-// shown with "advanced unit data": buy the unit or any of its visible
-// upgrades without opening the unit screen. Its contents only render while
+// shown with "advanced unit data". Buy 1 and max of the unit are on every
+// card's action row (CardActions.tsx); this keeps the dropdown's other
+// choices, so nothing the old table offered is lost: 25% of the unit, and
+// buy 1 / 25% / max of each visible upgrade. Its contents only render while
 // it is open.
 import { useState } from "react";
 import type { Unit, Upgrade } from "@swarmsim/engine";
-import { useGame, useGameValueEvery, useStore } from "../../game/GameContext";
+import { useGame, useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { StackButton } from "./BuyUnit";
 
-function UnitButtons({ unit }: { unit: Unit }) {
+/** Buy 25%: the one unit choice of the old dropdown that the card's row doesn't have. */
+function QuarterButton({ unit }: { unit: Unit }) {
   const store = useStore();
   const fmt = useFormat();
-  const twin = unit.twinMult();
+  const verb = String(unit.unittype.verb ?? "buy");
   const max = unit.maxCostMet();
   const quarter = unit.maxCostMet(0.25);
   const is25 = max.greaterThan(quarter) && quarter.greaterThan(1);
-  const buy = () => store.act(({ commands }) => commands.buyUnit({ unit, num: 1, ui: "button" }));
-  const buyMax = (percent: number) => store.act(({ commands }) => commands.buyMaxUnit({ unit, percent, ui: "button" }));
+  const buy = () => store.act(({ commands }) => commands.buyMaxUnit({ unit, percent: 0.25, ui: "button" }));
   return (
-    <div className="btn-row">
-      {unit.isCostMet() ? <StackButton verb="buy" amount={fmt.num(twin)} onClick={buy} /> : <StackButton verb="can't" amount="buy" />}
-      <StackButton verb="buy" amount={is25 ? fmt.num(quarter.times(twin)) : "25%"} onClick={is25 ? () => buyMax(0.25) : undefined} />
-      <StackButton verb="buy" amount={max.greaterThan(1) ? fmt.num(max.times(twin)) : "max"} onClick={max.greaterThan(1) ? () => buyMax(1) : undefined} />
+    <div className="quickbuy-upgrade">
+      <p className="quickbuy-title">{String(unit.unittype.plural)}</p>
+      <div className="btn-row one">
+        <StackButton verb={`${verb} 25%`} amount={is25 ? fmt.num(quarter.times(unit.twinMult())) : "–"} onClick={is25 ? buy : undefined} />
+      </div>
     </div>
   );
 }
@@ -51,7 +54,7 @@ function QuickBuyBody({ unit }: { unit: Unit }) {
   useGame();
   return (
     <div className="quickbuy-body">
-      <UnitButtons unit={unit} />
+      <QuarterButton unit={unit} />
       {unit.upgrades.list
         .filter((u) => u.isVisible())
         .map((u) => (
@@ -61,21 +64,17 @@ function QuickBuyBody({ unit }: { unit: Unit }) {
   );
 }
 
-/** "Buy up to N" under a unit card. Re-renders when its label changes; refreshes like its card (`every`, `phase`). */
-export function QuickBuy({ unit, every = 1, phase = 0 }: { unit: Unit; every?: number; phase?: number }) {
-  const fmt = useFormat();
+/**
+ * Under a buyable unit's card, with "advanced unit data": the old dropdown's
+ * choices that the card's row (+1, max, upgrade) doesn't offer: 25% of the
+ * unit, and buy 1 / 25% / max of each visible upgrade.
+ */
+export function QuickBuy({ unit }: { unit: Unit }) {
   const [open, setOpen] = useState(false);
-  const label = useGameValueEvery(() => {
-    if (!unit.isBuyButtonVisible()) return null;
-    const max = unit.maxCostMet();
-    return max.isZero() ? "Can't buy" : `Buy up to ${fmt.num(max.times(unit.twinMult()))}`;
-  }, every, phase);
-  if (label == null) return null;
   return (
     <details className="quickbuy" open={open} onToggle={(e) => setOpen(e.currentTarget.open)} data-quickbuy={unit.name}>
       <summary>
-        <span className="num">{label}</span>
-        <span className="sr-only"> {String(unit.unittype.plural)}</span>
+        More: 25%, each upgrade<span className="sr-only"> ({String(unit.unittype.plural)})</span>
       </summary>
       {open && <QuickBuyBody unit={unit} />}
     </details>

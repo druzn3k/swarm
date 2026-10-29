@@ -40,7 +40,7 @@ export function Split({ listTab, unit }: { listTab: string; unit?: string }) {
     <div className="split">
       <section className="split-side" aria-labelledby="list-title">
         <TabScreen key={listTab} tab={listTab} selected={selected} titleId="list-title" />
-        <p className="sr-only" role="status" aria-live="polite">
+        <p className="sr-only" role="status" aria-live="polite" data-slot="split-status">
           {said}
         </p>
       </section>

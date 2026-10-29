@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { RefObject } from "react";
 import type { Game, Unit } from "@swarmsim/engine";
-import { useGameValue } from "../game/GameContext";
+import { useGameValueEvery } from "../game/GameContext";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
 import { TAB_ORDER, tabByName } from "../game/selectors";
@@ -36,7 +36,7 @@ function tabInfos(game: Game, fmt: Formatter): TabInfo[] {
 /**
  * The unlocked resource tabs plus "More": a bottom bar on the phone, a strip
  * under the header on the laptop layout (`wide`). Re-renders only when what it
- * shows changes.
+ * shows changes, and reads the game on every other tick.
  */
 export function TabBar({
   current,
@@ -52,7 +52,9 @@ export function TabBar({
   moreRef?: RefObject<HTMLButtonElement>;
 }) {
   const fmt = useFormat();
-  const snapshot = useGameValue((s) => JSON.stringify(tabInfos(s.game, fmt)));
+  // every other tick (5 a second; the "new upgrade" markers walk every unit of
+  // every tab): the tab bar shows totals, not a ticker. Player actions show at once.
+  const snapshot = useGameValueEvery((s) => JSON.stringify(tabInfos(s.game, fmt)), 2);
   const tabs = useMemo(() => JSON.parse(snapshot) as TabInfo[], [snapshot]);
   return (
     <nav className={wide ? "tabbar strip" : "tabbar"} aria-label="Swarm tabs">

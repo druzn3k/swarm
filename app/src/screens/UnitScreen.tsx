@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useGame } from "../game/GameContext";
+import { useGameValueEvery, useStore } from "../game/GameContext";
+import { useWide } from "../layout";
 import { useFormat } from "../format";
 import { findUnit, isUnitBuyable, tabByName, unitLabel } from "../game/selectors";
 import { parseQuery, tabHref, useHash } from "../router";
@@ -15,7 +16,12 @@ import { AscensionPanel } from "../components/progression/AscensionPanel";
 
 /** A unit's screen. `listTab` is the list shown beside it (laptop layout), for prev/next. */
 export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: string }) {
-  const { game } = useGame();
+  const store = useStore();
+  const { game } = store;
+  // re-render on every tick; next to the list (laptop layout) on every other
+  // tick, the ones the list's cards skip half of, so the two columns together
+  // stay within the tick budget. Player actions show at once.
+  useGameValueEvery((s) => s.getVersion(), useWide() ? 2 : 1, 1);
   const fmt = useFormat();
   const hash = useHash();
   const unit = findUnit(game, key);
