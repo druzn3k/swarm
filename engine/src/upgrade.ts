@@ -10,6 +10,19 @@ import type { Unit } from "./unit";
 
 const ONE = new Decimal(1);
 
+// cost.factor.log() for maxCostMet. A cost's factor is a constant of its
+// upgrade type (the same Decimal from _init on, shared by every cost clone),
+// and Decimals are immutable, so the log is worked out once per factor.
+const factorLogs = new WeakMap<Decimal, Decimal>();
+export function factorLog(factor: Decimal): Decimal {
+  let ret = factorLogs.get(factor);
+  if (ret == null) {
+    ret = factor.log();
+    factorLogs.set(factor, ret);
+  }
+  return ret;
+}
+
 export interface UpgradeCost {
   unit: Unit;
   val: Decimal;
@@ -172,7 +185,7 @@ export class Upgrade {
           //m = Math.log(1 - (cost.unit.count() * percent) * (1 - cost.factor) / cost.val) / Math.log cost.factor
           m = ONE.minus(cost.unit.count().times(percent).times(ONE.minus(cost.factor)).dividedBy(cost.val))
             .log()
-            .dividedBy(cost.factor.log());
+            .dividedBy(factorLog(cost.factor));
         }
         max = Decimal.min(max, m);
       }
