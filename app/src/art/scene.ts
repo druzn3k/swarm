@@ -11,6 +11,7 @@ import { LarvaScene } from "./scenes/larva";
 import { TerritoryScene } from "./scenes/territory";
 import { EnergyScene } from "./scenes/energy";
 import { MutagenScene } from "./scenes/mutagen";
+import { NULL_CONTEXT } from "./animator";
 
 export { W, H };
 export type { Population };
@@ -95,7 +96,10 @@ export class HiveScene {
     this.scene.burst(unit);
   }
 
-  frame(): void {
+  /** Advance `steps` animation steps (one per 60 Hz frame) and draw the last. */
+  frame(steps = 1): void {
+    // the steps in between move creatures and particles without drawing
+    for (let i = 1; i < steps; i++) this.scene.frame(NULL_CONTEXT);
     this.scene.frame(this.ctx);
   }
 }

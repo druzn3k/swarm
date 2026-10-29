@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { HiveScene, SCENE_INFO, sceneFor } from "../art/scene";
 import type { Population } from "../art/scene";
 import { population } from "../art/population";
+import { Animator } from "../art/animator";
 import { useStore } from "../game/GameContext";
 import { useRoute } from "../router";
 
@@ -12,27 +13,46 @@ const REDUCED = "(prefers-reduced-motion: reduce)";
 /** How often the hive re-reads the population on its own (counts drift slowly; purchases update it at once). */
 const POPULATION_MILLIS = 500;
 
-/** Runs a scene's animation loop, honouring reduced motion. */
-function animate(scene: HiveScene): { stop: () => void } {
+/**
+ * Runs a scene's animation loop (see ../art/animator.ts): about 20 redraws a
+ * second at the scenes' usual speed, paused while the canvas is off screen
+ * or the page is hidden, and honouring reduced motion.
+ */
+function animate(scene: HiveScene, canvas: HTMLCanvasElement): { stop: () => void } {
   const media = window.matchMedia?.(REDUCED);
-  let raf = 0;
-  const loop = () => {
-    scene.frame();
-    raf = requestAnimationFrame(loop);
-  };
+  const anim = new Animator((steps) => scene.frame(steps), {
+    now: () => performance.now(),
+    requestAnimationFrame: (fn) => window.requestAnimationFrame(fn),
+    cancelAnimationFrame: (id) => window.cancelAnimationFrame(id),
+    setTimeout: (fn, ms) => window.setTimeout(fn, ms),
+    clearTimeout: (id) => window.clearTimeout(id),
+  });
   const setMotion = () => {
     scene.reduced = !!media?.matches;
-    cancelAnimationFrame(raf);
     // with reduced motion the hive is redrawn on game updates only
     if (scene.reduced) scene.frame();
-    else raf = requestAnimationFrame(loop);
+    anim.set("reduced", scene.reduced);
   };
+  const setHidden = () => anim.set("hidden", document.visibilityState === "hidden");
+  const io =
+    typeof IntersectionObserver === "undefined"
+      ? null
+      : new IntersectionObserver((entries) => {
+          const e = entries[entries.length - 1];
+          if (e) anim.set("offscreen", !e.isIntersecting);
+        });
+  setHidden();
   setMotion();
+  anim.start();
+  io?.observe(canvas);
   media?.addEventListener?.("change", setMotion);
+  document.addEventListener("visibilitychange", setHidden);
   return {
     stop: () => {
-      cancelAnimationFrame(raf);
+      anim.stop();
+      io?.disconnect();
       media?.removeEventListener?.("change", setMotion);
+      document.removeEventListener("visibilitychange", setHidden);
     },
   };
 }
@@ -64,7 +84,7 @@ export function HiveCanvas({ tab: tabProp }: { tab?: string }) {
       if (scene.reduced) scene.frame();
     };
     update();
-    const anim = animate(scene);
+    const anim = animate(scene, canvas);
     const unsubscribe = store.subscribe(update);
     const offCommand = store.events.on("command", (cmd) => {
       dirty = true;
@@ -98,7 +118,7 @@ export function SceneView({ tab, pop, label }: { tab: string; pop: Population; l
     if (!canvas || !canvas.getContext("2d")) return;
     const scene = new HiveScene(canvas, tab);
     scene.setPopulation(JSON.parse(key) as Population);
-    const anim = animate(scene);
+    const anim = animate(scene, canvas);
     return anim.stop;
   }, [tab, key]);
   const info = SCENE_INFO[sceneFor(tab)];

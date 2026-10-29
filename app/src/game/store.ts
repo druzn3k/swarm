@@ -127,10 +127,20 @@ export class GameStore {
   /**
    * Start ticking and autosaving in the browser. Returns a stop function.
    * Saves: the engine's own after player actions, a timed one in idle time
-   * (see ./autosave.ts), and one when the page is hidden or closed.
+   * (see ./autosave.ts), and one when the page is hidden or closed. Ticks
+   * stop while the page is hidden and catch up with one tick on return.
    */
   start(win: Window = window): () => void {
-    const tick = win.setInterval(() => this.tick(), TICK_MILLIS);
+    // no ticks while the page is hidden: idle progress comes from elapsed
+    // time, so one tick on return catches up exactly
+    let tick = 0;
+    const startTicking = () => {
+      if (!tick) tick = win.setInterval(() => this.tick(), TICK_MILLIS);
+    };
+    const stopTicking = () => {
+      if (tick) win.clearInterval(tick);
+      tick = 0;
+    };
     const autosave = new Autosave(() => this.save(), win as unknown as AutosaveHost);
     const offSaved = this.events.on("save", () => autosave.saved());
     const heartbeat = win.setInterval(() => this.engine.session.onHeartbeat(), HEARTBEAT_MILLIS);
@@ -138,11 +148,13 @@ export class GameStore {
     const hidden = () => win.document.visibilityState === "hidden";
     const onVisibility = () => {
       if (hidden()) {
+        stopTicking();
         autosave.flush();
         // nothing changes while hidden; the next timed save is 30s after coming back
         autosave.pause();
       } else {
         this.tick();
+        startTicking();
         autosave.start();
       }
     };
@@ -152,10 +164,13 @@ export class GameStore {
     };
     win.document.addEventListener("visibilitychange", onVisibility);
     win.addEventListener("pagehide", onPageHide);
-    if (!hidden()) autosave.start();
+    if (!hidden()) {
+      startTicking();
+      autosave.start();
+    }
     this.tick();
     return () => {
-      win.clearInterval(tick);
+      stopTicking();
       win.clearInterval(heartbeat);
       autosave.pause();
       offSaved();

@@ -36,6 +36,11 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
   the last save, in idle time (`requestIdleCallback`, else `setTimeout`), and
   at once when the page is hidden or closed (`src/game/autosave.ts`). No timed
   saves while the page is hidden.
+- **Battery:** the hive redraws about 20 times a second, advancing its scene
+  by the 60 Hz steps that really passed (same speed in wall-clock time,
+  `src/art/animator.ts`), and stops while it is off screen or the page is
+  hidden. The game doesn't tick while the page is hidden; one tick on return
+  catches up (idle progress comes from elapsed time).
 - **Routing:** hash routes, so the app works from any static host
   (GitHub Pages under `/swarm/`): `#/tab/<tab>`, `#/unit/<unit>`,
   `#/achievements`, `#/statistics`, `#/options`, `#/about`.
