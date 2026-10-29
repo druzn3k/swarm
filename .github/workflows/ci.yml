@@ -1,4 +1,11 @@
-# This doesn't deploy anything. Netlify deploys all changes made to the `master` and `production` branches
+# Tests everything, then deploys the app (app/) to GitHub Pages from master:
+# the `pages` job runs only after `packages` passed, so a commit that fails
+# the app's tests or e2e never ships. Run it by hand (workflow_dispatch) on
+# master to redeploy. The `legacy` job (the old AngularJS game, not the app)
+# doesn't hold the deploy back. Netlify deploys the old game from the
+# `master` and `production` branches on its own.
+# Pages needs Settings > Pages > Source set to "GitHub Actions" (done once by
+# hand; the workflow's own token isn't allowed to switch Pages on).
 
 name: continuous integration
 
@@ -29,6 +36,32 @@ jobs:
     - run: pnpm --filter @swarmsim/engine exec jest
       env:
         TZ: Asia/Tokyo
+    # the build that was just tested is the one that gets deployed
+    - if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: app/dist
+
+  # publish the app to GitHub Pages, only from master and only once the packages passed
+  pages:
+    needs: [packages]
+    if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # one deploy at a time
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - uses: actions/configure-pages@v6
+    - id: deployment
+      uses: actions/deploy-pages@v5
 
   # the old AngularJS game: Yarn 1, Node 16, Ruby compass. Left as-is until it's retired.
   legacy:
