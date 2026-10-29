@@ -18,11 +18,32 @@ export function findUnit(game: Game, key: string): Unit | undefined {
   return own(game._units.byName, key) ?? own(game._units.bySlug, key);
 }
 
-/** Visible units of a tab, lowest tier first (the mock-up's order). */
+/**
+ * Visible units of a tab in the old game's order (`cur.tab.sortUnits()` in
+ * views/main.html and unit.html): the most advanced unit at the top, the
+ * cheapest at the bottom (meat last on the meat tab). "All units" keeps the
+ * spreadsheet order, cheapest first, like the old game.
+ */
 export function visibleUnits(tab: Tab): Unit[] {
-  const sorted = tab.sortUnits() as Unit[];
-  const list = sorted.filter((u) => u.isVisible());
+  return (tab.sortUnits() as Unit[]).filter((u) => u.isVisible());
+}
+
+/** Visible units of a tab, cheapest first (the reverse of the list, except on "all units"). */
+export function cheapestFirst(tab: Tab): Unit[] {
+  const list = visibleUnits(tab);
   return tab.name === "all" ? list : list.reverse();
+}
+
+/**
+ * The units next to `unit` in its list, as the list shows them: `above` is
+ * the card above it (prev/next controls: previous, on the left), `below` the
+ * card under it (next, on the right).
+ */
+export function unitNeighbours(tab: Tab, unit: Unit): { above?: Unit; below?: Unit } {
+  const list = visibleUnits(tab);
+  const i = list.indexOf(unit);
+  if (i < 0) return {};
+  return { above: list[i - 1], below: list[i + 1] };
 }
 
 export function visibleUpgrades(unit: Unit, klass: "upgrade" | "ability" = "upgrade"): Upgrade[] {
@@ -32,17 +53,17 @@ export function visibleUpgrades(unit: Unit, klass: "upgrade" | "ability" = "upgr
 /**
  * The unit the laptop layout shows next to a tab's list when the route names
  * none: the one last opened on the tab (the old game's tab.lastselected), else
- * the tab's lead unit if its screen has something to buy or cast, else the first
- * unit in list order that does.
+ * the tab's lead unit if its screen has something to buy or cast, else the
+ * cheapest unit that does (the list's bottom-most).
  */
 export function defaultUnit(game: Game, tabName: string): string {
   const tab = tabByName(game, tabName);
   if (!tab) return "";
   const last = tab.lastselected;
   if (last && last.isVisible() && tab.indexByUnitName[last.name] !== undefined) return last.name;
-  // otherwise the first unit, in list order, with something to do on its
-  // screen (meat has nothing to buy, so a new game opens on drones)
-  const units = visibleUnits(tab);
+  // otherwise the cheapest unit with something to do on its screen (meat has
+  // nothing to buy, so a new game opens on drones, territory on swarmlings)
+  const units = cheapestFirst(tab);
   const lead = tab.leadunit as Unit;
   const candidates = lead.isVisible() ? [lead, ...units.filter((u) => u !== lead)] : units;
   return (candidates.find(hasActions) ?? candidates[0])?.name ?? "";

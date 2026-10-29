@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useGame } from "../game/GameContext";
 import { useFormat } from "../format";
-import { findUnit, isUnitBuyable, unitLabel } from "../game/selectors";
+import { findUnit, isUnitBuyable, tabByName, unitLabel } from "../game/selectors";
 import { parseQuery, tabHref, useHash } from "../router";
 import { UnitDescription } from "../content/LiveDescription";
 import { SpriteIcon } from "../components/Icon";
@@ -13,7 +13,8 @@ import { AbilityList } from "../components/unit/AbilityList";
 import { TerritoryChart } from "../components/unit/TerritoryChart";
 import { AscensionPanel } from "../components/progression/AscensionPanel";
 
-export function UnitScreen({ unit: key }: { unit: string }) {
+/** A unit's screen. `listTab` is the list shown beside it (laptop layout), for prev/next. */
+export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: string }) {
   const { game } = useGame();
   const fmt = useFormat();
   const hash = useHash();
@@ -29,7 +30,7 @@ export function UnitScreen({ unit: key }: { unit: string }) {
   const initial = parseQuery(hash).get("num") ?? "";
   return (
     <>
-      <UnitNav unit={unit} />
+      <UnitNav unit={unit} list={listTab ? tabByName(game, listTab) : undefined} />
       <div className="unit-hero card">
         <SpriteIcon name={unit.name} tab={t.tab} size={72} />
         <div>

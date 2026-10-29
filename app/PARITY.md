@@ -30,7 +30,7 @@ the end.
 | Feature | Before | After | App | Notes |
 |---|---|---|---|---|
 | Visible units of the tab | ✅ | ✅ | `components/UnitList.tsx`, `game/selectors.ts` | |
-| Order | ⚠️ | ⚠️ | `selectors.ts visibleUnits` | Intentional: lowest tier first (the mock-up's order; the old table listed `sortUnits()` top tier first). |
+| Order | ⚠️ | ✅ | `selectors.ts visibleUnits` | The old table's `sortUnits()` order on every tab: most advanced unit at the top, the cheapest at the bottom (meat last); "all units" cheapest first. Phase C kept the mock-up's lowest-tier-first order; changed after phase D. |
 | Icon, name with suffix, count (`bignum:0`) | ✅ | ✅ | `UnitList.tsx` | |
 | Rate `+x/<velocity unit>` (`bignum:2`) | ✅ | ✅ | `UnitList.tsx` | |
 | Territory units show territory captured | ✅ | ✅ | `UnitList.tsx` | |
@@ -59,7 +59,7 @@ the end.
 | Buy 1 / 25% / max (`is25Visible`, `maxCostMet > 1`) | ✅ | ✅ | `BuyUnit.tsx` | Old omitted unavailable buttons; the app shows them disabled (stable layout). |
 | `warnfirst` warnings | ✅ | ✅ | `BuyUnit.tsx` | |
 | Advanced unit data | ✅ | ✅ | `meta/AdvancedUnitData.tsx` | |
-| Prev / next unit (only visible ones) | ✅ | ✅ | `unit/UnitNav.tsx` | At 360px the name was cut off entirely; now name and count on two lines. |
+| Prev / next unit (only visible ones) | ✅ | ⚠️ | `unit/UnitNav.tsx`, `selectors.ts unitNeighbours` | At 360px the name was cut off entirely; now name and count on two lines. Intentional: they follow the list as shown — previous (‹, left) is the card above (more advanced), next (›, right) the card below (cheaper), skipping hidden units. The old game's ‹ went down a tier (`unit.prev`), the opposite of its own list. |
 | Number formatting (`bignum` / `longnum`) | ⚠️ | ✅ | `format.ts` | `longnum` started suffixes at 1e6 and dropped trailing zeros of small numbers; the old filter (swarm-numberformat with the old options, checked by running it) starts at 1e5 (`minsuffix` typo in the old code) and keeps zeros: `123.456 thousand`, `8.00000 million`, `1.00`. Now identical, except that trailing zeros are dropped on purpose (`8 million`, `1.5B`): they add digits without adding information. |
 
 ## 4. Upgrades on a unit
@@ -169,7 +169,7 @@ the end.
 | Feature | Old | App | Notes |
 |---|---|---|---|
 | Wide unit page: list beside the unit (`views/unit.html` sidebar) | ✅ | ✅ | `components/Split.tsx`, from 1000px. The old list sat on the left at `col-lg-3`; here it holds the hive too. |
-| Tab links go to the last unit selected on the tab (`tab.url(lastselected)`) | ✅ | ✅ | Laptop layout: `#/tab/<tab>` shows `tab.lastselected`, else the lead unit if it has something to buy or cast, else the first unit that does (`game/selectors.ts defaultUnit`). The old main page showed only the table until a unit was picked; the app always fills the right column. |
+| Tab links go to the last unit selected on the tab (`tab.url(lastselected)`) | ✅ | ✅ | Laptop layout: `#/tab/<tab>` shows `tab.lastselected`, else the lead unit if it has something to buy or cast, else the cheapest unit that does (`game/selectors.ts defaultUnit`). The old main page showed only the table until a unit was picked; the app always fills the right column. |
 | Close button back to the table | ✅ | ⚠️ | No close/back button next to the list (it is in view); prev/next stay. |
 | Re-render cost, laptop layout (late save, 1440×900, CPU 4×) | — | ✅ | Tick+render mean: meat tab 8.3 ms, drone 12.8 ms (was 16.2 before these fixes), queen 13.1 ms, energy 11.4 ms, mutagen tab 10.1 ms (was 15.3), all units 9.2 ms. List cards next to a unit refresh every other tick, half on each; ascension cost is worked out once per render; the hive re-reads counts twice a second. |
 
@@ -182,7 +182,8 @@ the end.
 
 ## Remaining intentional differences
 
-- Tab bar is a bottom bar with a More sheet on phones and a strip with a More panel from 1000px; units are listed lowest tier first.
+- Tab bar is a bottom bar with a More sheet on phones and a strip with a More panel from 1000px.
+- Prev/next unit follow the list (previous = the card above).
 - No keyboard hotkeys.
 - Unavailable buy buttons are shown disabled instead of omitted.
 - Confirm steps before ascend, respec, reset and import.

@@ -20,7 +20,7 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
   goes). With no unit in the route (`#/tab/<tab>`) the right shows the unit
   last opened on that tab this session (the old game's `tab.lastselected`),
   else the tab's lead unit if its screen has something to buy or cast, else
-  the first unit in list order that does (so a new game opens on drones). The
+  the cheapest unit that does (so a new game opens on drones). The
   old wide page showed only the table until a unit was picked; an empty half
   screen helps nobody. A unit picked from "all units" keeps that list. Other
   screens are one column up to 960px. Tabs are a strip under the header and
@@ -41,7 +41,8 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
 
 1. Tabs: meat, larva, territory, energy, mutagen, plus "all units". Tab shows
    lead unit count, cap %, and an upgrade-available marker.
-2. Unit list per tab: icon, name, count, rate, upgrade marker.
+2. Unit list per tab, most advanced unit first and the cheapest last (the old
+   `sortUnits()` order): icon, name, count, rate, upgrade marker.
 3. Unit screen: description and flavor text; owned count; production each and
    total; "you earn X per <velocity unit>"; cap and time to cap; buy input
    with the old syntax (`10%`, `=1000`, `@1000`, `1.5k`, `23 billion`) and a
@@ -73,7 +74,7 @@ feedback widget, purchases (MTX), themes, debug pages, changelog page (link to
 the repository instead).
 
 Documented deviations (phase C parity audit, see [PARITY.md](PARITY.md)):
-units are listed lowest tier first; no keyboard hotkeys; unavailable buy
+prev/next unit follow the list (previous is the card above); no keyboard hotkeys; unavailable buy
 buttons are shown disabled rather than omitted; drastic actions (ascend,
 respec, import, reset) ask for confirmation on the page; flavor text is shown
 inline rather than as a tooltip; the territory chart is a bar chart.

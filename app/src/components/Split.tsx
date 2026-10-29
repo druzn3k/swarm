@@ -1,7 +1,8 @@
 // The laptop layout of a tab or unit route: the tab (hive and unit list) on
 // the left, a unit's screen on the right. With no unit in the route, the right
 // shows the unit last opened on this tab (the old game's tab.lastselected),
-// else the tab's lead unit (meat, larvae, territory, energy, mutagen).
+// else the tab's lead unit if it has something to buy or cast, else the
+// cheapest unit that does (game/selectors.ts defaultUnit).
 import { useEffect, useRef, useState } from "react";
 import { useGameValue, useStore } from "../game/GameContext";
 import { defaultUnit, findUnit, tabByName, unitLabel } from "../game/selectors";
@@ -48,7 +49,7 @@ export function Split({ listTab, unit }: { listTab: string; unit?: string }) {
         <WelcomeBack />
         <TutorialHint />
         {/* a locked tab sends the player back to meat (TabScreen); show nothing meanwhile */}
-        {tabVisible && shown && <UnitScreen key={shown} unit={shown} />}
+        {tabVisible && shown && <UnitScreen key={shown} unit={shown} listTab={listTab} />}
       </main>
     </div>
   );

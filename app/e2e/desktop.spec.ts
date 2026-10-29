@@ -56,26 +56,26 @@ test("two columns: the tab's list on the left, a unit with something to do on th
 
 test("picking a unit shows it on the right and keeps the list where it was", async ({ page }) => {
   await loadWith(page, MID, "./#/tab/meat");
-  await expect(card(page, "hivequeen")).toBeVisible();
-  // scroll the list a bit, then pick a unit further down
+  await expect(card(page, "queen")).toBeVisible();
+  // scroll the list a bit, then pick a unit further down (the cheap ones are at the bottom)
   await side(page).evaluate((el) => (el.scrollTop = 200));
-  await card(page, "hivequeen").scrollIntoViewIfNeeded();
+  await card(page, "queen").scrollIntoViewIfNeeded();
   const before = await side(page).evaluate((el) => el.scrollTop);
   expect(before).toBeGreaterThan(0);
-  await card(page, "hivequeen").click();
-  await expect(page).toHaveURL(/#\/unit\/hivequeen$/);
-  await expect(unitHeading(page)).toHaveText(/hive queen/i);
-  await expect(card(page, "hivequeen")).toHaveAttribute("aria-current", "true");
+  await card(page, "queen").click();
+  await expect(page).toHaveURL(/#\/unit\/queen$/);
+  await expect(unitHeading(page)).toHaveText(/^queen$/i);
+  await expect(card(page, "queen")).toHaveAttribute("aria-current", "true");
   await expect(card(page, "meat")).not.toHaveAttribute("aria-current", /.*/);
-  await expect(card(page, "drone")).toBeAttached();
+  await expect(card(page, "hivequeen")).toBeAttached();
   expect(await side(page).evaluate((el) => el.scrollTop)).toBe(before);
   // focus stays on the card; the change is announced
-  await expect(card(page, "hivequeen")).toBeFocused();
-  await expect(side(page).getByRole("status")).toHaveText(/showing hive queens/i);
+  await expect(card(page, "queen")).toBeFocused();
+  await expect(side(page).getByRole("status")).toHaveText(/showing queens/i);
 
-  // next unit (the button goes away with the old unit): focus moves to the unit
+  // next unit (the card below; the button goes away with the old unit): focus moves to the unit
   await page.locator("main").getByRole("link", { name: /^next/i }).click();
-  await expect(page).toHaveURL(/#\/unit\/empress$|#\/unit\/[a-z]+$/);
+  await expect(page).toHaveURL(/#\/unit\/drone$/);
   await expect(page.locator("main")).toBeFocused();
   // the list has no "back to the tab" button next to it
   await expect(page.locator("main").getByRole("link", { name: /back to/i })).toBeHidden();
