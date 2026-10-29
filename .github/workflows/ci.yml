@@ -14,9 +14,9 @@ jobs:
   packages:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
-    - uses: actions/setup-node@v4
+    - uses: actions/checkout@v7
+    - uses: pnpm/action-setup@v6 # version comes from package.json "packageManager"
+    - uses: actions/setup-node@v7
       with:
         node-version: "22.x"
         cache: pnpm
@@ -37,17 +37,17 @@ jobs:
       # the root package.json names pnpm; let Yarn 1 run anyway
       SKIP_YARN_COREPACK_CHECK: "1"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     # build the packages it consumes with current Node and pnpm...
-    - uses: pnpm/action-setup@v4
-    - uses: actions/setup-node@v4
+    - uses: pnpm/action-setup@v6
+    - uses: actions/setup-node@v7
       with:
         node-version: "22.x"
         cache: pnpm
     - run: pnpm install --frozen-lockfile
     - run: pnpm --filter @swarmsim/tables build && pnpm --filter @swarmsim/ts build
     # ...then switch to the old toolchain (no pnpm calls after this point)
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version: "16.x"
     - uses: ruby/setup-ruby@v1
