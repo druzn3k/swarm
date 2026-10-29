@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameValueEvery, useStore } from "../game/GameContext";
 import { useWide } from "../layout";
 import { useFormat } from "../format";
-import { findUnit, isUnitBuyable, tabByName, unitLabel } from "../game/selectors";
+import { findUnit, isUnitBuyable, tabByName, unitLabel, unitNeighbours } from "../game/selectors";
 import { parseQuery, tabHref, useHash } from "../router";
 import { UnitDescription } from "../content/LiveDescription";
 import { SpriteIcon } from "../components/Icon";
@@ -13,8 +13,13 @@ import { UpgradeList } from "../components/unit/UpgradeList";
 import { AbilityList } from "../components/unit/AbilityList";
 import { TerritoryChart } from "../components/unit/TerritoryChart";
 import { AscensionPanel } from "../components/progression/AscensionPanel";
+import { clearSlide, slideFor, stepToUnit } from "../components/unit/stepUnit";
+import { useSwipe } from "../components/unit/useSwipe";
 
-/** A unit's screen. `listTab` is the list shown beside it (laptop layout), for prev/next. */
+/**
+ * A unit's screen. `listTab` is the list shown beside it (laptop layout), for
+ * prev/next. A sideways swipe steps to the neighbouring unit like the arrows.
+ */
 export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: string }) {
   const store = useStore();
   const { game } = store;
@@ -30,13 +35,26 @@ export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: str
   useEffect(() => {
     if (!valid) window.location.replace(tabHref(unit?.tab?.name ?? "meat"));
   }, [valid, unit]);
-  if (!unit || !valid) return null;
 
+  // the cards above and below in the list shown with the unit
+  const list = listTab ? tabByName(game, listTab) : undefined;
+  const { above, below } = unit && valid ? unitNeighbours(list && list.indexByUnitName[unit.name] !== undefined ? list : unit.tab!, unit) : {};
+  const surface = useRef<HTMLDivElement>(null);
+  useSwipe(surface, (dir) => {
+    const to = dir === "next" ? below : above;
+    if (to) stepToUnit(to.name, dir);
+    return !!to;
+  }, valid);
+  // stepped here from a neighbour: slide in from that side
+  const [slide] = useState(() => slideFor(key));
+  useEffect(clearSlide, []);
+
+  if (!unit || !valid) return null;
   const t = unit.unittype;
   const initial = parseQuery(hash).get("num") ?? "";
   return (
-    <>
-      <UnitNav unit={unit} list={listTab ? tabByName(game, listTab) : undefined} />
+    <div ref={surface} className={"unit-screen" + (slide ? ` slide-${slide}` : "")} data-unit-screen={unit.name}>
+      <UnitNav unit={unit} above={above} below={below} />
       <div className="unit-hero card">
         <SpriteIcon name={unit.name} tab={t.tab} size={72} />
         <div>
@@ -58,6 +76,6 @@ export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: str
       {unit.name === "crystal" && <BuyUnit key={"energy?" + initial} unit={game.unit("energy")} initial={initial} />}
       <UpgradeList unit={unit} />
       <AbilityList unit={unit} />
-    </>
+    </div>
   );
 }

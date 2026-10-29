@@ -7,6 +7,7 @@ import { FormatContext } from "./format";
 import type { ReactNode } from "react";
 import { useOptionsFormatter } from "./game/options";
 import { setupPwa } from "./pwa";
+import { watchListScroll } from "./scrollMemory";
 import "./styles.css";
 import "./styles/wide.css";
 
@@ -27,6 +28,8 @@ function Root() {
 }
 
 setupPwa();
+// before React subscribes to the hash: it reads the list's position while it is still on the page
+watchListScroll();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

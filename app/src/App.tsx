@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Route } from "./router";
 import { useRoute } from "./router";
 import { useStore } from "./game/GameContext";
 import { findUnit, tabByName } from "./game/selectors";
 import { useWide } from "./layout";
+import { restoredScroll } from "./scrollMemory";
 import { Split } from "./components/Split";
 import { Header } from "./components/Header";
 import { TabBar } from "./components/TabBar";
@@ -70,9 +71,10 @@ export function App() {
   // switching between phone and laptop layouts moves the More button; close the sheet
   useEffect(() => setMoreOpen(false), [wide]);
 
-  // a new screen starts at the top, and closes the sheet
-  useEffect(() => {
-    window.scrollTo(0, 0);
+  // a new screen starts at the top (a list you come back to from one of its
+  // units, where you left it: scrollMemory.ts), and closes the sheet
+  useLayoutEffect(() => {
+    window.scrollTo(0, (!wide && restoredScroll(route)) || 0);
     setMoreOpen(false);
   }, [key]);
 

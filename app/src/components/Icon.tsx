@@ -25,7 +25,7 @@ export function SpriteIcon({
     const dpr = typeof window !== "undefined" ? Math.max(1, Math.round(window.devicePixelRatio || 1)) : 1;
     return spriteDataUrl(sprite, size * dpr);
   }, [name, tab, kind, size]);
-  return <img className={"px-icon" + (className ? " " + className : "")} src={src} alt="" width={size} height={size} />;
+  return <img className={"px-icon" + (className ? " " + className : "")} src={src} alt="" width={size} height={size} draggable={false} />;
 }
 
 /** An upgrade's or ability's icon. */

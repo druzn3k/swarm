@@ -396,6 +396,35 @@ h3 {
 }
 
 /* --- unit screen ------------------------------------------------------- */
+/* the swipe surface: vertical scrolling stays the browser's, sideways moves are a swipe */
+.unit-screen {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  touch-action: pan-y;
+}
+.unit-screen img {
+  -webkit-user-drag: none;
+}
+/* stepped to a neighbour: the new unit slides in from that side, in pixel steps */
+.unit-screen.slide-next {
+  animation: slide-from-right 160ms steps(4);
+}
+.unit-screen.slide-prev {
+  animation: slide-from-left 160ms steps(4);
+}
+@keyframes slide-from-right {
+  from {
+    transform: translateX(32px);
+    opacity: 0.4;
+  }
+}
+@keyframes slide-from-left {
+  from {
+    transform: translateX(-32px);
+    opacity: 0.4;
+  }
+}
 .unit-nav {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
@@ -963,7 +992,8 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   /* the "+N" stays put for a moment instead of floating away */
-  .buy-pop {
+  .buy-pop,
+  .unit-screen {
     animation: none !important;
   }
   *,
