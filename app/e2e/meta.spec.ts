@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { craftSave, SAVE_KEY } from "./saves";
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -105,5 +106,41 @@ test("achievements: buying a drone earns one, with a toast and a listing", async
   await page.goto("./#/statistics");
   await expect(page.locator(".stat-row", { hasText: /^drone/i }).first()).toContainText("Clicks");
 
+  expect(errors).toEqual([]);
+});
+
+test("achievements: cards follow the game while the screen is open", async ({ page }) => {
+  const errors = watchErrors(page);
+  const save = craftSave({ units: { meat: 1e9, larva: 1e6 } });
+  await page.addInitScript(
+    ([key, value]) => {
+      if (sessionStorage.getItem("e2e-seeded")) return;
+      sessionStorage.setItem("e2e-seeded", "1");
+      localStorage.setItem(key, value);
+      localStorage.setItem("swarmhive-tutorial-dismissed", JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100]));
+    },
+    [SAVE_KEY, save] as const
+  );
+  await page.goto("./#/unit/drone");
+  await page.getByRole("button", { name: /^hatch 1$/i }).click();
+  await page.getByRole("button", { name: /^hatch 1$/i }).click();
+  await page.locator(".toast").getByRole("button", { name: /close/i }).click();
+
+  // in-page navigation: the cards mount once, then must update themselves
+  await page.evaluate(() => (location.hash = "#/achievements"));
+  const good = page.locator('[data-achievement="drone1"]');
+  const supply = page.locator('[data-achievement="drone2"]');
+  await expect(good).toHaveClass(/\bearned\b/);
+  await expect(good).toContainText(/Earned .* ago/);
+  await expect(supply).toHaveClass(/\bunearned\b/);
+  await expect(supply.locator(".ach-progress .bar-label")).toContainText("2 of 201");
+  await expect(page.locator(".ach-summary")).toContainText("10 achievement points");
+
+  // undo (a player action from the More sheet) takes a drone back: progress goes down at once
+  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("dialog", { name: "More" }).locator('[data-action="undo"]').click();
+  await page.keyboard.press("Escape");
+  await expect(supply.locator(".ach-progress .bar-label")).toContainText("1 of 201");
+  await expect(good).toHaveClass(/\bearned\b/);
   expect(errors).toEqual([]);
 });

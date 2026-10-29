@@ -3,7 +3,7 @@
 // Options live in the save (game/options.ts), so they travel with exports.
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
-import { useGame } from "../game/GameContext";
+import { useGameValueEvery, useStore } from "../game/GameContext";
 import { useFormat, createFormatter } from "../format";
 import type { DurationFormat, Notation } from "../format";
 import { useOptions, VELOCITY_UNITS, velocityUnitFor } from "../game/options";
@@ -86,8 +86,15 @@ function SuffixLegend() {
   );
 }
 
+const SEP = "\u0001";
+
+/**
+ * Re-renders when the options change, and when what it reads from the game
+ * changes (the Swarmwarp length, "you started playing …"), which it re-reads
+ * after player actions and about once a second.
+ */
 export function OptionsScreen() {
-  const store = useGame();
+  const store = useStore();
   const fmt = useFormat();
   const [options, setOption] = useOptions();
   const [exportKey, setExportKey] = useState(0);
@@ -96,6 +103,8 @@ export function OptionsScreen() {
   const nameDuration = useId();
   const advId = useId();
   const { game } = store;
+  const live = useGameValueEvery(({ game }) => [velocityUnitFor(game, "warp").mult, fromNow(game.dateStarted(), game.now)].join(SEP), 10);
+  const [warpMult, startedAgo] = live.split(SEP);
   const durationChoices = DURATION_LABELS.some((d) => d.value === options.durationFormat)
     ? DURATION_LABELS
     : [...DURATION_LABELS, { value: options.durationFormat, label: "Full" }];
@@ -142,7 +151,7 @@ export function OptionsScreen() {
             label={v.plural}
             checked={options.velocityUnit === v.name}
             onChange={() => setOption("velocityUnit", v.name)}
-            example={`${fmt.long(velocityUnitFor(game, v.name).mult * 10)}/${v.name}`}
+            example={`${fmt.long((v.name === "warp" ? +warpMult : velocityUnitFor(game, v.name).mult) * 10)}/${v.name}`}
           />
         ))}
       </OptionGroup>
@@ -192,7 +201,7 @@ export function OptionsScreen() {
       <section className="section card danger-zone" aria-labelledby="reset-title">
         <h2 id="reset-title">Start over</h2>
         <ResetGame />
-        <p className="muted small">You started playing {fromNow(game.dateStarted(), game.now)}.</p>
+        <p className="muted small">You started playing {startedAgo}.</p>
       </section>
     </section>
   );

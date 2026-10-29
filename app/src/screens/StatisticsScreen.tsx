@@ -1,7 +1,8 @@
 // The statistics screen (old views/statistics.html): what you bought and
 // when, per unit and upgrade, and totals for the whole game.
 import type { Unit, Upgrade } from "@swarmsim/engine";
-import { useGame } from "../game/GameContext";
+import { memo } from "react";
+import { useGameValue, useGameValueEvery, useStore } from "../game/GameContext";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
 import { dateTime, fromNow, utcdoy } from "../components/meta/time";
@@ -23,7 +24,13 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function UnitRow({ unit, stats, fmt }: { unit: Unit; stats?: UnitStats; fmt: Formatter }) {
+/** ticks between re-reads of the totals and the lists (~1/s; player actions at once) */
+const EVERY = 10;
+
+// Rows re-render after player actions only (`actions`, the store's action
+// counter): the engine updates the statistics objects in place, after a
+// purchase, so their identity says nothing.
+const UnitRow = memo(function UnitRow({ unit, stats, fmt }: { unit: Unit; stats?: UnitStats; fmt: Formatter; actions: number }) {
   return (
     <li className="stat-row">
       <h3>{unit.unittype.label}</h3>
@@ -39,9 +46,9 @@ function UnitRow({ unit, stats, fmt }: { unit: Unit; stats?: UnitStats; fmt: For
       )}
     </li>
   );
-}
+});
 
-function UpgradeRow({ upgrade, stats }: { upgrade: Upgrade; stats: UnitStats }) {
+const UpgradeRow = memo(function UpgradeRow({ upgrade, stats }: { upgrade: Upgrade; stats: UnitStats; actions: number }) {
   return (
     <li className="stat-row">
       <h3>{upgrade.type.label}</h3>
@@ -52,10 +59,27 @@ function UpgradeRow({ upgrade, stats }: { upgrade: Upgrade; stats: UnitStats }) 
       </dl>
     </li>
   );
+});
+
+interface Totals {
+  played: string;
+  skipped: string;
+  clicks: string;
+  points: string;
+  ascensions: string;
+  saveSize: string;
+  started: string;
+  startedAt: string;
+  ascendedAgo: string;
+  ascendedAt: string;
 }
 
+/**
+ * Re-renders about once a second (time played, save size...) and after
+ * player actions; the rows only after player actions.
+ */
 export function StatisticsScreen() {
-  const store = useGame();
+  const store = useStore();
   const fmt = useFormat();
   const { game, engine } = store;
   const statistics = (engine.session.state.statistics ?? {}) as {
@@ -65,17 +89,42 @@ export function StatisticsScreen() {
   };
   const byUnit = statistics.byUnit ?? {};
   const byUpgrade = statistics.byUpgrade ?? {};
-  const has = (dict: Record<string, UnitStats>, name: string) => Object.prototype.hasOwnProperty.call(dict, name);
-  // like the old screen: units you bought, plus visible units you can't buy (meat, larvae, ...)
-  const units = game.unitlist().filter((u) => has(byUnit, u.name) || (!u.isBuyable() && u.isVisible()));
-  const upgrades = game.upgradelist().filter((u) => has(byUpgrade, u.name));
+  const actions = useGameValue((s) => s.actions);
+  const lists = useGameValueEvery(({ game, engine }) => {
+    const statistics = (engine.session.state.statistics ?? {}) as { byUnit?: Record<string, UnitStats>; byUpgrade?: Record<string, UnitStats> };
+    const byUnit = statistics.byUnit ?? {};
+    const byUpgrade = statistics.byUpgrade ?? {};
+    const has = (dict: Record<string, UnitStats>, name: string) => Object.prototype.hasOwnProperty.call(dict, name);
+    // like the old screen: units you bought, plus visible units you can't buy (meat, larvae, ...)
+    const units = game.unitlist().filter((u) => has(byUnit, u.name) || (!u.isBuyable() && u.isVisible()));
+    const upgrades = game.upgradelist().filter((u) => has(byUpgrade, u.name));
+    return units.map((u) => u.name).join(",") + "|" + upgrades.map((u) => u.name).join(",");
+  }, EVERY);
+  const [unitNames, upgradeNames] = lists.split("|");
+  const units = unitNames ? unitNames.split(",").map((n) => game.unit(n)) : [];
+  const upgrades = upgradeNames ? upgradeNames.split(",").map((n) => game.upgrade(n)) : [];
 
-  const started = game.dateStarted();
-  const now = game.now;
-  const playedSecs = game.elapsedStartMillis() / 1000;
-  const skippedSecs = game.totalSkippedMillis() / 1000;
-  const ascended = !game.unit("ascension").count().isZero();
-  const restarted = engine.session.state.date.restarted;
+  const totalsJson = useGameValueEvery(({ game, engine }) => {
+    const statistics = (engine.session.state.statistics ?? {}) as { clicks?: number };
+    const started = game.dateStarted();
+    const now = game.now;
+    const ascended = !game.unit("ascension").count().isZero();
+    const restarted = engine.session.state.date.restarted;
+    const totals: Totals = {
+      played: fmt.duration(game.elapsedStartMillis() / 1000) || "just started",
+      skipped: fmt.duration(game.totalSkippedMillis() / 1000) || "none",
+      clicks: fmt.num(statistics.clicks ?? 0),
+      points: fmt.num(game.achievementPoints()),
+      ascensions: fmt.num(game.unit("ascension").count()),
+      saveSize: `${engine.session.exportSave().length.toLocaleString("en-US")} chars`,
+      started: fromNow(started, now),
+      startedAt: dateTime(started),
+      ascendedAgo: ascended && restarted ? fromNow(restarted, now) : "",
+      ascendedAt: ascended && restarted ? dateTime(restarted) : "",
+    };
+    return JSON.stringify(totals);
+  }, EVERY);
+  const totals = JSON.parse(totalsJson) as Totals;
 
   return (
     <section className="page" aria-labelledby="page-title">
@@ -84,21 +133,21 @@ export function StatisticsScreen() {
       <section className="section card" aria-labelledby="stats-totals">
         <h2 id="stats-totals">Totals</h2>
         <dl className="stat-grid">
-          <Stat label="Time played" value={fmt.duration(playedSecs) || "just started"} />
-          <Stat label="Time skipped" value={fmt.duration(skippedSecs) || "none"} />
-          <Stat label="Clicks" value={fmt.num(statistics.clicks ?? 0)} />
-          <Stat label="Achievement points" value={fmt.num(game.achievementPoints())} />
-          <Stat label="Ascensions" value={fmt.num(game.unit("ascension").count())} />
-          <Stat label="Save size" value={`${engine.session.exportSave().length.toLocaleString("en-US")} chars`} />
+          <Stat label="Time played" value={totals.played} />
+          <Stat label="Time skipped" value={totals.skipped} />
+          <Stat label="Clicks" value={totals.clicks} />
+          <Stat label="Achievement points" value={totals.points} />
+          <Stat label="Ascensions" value={totals.ascensions} />
+          <Stat label="Save size" value={totals.saveSize} />
         </dl>
         <p>
-          Started {fromNow(started, now)} <span className="muted">({dateTime(started)})</span>
+          Started {totals.started} <span className="muted">({totals.startedAt})</span>
         </p>
         <p>
           Last ascended:{" "}
-          {ascended && restarted ? (
+          {totals.ascendedAgo ? (
             <>
-              {fromNow(restarted, now)} <span className="muted">({dateTime(restarted)})</span>
+              {totals.ascendedAgo} <span className="muted">({totals.ascendedAt})</span>
             </>
           ) : (
             "never"
@@ -113,7 +162,7 @@ export function StatisticsScreen() {
         ) : (
           <ul className="stat-list">
             {units.map((u) => (
-              <UnitRow key={u.name} unit={u} stats={byUnit[u.name]} fmt={fmt} />
+              <UnitRow key={u.name} unit={u} stats={byUnit[u.name]} fmt={fmt} actions={actions} />
             ))}
           </ul>
         )}
@@ -126,7 +175,7 @@ export function StatisticsScreen() {
         ) : (
           <ul className="stat-list">
             {upgrades.map((u) => (
-              <UpgradeRow key={u.name} upgrade={u} stats={byUpgrade[u.name]} />
+              <UpgradeRow key={u.name} upgrade={u} stats={byUpgrade[u.name]} actions={actions} />
             ))}
           </ul>
         )}
