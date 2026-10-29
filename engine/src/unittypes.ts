@@ -1,6 +1,6 @@
 // Port of the type-table half of services/unit.coffee: UnitType, UnitTypes.
 // The runtime Unit class is in ./unit.
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import { assert } from "./util";
 import { parseRows, resolveList } from "./spreadsheetutil";
 import { EffectTypes } from "./effecttypes";

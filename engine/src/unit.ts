@@ -1,6 +1,6 @@
 // Port of the runtime half of services/unit.coffee: ProducerPath,
 // ProducerPaths, Unit. (UnitType/UnitTypes live in ./unittypes.)
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import { assert, error } from "./util";
 import { Effect } from "./effect";
@@ -37,11 +37,9 @@ export class ProducerPath {
   prefixNames: string[];
   constructor(public unit: Unit, public path: ProducerPathLink[]) {
     // unit.name's in the name twice, just so there's no confusion about where the path ends
+    let pathname = "";
     this.prefixNames = this.path.map((link, k) => {
-      const pathname = this.path
-        .slice(0, k + 1)
-        .map((p) => p.parent.name)
-        .join(">");
+      pathname = k === 0 ? link.parent.name : `${pathname}>${link.parent.name}`;
       return `${link.child.name}:${pathname}>${link.child.name}`;
     });
     this.name = this.prefixNames[this.prefixNames.length - 1] ?? `${this.unit.name}:>${this.unit.name}`;

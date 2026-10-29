@@ -1,5 +1,5 @@
 // Port of services/tab.coffee
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import { UnitLike } from "./interfaces";
 

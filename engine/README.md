@@ -60,6 +60,11 @@ pnpm oracle:golden   # regenerate test/golden/*.json from the ORIGINAL engine
   byte-identical output.
 - `test/differential.test.ts` runs extra scenarios on both engines side by side
   (catches cache and visibility timing bugs the goldens can't).
+- Game data comes from `@swarmsim/tables`, decoded at build time
+  (`pnpm --filter @swarmsim/tables gen:static`, see the tables README);
+  `test/data.test.ts` checks it matches the tables' codecs.
+- Lodash functions come one module at a time through `src/lodash.ts`
+  (`import * as _ from "./lodash"`), so the app doesn't bundle all of lodash.
 - `test/lzbase64.test.ts` checks that the save compressor (`src/lzbase64.ts`,
   a faster port of lz-string 1.4.4's `compressToBase64`) writes exactly what
   lz-string writes.

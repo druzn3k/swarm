@@ -1,5 +1,5 @@
 // Port of services/spreadsheetutil.coffee
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import { assert } from "./util";
 
 export type FilterFn = (val: any) => boolean;

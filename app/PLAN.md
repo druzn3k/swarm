@@ -41,6 +41,9 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
   `src/art/animator.ts`), and stops while it is off screen or the page is
   hidden. The game doesn't tick while the page is hidden; one tick on return
   catches up (idle progress comes from elapsed time).
+- **Startup:** the game data is decoded at build time (`tables`
+  `gen:static`), so the app ships neither the io-ts codecs nor io-ts/fp-ts;
+  the engine imports lodash per function.
 - **Routing:** hash routes, so the app works from any static host
   (GitHub Pages under `/swarm/`): `#/tab/<tab>`, `#/unit/<unit>`,
   `#/achievements`, `#/statistics`, `#/options`, `#/about`.

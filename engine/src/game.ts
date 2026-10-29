@@ -1,5 +1,5 @@
 // Port of services/game.coffee: Cache, Game.
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import { assert, sum, utcDateString } from "./util";
 import { Tab, BuiltTabs } from "./tab";

@@ -2,7 +2,7 @@
 //
 // Save format (unchanged, byte-compatible with the old game):
 //   btoa(version) + "|" + btoa("Cheater :(\n\n") + LZString.compressToBase64(JSON.stringify(state))
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import LZString from "lz-string";
 import { atob, btoa } from "./util";

@@ -5,7 +5,7 @@ import { assert, sum } from "./util";
 import { parseRows, resolveList } from "./spreadsheetutil";
 import { UnitTypes } from "./unittypes";
 import { UpgradeTypes } from "./upgradetypes";
-import * as _ from "lodash";
+import * as _ from "./lodash";
 
 export class AchievementTypes {
   // achievement rows are plain objects from the spreadsheet

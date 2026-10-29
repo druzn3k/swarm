@@ -2,7 +2,8 @@
 //
 // Deterministic serializable random numbers.
 // Fights savestate scumming that would occur with math.rand().
-import seedrandom from "seedrandom";
+// the core only: index.js adds alternative generators the game never uses
+import seedrandom from "seedrandom/seedrandom";
 import { SeedSession } from "./interfaces";
 import { str } from "./util";
 

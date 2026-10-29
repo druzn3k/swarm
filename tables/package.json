@@ -7,11 +7,13 @@
     "scripts": {
         "build": "mkdir -p dist && ts-node src/index.ts > dist/index.js",
         "gen": "ts-node src/gendata.ts",
+        "gen:static": "ts-node src/spreadsheet/gen-static.ts",
         "test": "jest"
     },
     "devDependencies": {
         "@types/jest": "^29.2.4",
         "@types/lodash": "^4.14.191",
+        "@types/node": "^20.19.43",
         "jest": "^29.3.1",
         "prettier": "^2.8.1",
         "ts-jest": "^29.0.3",

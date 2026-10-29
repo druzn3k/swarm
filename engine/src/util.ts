@@ -1,7 +1,7 @@
 // Port of services/util.coffee. Only the engine-relevant helpers are kept; the
 // browser/Angular bits (requestAnimationFrame, animateController,
 // isWindowFocused, utcdoy) belong to the UI layer.
-import * as _ from "lodash";
+import * as _ from "./lodash";
 
 // Replacement for $rootScope.$emit 'assertionFailure' / 'error'. The UI layer
 // can subscribe; by default nothing happens.

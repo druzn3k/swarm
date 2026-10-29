@@ -5,7 +5,7 @@
 //
 // Dropped from the old engine: loginApi.saveCommand (server backend),
 // convertCrystal (mtx).
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import { assert } from "./util";
 import type { Game } from "./game";

@@ -1,6 +1,6 @@
 // Port of the runtime half of services/achievement.coffee: Achievement and
 // AchievementsListener. (AchievementTypes lives in ./achievementtypes.)
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import { assert } from "./util";
 import type { Game } from "./game";

@@ -1,6 +1,6 @@
 // Port of the runtime half of services/upgrade.coffee: class Upgrade.
 // (UpgradeType/UpgradeTypes live in ./upgradetypes.)
-import * as _ from "lodash";
+import * as _ from "./lodash";
 import Decimal from "decimal.js";
 import { assert, coffeeRange, error } from "./util";
 import { Effect } from "./effect";
