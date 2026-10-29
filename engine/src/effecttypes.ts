@@ -82,6 +82,24 @@ function constantLog(val: Decimal.Value): Decimal {
   return ret;
 }
 
+// Decimal.log (base 10) of logStat inputs, by exact value: the same levels
+// come up again every time stats are recalculated (after each purchase), and
+// the logarithm is the slow part. The key is the full-precision string, so
+// equal keys mean equal values, and Decimals are immutable, so a cached
+// result is the same as computing it again. Bounded: cleared when full.
+const LOG_MEMO_MAX = 4096;
+const logMemo = new Map<string, Decimal>();
+export function memoLog(val: Decimal): Decimal {
+  const key = val.toString();
+  let ret = logMemo.get(key);
+  if (ret == null) {
+    ret = Decimal.log(val);
+    if (logMemo.size >= LOG_MEMO_MAX) logMemo.clear();
+    logMemo.set(key, ret);
+  }
+  return ret;
+}
+
 // Can't write functions in our spreadsheet :(
 // TODO: move this to upgrade parsing. this only asserts at runtime if a conflict happens, we want it to assert at loadtime
 function validateSchema(stat: string, schema: StatSchema, operation: string): void {
@@ -280,7 +298,7 @@ export function buildEffectTypes(seedrand: SeedRand): EffectTypes {
       stats[effect.stat] = (stats[effect.stat] ?? ONE).times(
         new Decimal(effect.val3 ?? 1)
           .times(
-            Decimal.log(level.times(effect.val).plus(effect.val2))
+            memoLog(level.times(effect.val).plus(effect.val2))
               .dividedBy(constantLog(effect.val2))
               .minus(1)
           )

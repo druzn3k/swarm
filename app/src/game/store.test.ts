@@ -61,3 +61,55 @@ describe("GameStore.start ticks", () => {
     stop();
   });
 });
+
+describe("GameStore.act", () => {
+  function counted() {
+    const seed = createGame({});
+    seed.game.unit("meat")._setCount(1e30);
+    seed.game.unit("larva")._setCount(1e30);
+    seed.game.unit("drone")._setCount(1e6);
+    seed.game.save();
+    const store = new GameStore({ storage: countingStorage(), save: seed.session.exportSave() });
+    let bumps = 0;
+    store.subscribe(() => bumps++);
+    return { store, bumps: () => bumps };
+  }
+
+  it("tells subscribers once per action, though the engine emits a command event", () => {
+    const { store, bumps } = counted();
+    const commands: string[] = [];
+    store.events.on("command", (c) => commands.push(c.name));
+    const err = store.act(({ game, commands }) => commands.buyUnit({ unit: game.unit("drone"), num: 1 }));
+    expect(err).toBeUndefined();
+    expect(commands).toEqual(["buyUnit"]);
+    expect(bumps()).toBe(1);
+  });
+
+  it("tells subscribers once for an action with many command events", () => {
+    const { store, bumps } = counted();
+    let events = 0;
+    store.events.on("command", () => events++);
+    store.act(({ game, commands }) => commands.buyAllUpgrades({ upgrades: game.availableAutobuyUpgrades(), percent: 1 }));
+    expect(events).toBeGreaterThan(1);
+    expect(bumps()).toBe(1);
+  });
+
+  it("tells subscribers about actions without a command event, and about failed actions", () => {
+    const { store, bumps } = counted();
+    store.act(() => {});
+    expect(bumps()).toBe(1);
+    const err = store.act(() => {
+      throw new Error("nope");
+    });
+    expect(String(err)).toContain("nope");
+    expect(bumps()).toBe(2);
+    expect(store.actions).toBe(2);
+  });
+
+  it("still tells subscribers about engine events outside actions", () => {
+    const { store, bumps } = counted();
+    store.commands.buyUnit({ unit: store.game.unit("drone"), num: 1 });
+    // the command, and maybe an achievement it earned
+    expect(bumps()).toBeGreaterThanOrEqual(1);
+  });
+});

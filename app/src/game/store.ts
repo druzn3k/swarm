@@ -31,6 +31,8 @@ export class GameStore {
   /** Counts player actions (act), so throttled readers can catch up at once. */
   actions = 0;
   private listeners = new Set<() => void>();
+  /** inside act(): engine events don't bump, act bumps once at the end */
+  private acting = 0;
   /** offline gains since the game was last closed; null when there's nothing to show or it was dismissed */
   welcomeBack: WelcomeBack | null = null;
 
@@ -42,16 +44,21 @@ export class GameStore {
       saveId: opts.saveId ?? SAVE_ID,
     });
     const { events } = this.engine;
-    // commands, achievements and resets all change what's on screen
-    events.on("command", () => this.bump());
-    events.on("achieve", () => this.bump());
-    events.on("reset", () => this.bump());
+    // commands, achievements and resets all change what's on screen. During
+    // act() they don't bump: act bumps once when the action is done, so an
+    // action re-reads every selector once, not once per event.
+    const changed = () => {
+      if (!this.acting) this.bump();
+    };
+    events.on("command", changed);
+    events.on("achieve", changed);
+    events.on("reset", changed);
     // computed before the first heartbeat, which would make it look like we never left
     this.welcomeBack = computeWelcomeBack(this.game, this.engine.session, { force: opts.forceWelcomeBack });
     events.on("import", (args: { success?: boolean } | undefined) => {
       if (args?.success) {
         this.welcomeBack = computeWelcomeBack(this.game, this.engine.session, { force: true, ignoreHeartbeat: true });
-        this.bump();
+        changed();
       }
     });
     events.on("reset", () => {
@@ -111,16 +118,19 @@ export class GameStore {
   /**
    * Run a player action (usually a `commands.*` call). Returns the error
    * instead of throwing, e.g. when the player can't afford it any more.
+   * Subscribers hear about it once, when it's done (also after an error).
    */
   act(fn: (engine: Engine) => void): unknown {
     this.actions++;
+    this.acting++;
     try {
       fn(this.engine);
       return undefined;
     } catch (e) {
       return e ?? new Error("action failed");
     } finally {
-      this.bump();
+      this.acting--;
+      if (!this.acting) this.bump();
     }
   }
 
