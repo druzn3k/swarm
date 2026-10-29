@@ -31,6 +31,11 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
   layout is unchanged.
 - **Saves:** localStorage under the app's own key. Import and export use the
   old game's save format, so players can bring a swarmsim.com save over.
+  The engine saves after every player action (purchases, abilities, ascension,
+  undo, options), like the old game; on top of that the app saves 30 s after
+  the last save, in idle time (`requestIdleCallback`, else `setTimeout`), and
+  at once when the page is hidden or closed (`src/game/autosave.ts`). No timed
+  saves while the page is hidden.
 - **Routing:** hash routes, so the app works from any static host
   (GitHub Pages under `/swarm/`): `#/tab/<tab>`, `#/unit/<unit>`,
   `#/achievements`, `#/statistics`, `#/options`, `#/about`.

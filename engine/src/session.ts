@@ -6,6 +6,7 @@ import * as _ from "lodash";
 import Decimal from "decimal.js";
 import LZString from "lz-string";
 import { atob, btoa } from "./util";
+import { compressToBase64 } from "./lzbase64";
 import type { Clock, GameState } from "./game";
 import type { EngineEventEmitter } from "./engineevents";
 
@@ -151,7 +152,8 @@ export class Session {
       if (data.version != null) data.version.saved = this.version;
     }
     let ret = JSON.stringify(data);
-    ret = LZString.compressToBase64(ret);
+    // lz-string's compressToBase64, same output, faster
+    ret = compressToBase64(ret);
     ret = PREFIX + ret;
     // version is saved separately from json in case save format changes
     ret = `${btoa(this.version)}${VERSION_DELIM}${ret}`;

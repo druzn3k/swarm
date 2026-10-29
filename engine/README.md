@@ -60,6 +60,9 @@ pnpm oracle:golden   # regenerate test/golden/*.json from the ORIGINAL engine
   byte-identical output.
 - `test/differential.test.ts` runs extra scenarios on both engines side by side
   (catches cache and visibility timing bugs the goldens can't).
+- `test/lzbase64.test.ts` checks that the save compressor (`src/lzbase64.ts`,
+  a faster port of lz-string 1.4.4's `compressToBase64`) writes exactly what
+  lz-string writes.
 - The other suites are the old Jasmine service specs, ported to Jest.
 
 ## Known quirks kept on purpose

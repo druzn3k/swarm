@@ -6,10 +6,12 @@ import { createGame } from "@swarmsim/engine";
 import type { Clock, Engine, SaveStorage } from "@swarmsim/engine";
 import { computeWelcomeBack } from "./welcomeback";
 import type { WelcomeBack } from "./welcomeback";
+import { Autosave } from "./autosave";
+import type { AutosaveHost } from "./autosave";
 
+export { SAVE_MILLIS } from "./autosave";
 export const SAVE_ID = "swarmhive-v1";
 export const TICK_MILLIS = 100;
-export const SAVE_MILLIS = 5000;
 /** how often the "game is still open" time is stored, for welcome back (old: 60s) */
 export const HEARTBEAT_MILLIS = 60000;
 
@@ -122,27 +124,41 @@ export class GameStore {
     }
   }
 
-  /** Start ticking and autosaving in the browser. Returns a stop function. */
+  /**
+   * Start ticking and autosaving in the browser. Returns a stop function.
+   * Saves: the engine's own after player actions, a timed one in idle time
+   * (see ./autosave.ts), and one when the page is hidden or closed.
+   */
   start(win: Window = window): () => void {
     const tick = win.setInterval(() => this.tick(), TICK_MILLIS);
-    const save = win.setInterval(() => this.save(), SAVE_MILLIS);
+    const autosave = new Autosave(() => this.save(), win as unknown as AutosaveHost);
+    const offSaved = this.events.on("save", () => autosave.saved());
     const heartbeat = win.setInterval(() => this.engine.session.onHeartbeat(), HEARTBEAT_MILLIS);
     this.engine.session.onHeartbeat();
+    const hidden = () => win.document.visibilityState === "hidden";
     const onVisibility = () => {
-      if (win.document.visibilityState === "hidden") this.save();
-      else this.tick();
+      if (hidden()) {
+        autosave.flush();
+        // nothing changes while hidden; the next timed save is 30s after coming back
+        autosave.pause();
+      } else {
+        this.tick();
+        autosave.start();
+      }
     };
     const onPageHide = () => {
-      this.save();
+      autosave.flush();
       this.engine.session.onClose();
     };
     win.document.addEventListener("visibilitychange", onVisibility);
     win.addEventListener("pagehide", onPageHide);
+    if (!hidden()) autosave.start();
     this.tick();
     return () => {
       win.clearInterval(tick);
-      win.clearInterval(save);
       win.clearInterval(heartbeat);
+      autosave.pause();
+      offSaved();
       win.document.removeEventListener("visibilitychange", onVisibility);
       win.removeEventListener("pagehide", onPageHide);
       this.save();

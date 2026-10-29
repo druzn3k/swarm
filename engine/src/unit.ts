@@ -11,6 +11,8 @@ import type { Tab } from "./tab";
 
 /** app.coffee: `angular.module('swarmApp').value 'UNIT_LIMIT', '1e100000'` */
 export const UNIT_LIMIT = "1e100000";
+// parsed once: Decimal.min copies its arguments, so the result is the same as passing the string
+const UNIT_LIMIT_DECIMAL = new Decimal(UNIT_LIMIT);
 
 /** mathjs 3.8.1 math.factorial for small non-negative integers (exact product). */
 export function factorial(n: number): number {
@@ -27,10 +29,22 @@ export interface ProducerPathLink {
 
 export class ProducerPath {
   name: string;
+  /**
+   * Cache keys of this path's prefixes: prefixNames[k] names the path made of
+   * the first k+1 links, the same name that path has as a ProducerPath of its
+   * last child. The last one is this.name.
+   */
+  prefixNames: string[];
   constructor(public unit: Unit, public path: ProducerPathLink[]) {
-    const pathname = _.map(this.path, (p) => p.parent.name).join(">");
     // unit.name's in the name twice, just so there's no confusion about where the path ends
-    this.name = `${this.unit.name}:${pathname}>${this.unit.name}`;
+    this.prefixNames = this.path.map((link, k) => {
+      const pathname = this.path
+        .slice(0, k + 1)
+        .map((p) => p.parent.name)
+        .join(">");
+      return `${link.child.name}:${pathname}>${link.child.name}`;
+    });
+    this.name = this.prefixNames[this.prefixNames.length - 1] ?? `${this.unit.name}:>${this.unit.name}`;
   }
   first(): ProducerPathLink {
     return this.path[0];
@@ -45,20 +59,32 @@ export class ProducerPath {
     return this.isZero() ? 0 : this.degree();
   }
   prodEach(): Decimal {
-    return (this.unit.game.cache.producerPathProdEach[this.name] ??= (() => {
-      // Bonus for ancestor to produced-child == product of all bonuses along the path
-      // (intuitively, if velocity and velocity-changes are doubled, acceleration is doubled too)
-      // Quantity of buildings along the path do not matter, they're calculated separately.
-      let ret = new Decimal(1);
-      for (const ancestordata of this.path) {
-        const val = new Decimal(ancestordata.prod.val).plus(ancestordata.parent.stat("base", 0));
-        ret = ret.times(val);
-        ret = ret.times(ancestordata.parent.stat("prod", 1));
-        // Cap ret, just like count(). This prevents Infinity * 0 = NaN problems, too.
-        ret = Decimal.min(ret, UNIT_LIMIT);
-      }
-      return ret;
-    })());
+    const cache = this.unit.game.cache.producerPathProdEach;
+    const cached = cache[this.name];
+    if (cached != null) return cached;
+    // Bonus for ancestor to produced-child == product of all bonuses along the path
+    // (intuitively, if velocity and velocity-changes are doubled, acceleration is doubled too)
+    // Quantity of buildings along the path do not matter, they're calculated separately.
+    //
+    // The product is worked out link by link from the first ancestor, so the
+    // product of the first k links is the prodEach of the path made of them
+    // (e.g. nest>queen>drone>meat starts with nest>queen>drone). Paths share
+    // those prefixes a lot; each one is cached under its own path name, so it
+    // is multiplied once. Same operations in the same order: same result.
+    const names = this.prefixNames;
+    let k = names.length - 1;
+    while (k >= 0 && cache[names[k]] == null) k--;
+    let ret = k >= 0 ? cache[names[k]] : new Decimal(1);
+    for (k++; k < this.path.length; k++) {
+      const ancestordata = this.path[k];
+      const val = new Decimal(ancestordata.prod.val).plus(ancestordata.parent.stat("base", 0));
+      ret = ret.times(val);
+      ret = ret.times(ancestordata.parent.stat("prod", 1));
+      // Cap ret, just like count(). This prevents Infinity * 0 = NaN problems, too.
+      ret = Decimal.min(ret, UNIT_LIMIT_DECIMAL);
+      cache[names[k]] = ret;
+    }
+    return (cache[this.name] = ret);
   }
   coefficient(count: Decimal = this.first().parent.rawCount()): Decimal {
     // floor(): no fractional units. #184
@@ -326,7 +352,7 @@ export class Unit {
       if (val == null) {
         return val as undefined;
       }
-      return Decimal.min(val, UNIT_LIMIT);
+      return Decimal.min(val, UNIT_LIMIT_DECIMAL);
     }
     if (val == null) {
       // no value supplied - return just the cap
@@ -664,7 +690,7 @@ export class Unit {
   // speed at which other units are producing this unit.
   velocity(): Decimal {
     return (this.game.cache.velocity[this.name] ??= Decimal.min(
-      UNIT_LIMIT,
+      UNIT_LIMIT_DECIMAL,
       this._producerPath.getDegreeCoefficient(1, true)
     ));
   }

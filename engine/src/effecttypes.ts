@@ -69,6 +69,19 @@ export function romanize(num: number): string | false {
 
 const ONE = new Decimal(1);
 
+// Decimal.log of spreadsheet constants, worked out once. Decimals are
+// immutable, so sharing one is the same as computing it again.
+const constantLogs = new Map<string, Decimal>();
+function constantLog(val: Decimal.Value): Decimal {
+  const key = String(val);
+  let ret = constantLogs.get(key);
+  if (ret == null) {
+    ret = Decimal.log(val);
+    constantLogs.set(key, ret);
+  }
+  return ret;
+}
+
 // Can't write functions in our spreadsheet :(
 // TODO: move this to upgrade parsing. this only asserts at runtime if a conflict happens, we want it to assert at loadtime
 function validateSchema(stat: string, schema: StatSchema, operation: string): void {
@@ -268,7 +281,7 @@ export function buildEffectTypes(seedrand: SeedRand): EffectTypes {
         new Decimal(effect.val3 ?? 1)
           .times(
             Decimal.log(level.times(effect.val).plus(effect.val2))
-              .dividedBy(Decimal.log(effect.val2))
+              .dividedBy(constantLog(effect.val2))
               .minus(1)
           )
           .plus(1)
