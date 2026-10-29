@@ -42,13 +42,16 @@ style of the first pixel mock-up (retired; see git history). It is deployed to G
 1. Tabs: meat, larva, territory, energy, mutagen, plus "all units". Tab shows
    lead unit count, cap %, and an upgrade-available marker.
 2. Unit list per tab, most advanced unit first and the cheapest last (the old
-   `sortUnits()` order): icon, name, count, rate, upgrade marker.
+   `sortUnits()` order): icon, name, count, rate, upgrade marker. Under each
+   buyable unit a buy row: +1, max N, and upgrade (one level of the first
+   affordable, shown upgrade). Coming back from a unit keeps the list's place.
 3. Unit screen: description and flavor text; owned count; production each and
    total; "you earn X per <velocity unit>"; cap and time to cap; buy input
    with the old syntax (`10%`, `=1000`, `@1000`, `1.5k`, `23 billion`) and a
    live cost preview; buy 1 / 25% / max buttons; twins; warnings before a
    first buy (`warnfirst`); advanced data (cost as % of stock/income) when
-   enabled; prev/next unit.
+   enabled; prev/next unit (the cards above and below; a sideways swipe does
+   the same; both replace the history entry so Back returns to the list).
 4. Upgrades on a unit: level, cost, progress bar, time until affordable,
    buy 1 and buy max for twin upgrades, notify setting (hide, never,
    when buyable, at 2x, at 4x).

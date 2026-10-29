@@ -88,6 +88,24 @@ test("picking a unit shows it on the right and keeps the list where it was", asy
   await expect(owned).not.toHaveText(was!);
 });
 
+test("buying from the list next to a unit", async ({ page }) => {
+  await loadWith(page, MID, "./#/unit/drone");
+  const owned = page.locator(".unit-hero .owned");
+  const was = await owned.textContent();
+  const row = side(page).locator('[data-actions="drone"]');
+  await expect(row.getByRole("button")).toHaveCount(3);
+  await row.getByRole("button", { name: /^hatch \+/i }).click();
+  await expect(owned).not.toHaveText(was!);
+  // the card's head is still the link; the row isn't inside it
+  await expect(card(page, "drone").locator("button")).toHaveCount(0);
+  await expect(side(page).locator('[data-actions="meat"]')).toHaveCount(0);
+  // the arrows step through the list's neighbours without stacking history
+  await page.locator("main").getByRole("link", { name: /^previous: queens/i }).click();
+  await expect(unitHeading(page)).toHaveText(/^queen$/i);
+  await page.goBack();
+  await expect(page).not.toHaveURL(/#\/unit\/(drone|queen)$/);
+});
+
 test("top tab strip: navigation, remembered unit per tab, keyboard order and skip link", async ({ page }) => {
   await loadWith(page, MID, "./#/tab/meat");
   const strip = page.getByRole("navigation", { name: "Swarm tabs" });

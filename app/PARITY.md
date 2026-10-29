@@ -37,7 +37,8 @@ the end.
 | Cap percent | ✅ | ✅ | `UnitList.tsx` | |
 | Upgrade marker | ✅ | ✅ | `UnitList.tsx` | |
 | Achievement points row on the larva tab | ✅ | ✅ | `meta/AchievementPointsRow.tsx` | |
-| Quick-buy dropdown per row with advanced unit data (`buyunit-dropdown.html`) | ❌ | ✅ | `components/unit/QuickBuy.tsx` | Unit buy 1/25%/max and each visible upgrade's buy 1/25%/max, only with "advanced unit data". |
+| Quick-buy dropdown per row with advanced unit data (`buyunit-dropdown.html`) | ❌ | ✅ | `components/unit/QuickBuy.tsx`, `unit/CardActions.tsx` | Every choice of the old dropdown is there with "advanced unit data": buy 1 and max of the unit on the card's buy row (below), and in a "More: 25%, each upgrade" disclosure the unit's 25% and each visible upgrade's buy 1/25%/max. |
+| Buy row under each buyable card: +1 (times twins), max N, upgrade | — | ⚠️ | `components/unit/CardActions.tsx` | Addition (after phase D; no old equivalent without advanced data). "Upgrade" buys one level of the first affordable upgrade not hidden by its notify setting, in the unit screen's order, and is named after it ("Upgrade: buy Faster Drones"). Same commands as the unit screen. No row on units that can't be bought (meat, larvae, territory, energy...). The card head stays the link. |
 
 ## 3. Unit screen (`views/unit.html`, `directive-unit.html`, `buyunit*.html`)
 
@@ -59,7 +60,7 @@ the end.
 | Buy 1 / 25% / max (`is25Visible`, `maxCostMet > 1`) | ✅ | ✅ | `BuyUnit.tsx` | Old omitted unavailable buttons; the app shows them disabled (stable layout). |
 | `warnfirst` warnings | ✅ | ✅ | `BuyUnit.tsx` | |
 | Advanced unit data | ✅ | ✅ | `meta/AdvancedUnitData.tsx` | |
-| Prev / next unit (only visible ones) | ✅ | ⚠️ | `unit/UnitNav.tsx`, `selectors.ts unitNeighbours` | At 360px the name was cut off entirely; now name and count on two lines. Intentional: they follow the list as shown — previous (‹, left) is the card above (more advanced), next (›, right) the card below (cheaper), skipping hidden units. The old game's ‹ went down a tier (`unit.prev`), the opposite of its own list. |
+| Prev / next unit (only visible ones) | ✅ | ⚠️ | `unit/UnitNav.tsx`, `selectors.ts unitNeighbours` | At 360px the name was cut off entirely; now name and count on two lines. Intentional: they follow the list as shown — previous (‹, left) is the card above (more advanced), next (›, right) the card below (cheaper), skipping hidden units. The old game's ‹ went down a tier (`unit.prev`), the opposite of its own list. Stepping replaces the history entry (old: a new one), so Back returns to the list; a sideways swipe does the same as the arrows (`unit/useSwipe.ts`; swipe left = next). |
 | Number formatting (`bignum` / `longnum`) | ⚠️ | ✅ | `format.ts` | `longnum` started suffixes at 1e6 and dropped trailing zeros of small numbers; the old filter (swarm-numberformat with the old options, checked by running it) starts at 1e5 (`minsuffix` typo in the old code) and keeps zeros: `123.456 thousand`, `8.00000 million`, `1.00`. Now identical, except that trailing zeros are dropped on purpose (`8 million`, `1.5B`): they add digits without adding information. |
 
 ## 4. Upgrades on a unit
@@ -163,6 +164,8 @@ the end.
 | Re-render cost per tick (mid/late save, 4× CPU throttle) | ⚠️ | ✅ | Mean main-thread time of the tick task (engine tick + React render), late-game save, 390px, CPU 4×: meat tab 18.0 → 9.5 ms, all units 19.6 → 10.0 ms, larva screen 11.5 → 10.4 ms; mid-game meat tab 10.2 → 5.0 ms. |
 | Accessibility (landmarks, headings, labels, live regions, contrast) | ⚠️ | ✅ | axe-core found no violations on any screen; manual pass: no skip link, confirms didn't close with Escape or return focus (import, reset), opacity lowered contrast of masked achievements, default placeholder color. Muted text (`--dust`) is 7.4:1 on `--burrow` and 8.0:1 on `--earth` (AA). Fixed. |
 | 360px layout | ⚠️ | ✅ | Header rate, tab bar labels/counts and prev/next names were cut off. |
+| Place in the list kept when coming back from a unit | — | ✅ | Addition (after phase D): back arrow, browser/Android back or the tab's own tab bar button put the phone list where it was (`scrollMemory.ts`, per tab, sessionStorage). |
+| Re-render cost with the buy rows (late save, CPU 4×, tick+render mean over 10 s) | — | ✅ | 390px meat tab 9.3 → 9.4 ms; 1440px meat tab 17.0 → 14.0 ms. Rows re-read every 4th tick, phased, comparing upgrade costs with counts; the "new upgrade" marker on cards as often; cards far off screen every 5 s (`components/useInView.ts`); next to the list the unit screen and the tab bar refresh on alternate ticks. Player actions always show at once. |
 
 ## Phase D: laptop layout
 
@@ -179,11 +182,13 @@ the end.
 |---|---|---|---|
 | Before | 57 | 16 | 8 |
 | After | 76 | 5 | 0 |
+| Now (list order, buy row, place in list, swipe) | 78 | 6 | 0 |
 
 ## Remaining intentional differences
 
 - Tab bar is a bottom bar with a More sheet on phones and a strip with a More panel from 1000px.
-- Prev/next unit follow the list (previous = the card above).
+- Prev/next unit follow the list (previous = the card above) and replace the history entry; a sideways swipe steps too.
+- Buy row (+1, max, upgrade) under each buyable unit card; with advanced data the old dropdown's other choices sit in a disclosure under it.
 - No keyboard hotkeys.
 - Unavailable buy buttons are shown disabled instead of omitted.
 - Confirm steps before ascend, respec, reset and import.
