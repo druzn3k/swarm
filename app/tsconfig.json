@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "e2e", "build", "scripts", "vite.config.ts", "playwright.config.ts", "../engine/src/typings"]
+  "include": ["src", "e2e", "bench", "build", "scripts", "vite.config.ts", "playwright.config.ts", "../engine/src/typings"]
 }

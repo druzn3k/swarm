@@ -1,0 +1,46 @@
+# The app's performance benchmark (app/bench/README.md), run by hand:
+# Actions > benchmark > Run workflow. Not a pass/fail gate: shared runners are
+# too noisy for that. The table goes to the run's summary and the results JSON
+# is uploaded as an artifact, for `bench --compare <file>` against a later run
+# on the same kind of machine.
+
+name: benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "bench flags, e.g. --suites tick,tap --saves late (see app/bench/README.md)"
+        required: false
+        default: "--saves all --viewports all"
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+    - uses: actions/checkout@v7
+    - uses: pnpm/action-setup@v6 # version comes from package.json "packageManager"
+    - uses: actions/setup-node@v7
+      with:
+        node-version: "22.x"
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm -r build
+    - run: pnpm --filter @swarmsim/app exec playwright install --with-deps chromium
+    # the flags go through the environment, not into the script text
+    - name: bench
+      shell: bash
+      env:
+        ARGS: ${{ inputs.args }}
+      run: |
+        pnpm --filter @swarmsim/app bench --no-build $ARGS --json bench/results/bench.json | tee app/bench/results-table.txt
+        { echo '```'; cat app/bench/results-table.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+    - if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: bench-results
+        path: |
+          app/bench/results/
+          app/bench/results-table.txt
+        if-no-files-found: ignore

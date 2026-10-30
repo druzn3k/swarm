@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsc --noEmit && vitest run",
     "e2e": "playwright test",
+    "bench": "tsx bench/run.ts",
     "icons": "tsx scripts/make-icons.ts"
   },
   "dependencies": {

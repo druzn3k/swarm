@@ -46,6 +46,12 @@ job (tests and e2e) has passed.
 - **Startup:** the game data is decoded at build time (`tables`
   `gen:static`), so the app ships neither the io-ts codecs nor io-ts/fp-ts;
   the engine imports lodash per function.
+- **Benchmarks:** `pnpm --filter @swarmsim/app bench` ([bench/README.md](bench/README.md))
+  measures tick cost, React renders, tap latency, startup, memory and the
+  hive canvas on early/mid/late saves crafted at run time; `--compare` with
+  an earlier results file is how to check a performance change. Not in CI
+  (too noisy for a pass/fail gate); the manual "benchmark" workflow runs it
+  on a GitHub runner and uploads the results.
 - **Routing:** hash routes, so the app works from any static host
   (GitHub Pages under `/swarm/`): `#/tab/<tab>`, `#/unit/<unit>`,
   `#/achievements`, `#/statistics`, `#/options`, `#/about`.
