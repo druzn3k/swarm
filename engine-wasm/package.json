@@ -1,0 +1,20 @@
+{
+  "name": "@swarmsim/engine-wasm",
+  "version": "0.1.0",
+  "private": true,
+  "license": "GPL-3.0",
+  "description": "Swarm Simulator's Rust engine (rust/crates/wasm) built for the web, with a typed TypeScript wrapper",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "sh scripts/build-wasm.sh",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc --noEmit && vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "~5.6.3",
+    "vitest": "2.1.9"
+  }
+}

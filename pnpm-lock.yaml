@@ -107,6 +107,18 @@ importers:
         specifier: ~5.6.3
         version: 5.6.3
 
+  engine-wasm:
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ~5.6.3
+        version: 5.6.3
+      vitest:
+        specifier: 2.1.9
+        version: 2.1.9(@types/node@20.19.43)(lightningcss@1.33.0)
+
   swarmsim-ts:
     dependencies:
       '@types/lz-string':
