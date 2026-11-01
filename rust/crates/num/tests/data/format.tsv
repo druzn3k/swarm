@@ -1,0 +1,272 @@
+0	standard-decimal	short			0
+0	standard-decimal	full			0
+0	scientific-e	short			0
+0	scientific-e	full			0
+0	hybrid	short			0
+0	hybrid	full			0
+0	engineering	short			0
+0	engineering	full			0
+1	standard-decimal	short			1
+1	standard-decimal	full			1
+1	scientific-e	short			1
+1	scientific-e	full			1
+1	hybrid	short			1
+1	hybrid	full			1
+1	engineering	short			1
+1	engineering	full			1
+-1	standard-decimal	short			-1
+-1	standard-decimal	full			-1
+-1	scientific-e	short			-1
+-1	scientific-e	full			-1
+-1	hybrid	short			-1
+-1	hybrid	full			-1
+-1	engineering	short			-1
+-1	engineering	full			-1
+12.5	standard-decimal	short			12
+12.5	standard-decimal	full			12
+12.5	scientific-e	short			12
+12.5	scientific-e	full			12
+12.5	hybrid	short			12
+12.5	hybrid	full			12
+12.5	engineering	short			12
+12.5	engineering	full			12
+999	standard-decimal	short			999
+999	standard-decimal	full			999
+999	scientific-e	short			999
+999	scientific-e	full			999
+999	hybrid	short			999
+999	hybrid	full			999
+999	engineering	short			999
+999	engineering	full			999
+1000	standard-decimal	short			1,000
+1000	standard-decimal	full			1,000
+1000	scientific-e	short			1,000
+1000	scientific-e	full			1,000
+1000	hybrid	short			1,000
+1000	hybrid	full			1,000
+1000	engineering	short			1,000
+1000	engineering	full			1,000
+12345	standard-decimal	short			12,345
+12345	standard-decimal	full			12,345
+12345	scientific-e	short			12,345
+12345	scientific-e	full			12,345
+12345	hybrid	short			12,345
+12345	hybrid	full			12,345
+12345	engineering	short			12,345
+12345	engineering	full			12,345
+99999	standard-decimal	short			99,999
+99999	standard-decimal	full			99,999
+99999	scientific-e	short			99,999
+99999	scientific-e	full			99,999
+99999	hybrid	short			99,999
+99999	hybrid	full			99,999
+99999	engineering	short			99,999
+99999	engineering	full			99,999
+99999.9	standard-decimal	short			99,999
+99999.9	standard-decimal	full			99,999
+99999.9	scientific-e	short			99,999
+99999.9	scientific-e	full			99,999
+99999.9	hybrid	short			99,999
+99999.9	hybrid	full			99,999
+99999.9	engineering	short			99,999
+99999.9	engineering	full			99,999
+100000	standard-decimal	short			100K
+100000	standard-decimal	full			100 thousand
+100000	scientific-e	short			1e5
+100000	scientific-e	full			1e5
+100000	hybrid	short			100K
+100000	hybrid	full			100 thousand
+100000	engineering	short			100E3
+100000	engineering	full			100E3
+123456	standard-decimal	short			123K
+123456	standard-decimal	full			123.45 thousand
+123456	scientific-e	short			1.23e5
+123456	scientific-e	full			1.2345e5
+123456	hybrid	short			123K
+123456	hybrid	full			123.45 thousand
+123456	engineering	short			123E3
+123456	engineering	full			123.45E3
+999999	standard-decimal	short			999K
+999999	standard-decimal	full			999.99 thousand
+999999	scientific-e	short			9.99e5
+999999	scientific-e	full			9.9999e5
+999999	hybrid	short			999K
+999999	hybrid	full			999.99 thousand
+999999	engineering	short			999E3
+999999	engineering	full			999.99E3
+1000000	standard-decimal	short			1M
+1000000	standard-decimal	full			1 million
+1000000	scientific-e	short			1e6
+1000000	scientific-e	full			1e6
+1000000	hybrid	short			1M
+1000000	hybrid	full			1 million
+1000000	engineering	short			1E6
+1000000	engineering	full			1E6
+1234567	standard-decimal	short			1.23M
+1234567	standard-decimal	full			1.2345 million
+1234567	scientific-e	short			1.23e6
+1234567	scientific-e	full			1.2345e6
+1234567	hybrid	short			1.23M
+1234567	hybrid	full			1.2345 million
+1234567	engineering	short			1.23E6
+1234567	engineering	full			1.2345E6
+-1234567	standard-decimal	short			-1.24M
+-1234567	standard-decimal	full			-1.2346 million
+-1234567	scientific-e	short			-1.24e6
+-1234567	scientific-e	full			-1.2346e6
+-1234567	hybrid	short			-1.24M
+-1234567	hybrid	full			-1.2346 million
+-1234567	engineering	short			-1.24E6
+-1234567	engineering	full			-1.2346E6
+98765432	standard-decimal	short			98.7M
+98765432	standard-decimal	full			98.765 million
+98765432	scientific-e	short			9.87e7
+98765432	scientific-e	full			9.8765e7
+98765432	hybrid	short			98.7M
+98765432	hybrid	full			98.765 million
+98765432	engineering	short			98.7E6
+98765432	engineering	full			98.765E6
+1e9	standard-decimal	short			1B
+1e9	standard-decimal	full			1 billion
+1e9	scientific-e	short			1e9
+1e9	scientific-e	full			1e9
+1e9	hybrid	short			1B
+1e9	hybrid	full			1 billion
+1e9	engineering	short			1E9
+1e9	engineering	full			1E9
+1.5e12	standard-decimal	short			1.5T
+1.5e12	standard-decimal	full			1.5 trillion
+1.5e12	scientific-e	short			1.5e12
+1.5e12	scientific-e	full			1.5e12
+1.5e12	hybrid	short			1.5T
+1.5e12	hybrid	full			1.5 trillion
+1.5e12	engineering	short			1.5E12
+1.5e12	engineering	full			1.5E12
+2.345678e15	standard-decimal	short			2.34Qa
+2.345678e15	standard-decimal	full			2.3456 quadrillion
+2.345678e15	scientific-e	short			2.34e15
+2.345678e15	scientific-e	full			2.3456e15
+2.345678e15	hybrid	short			2.34Qa
+2.345678e15	hybrid	full			2.3456 quadrillion
+2.345678e15	engineering	short			2.34E15
+2.345678e15	engineering	full			2.3456E15
+1e21	standard-decimal	short			1Sx
+1e21	standard-decimal	full			1 sextillion
+1e21	scientific-e	short			1e21
+1e21	scientific-e	full			1e21
+1e21	hybrid	short			1Sx
+1e21	hybrid	full			1 sextillion
+1e21	engineering	short			1E21
+1e21	engineering	full			1E21
+1.23456789e30	standard-decimal	short			1.23No
+1.23456789e30	standard-decimal	full			1.2345 nonillion
+1.23456789e30	scientific-e	short			1.23e30
+1.23456789e30	scientific-e	full			1.2345e30
+1.23456789e30	hybrid	short			1.23No
+1.23456789e30	hybrid	full			1.2345 nonillion
+1.23456789e30	engineering	short			1.23E30
+1.23456789e30	engineering	full			1.2345E30
+7.77e100	standard-decimal	short			77.7DTg
+7.77e100	standard-decimal	full			77.7 duotrigintillion
+7.77e100	scientific-e	short			7.77e100
+7.77e100	scientific-e	full			7.77e100
+7.77e100	hybrid	short			7.77e100
+7.77e100	hybrid	full			7.77e100
+7.77e100	engineering	short			77.7E99
+7.77e100	engineering	full			77.7E99
+1e272	standard-decimal	short			100NOg
+1e272	standard-decimal	full			1e272
+1e272	scientific-e	short			1e272
+1e272	scientific-e	full			1e272
+1e272	hybrid	short			1e272
+1e272	hybrid	full			1e272
+1e272	engineering	short			100E270
+1e272	engineering	full			100E270
+1.5e273	standard-decimal	short			1.5e273
+1.5e273	standard-decimal	full			1.5e273
+1.5e273	scientific-e	short			1.5e273
+1.5e273	scientific-e	full			1.5e273
+1.5e273	hybrid	short			1.5e273
+1.5e273	hybrid	full			1.5e273
+1.5e273	engineering	short			1.5E273
+1.5e273	engineering	full			1.5E273
+1e274	standard-decimal	short			1e274
+1e274	standard-decimal	full			1e274
+1e274	scientific-e	short			1e274
+1e274	scientific-e	full			1e274
+1e274	hybrid	short			1e274
+1e274	hybrid	full			1e274
+1e274	engineering	short			10E273
+1e274	engineering	full			10E273
+1e300	standard-decimal	short			1e300
+1e300	standard-decimal	full			1e300
+1e300	scientific-e	short			1e300
+1e300	scientific-e	full			1e300
+1e300	hybrid	short			1e300
+1e300	hybrid	full			1e300
+1e300	engineering	short			1E300
+1e300	engineering	full			1E300
+1.5e303	standard-decimal	short			1.5e303
+1.5e303	standard-decimal	full			1.5e303
+1.5e303	scientific-e	short			1.5e303
+1.5e303	scientific-e	full			1.5e303
+1.5e303	hybrid	short			1.5e303
+1.5e303	hybrid	full			1.5e303
+1.5e303	engineering	short			1.5E303
+1.5e303	engineering	full			1.5E303
+1e100000	standard-decimal	short			1e100000
+1e100000	standard-decimal	full			1e100000
+1e100000	scientific-e	short			1e100000
+1e100000	scientific-e	full			1e100000
+1e100000	hybrid	short			1e100000
+1e100000	hybrid	full			1e100000
+1e100000	engineering	short			10E99999
+1e100000	engineering	full			10E99999
+-3.2e500	standard-decimal	short			-3.2e500
+-3.2e500	standard-decimal	full			-3.2e500
+-3.2e500	scientific-e	short			-3.2e500
+-3.2e500	scientific-e	full			-3.2e500
+-3.2e500	hybrid	short			-3.2e500
+-3.2e500	hybrid	full			-3.2e500
+-3.2e500	engineering	short			-320E498
+-3.2e500	engineering	full			-320E498
+0.5	standard-decimal	short			0
+0.5	standard-decimal	full			0
+0.5	scientific-e	short			0
+0.5	scientific-e	full			0
+0.5	hybrid	short			0
+0.5	hybrid	full			0
+0.5	engineering	short			0
+0.5	engineering	full			0
+0.0123	standard-decimal	short			0
+0.0123	standard-decimal	full			0
+0.0123	scientific-e	short			0
+0.0123	scientific-e	full			0
+0.0123	hybrid	short			0
+0.0123	hybrid	full			0
+0.0123	engineering	short			0
+0.0123	engineering	full			0
+123.456	standard-decimal	short			123
+123.456	standard-decimal	full			123
+123.456	scientific-e	short			123
+123.456	scientific-e	full			123
+123.456	hybrid	short			123
+123.456	hybrid	full			123
+123.456	engineering	short			123
+123.456	engineering	full			123
+0.5	standard-decimal	short	3	1000	0.5
+0.5	standard-decimal	short	6	1000	0.5
+0.0123	standard-decimal	short	3	1000	0.0123
+0.0123	standard-decimal	short	6	1000	0.0123
+123.456	standard-decimal	short	3	1000	123
+123.456	standard-decimal	short	6	1000	123.456
+1.23456	standard-decimal	short	3	1000	1.23
+1.23456	standard-decimal	short	6	1000	1.23456
+-2.5	standard-decimal	short	3	1000	-2.5
+-2.5	standard-decimal	short	6	1000	-2.5
+1500.75	standard-decimal	short	3	1000	1,500
+1500.75	standard-decimal	short	6	1000	1,500
+1234567	standard-decimal	full	6		1.23456 million
+123456	standard-decimal	full	6		123.456 thousand
+8000000	standard-decimal	full	6		8 million
+1.23456789e15	standard-decimal	full	6		1.23456 quadrillion
