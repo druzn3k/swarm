@@ -1,0 +1,20 @@
+---
+source: crates/tui/tests/render.rs
+expression: "render(&mut a, 80, 16)"
+---
+ 1 Meat  2 Larv  3 Terr  4 Ener  5 Muta  6 Achi  7 Stat  8 Options              
+Meat 4e677 +1.72e670/s  Larvae 4.24UVi +11.6ODc/s  Territory 2.16e438 +5.93e429/
+┌Options (Enter or click toggles)──────────────────────────────────────────────┐
+│ Animation        on                                                          │
+│ Mouse capture    on                                                          │
+│ Numbers          short (1.23M)                                               │
+│ Save now                                                                     │
+│ Export save to screen                                                        │
+│                                                                              │
+│ Save file: (none: not saving)                                                │
+│ Shared with the `swarm` CLI. Saved every 30 s and on quit.                   │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+b buy  B max  u upgrade  Enter open  : command   no save mouse on anim on ? help

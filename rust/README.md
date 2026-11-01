@@ -13,16 +13,17 @@ plan, the design decisions and the parity results are in [PLAN.md](PLAN.md).
 | `swarm-save` | `crates/save` | Save formats: v2 (`SW2|` + lz-string JSON) and the legacy v1 reader (and writer, feature `legacy-write`). |
 | `swarm-scenario` | `crates/scenario` | The parity harness: replays the TS engine's scenarios and goldens and compares the results (binary `swarm-scenario`). |
 | `swarm-cli` | `crates/cli` | The `swarm` command-line game. |
+| `swarm-tui` | `crates/tui` | The `swarm-tui` terminal game (ratatui + crossterm). |
 
-`num`, `data`, `engine` and `save` must stay wasm-portable. A TUI, a wasm
-build for the web app and a Tauri shell are planned (PLAN.md section 7) but
-don't exist yet.
+`num`, `data`, `engine` and `save` must stay wasm-portable. A wasm build
+for the web app and a Tauri shell are planned (PLAN.md section 7).
 
 ## Build and test
 
 ```sh
 cd rust
 cargo build --release -p swarm-cli     # target/release/swarm
+cargo build --release -p swarm-tui     # target/release/swarm-tui
 cargo test                             # every crate, including the 12 goldens
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
@@ -64,3 +65,86 @@ the clock (epoch ms) for reproducible sessions.
 
 Exit codes: 0 ok, 1 refused by a game rule (can't afford, nothing to undo),
 2 usage or parse error, 3 I/O error or unreadable save.
+
+## Playing with `swarm-tui`
+
+```sh
+swarm-tui                       # or: swarm-tui --save path/to/save.txt
+```
+
+A live game in the terminal (Linux). It uses the same save as `swarm`
+(`--save`, `$SWARM_SAVE`, else `$XDG_DATA_HOME/swarm/save.txt`; a missing
+save starts a new game), writes it atomically every 30 s and on quit (the
+previous one is kept as `save.prev.txt`), and drops the CLI's
+`save.undo.txt`, which a TUI session makes stale. Don't run `swarm` and
+`swarm-tui` on the same save at the same time: the last writer wins.
+
+The game ticks at 10 Hz on the monotonic clock and checks the wall clock
+once a second, so after a suspend it catches up the time away and shows
+a welcome-back report. `$SWARM_NOW_MS` pins the starting wall clock.
+
+Screens: one tab per unlocked game tab (unit list with counts, rates and
+● affordable / ↑ upgrade markers; the selected unit's costs, production,
+buy buttons and a count sparkline; its upgrades and abilities with costs,
+live effects and buy buttons), then Achievements, Stats and Options. `a`
+opens the ascension panel. Panes sit side by side from 100 columns and
+stack below that. Tutorial tips show above the status bar; the status bar
+shows messages, the undo window and the mouse/animation state.
+
+Keys:
+
+| Key | Does |
+|---|---|
+| `1-9, 0` | go to tab N (a lone digit waits 0.4 s for a count); Alt-N at once |
+| `Tab / Shift-Tab` | next / previous tab |
+| `j k, ↓ ↑` | move in the list (with a count: 5j) |
+| `g G, Home End` | first / last row |
+| `PgDn PgUp, ^D ^U` | page down / up |
+| `Enter, l, →` | open the unit's upgrades; on an upgrade, buy one |
+| `Esc, h, ←` | back out; close a window |
+| `b` | buy 1 of the unit (100b buys 100) |
+| `B` | buy the max of the unit |
+| `u` | buy 1 level of the selected upgrade (5u buys 5) |
+| `U` | buy the max of the selected upgrade |
+| `% or i` | type an amount: 1.5k, 25%, =N exactly, @N to have N |
+| `a` | ascension panel (y ascends, r respecs) |
+| `r` | respec (asks first) |
+| `z` | undo the last purchase within 30 s; again to redo |
+| `f` | short / long numbers |
+| `A` | animation on / off |
+| `m` | mouse capture on / off (off: select text with the mouse) |
+| `:` | command line |
+| `?` | this help |
+| `^L` | repaint |
+| `q, ^C` | save and quit |
+
+Commands (type `:` first; Tab completes commands, unit and upgrade names):
+
+| Command | Does |
+|---|---|
+| `:buy <unit> [amount\|max]` | buy units; amount like 100, 1.5k, 25%, =N, @N |
+| `:upgrade <name> [amount\|max]` | buy upgrade or ability levels |
+| `:ascend` | ascend now |
+| `:respec` | respec (free if you have one) |
+| `:undo` | undo / redo |
+| `:export [file]` | write the save (v2) to a file, or show it |
+| `:import <file>` | load a v1 or v2 save |
+| `:anim on\|off` | animation |
+| `:mouse on\|off` | mouse capture |
+| `:long \| short` | number format |
+| `:tab <name\|N>` | go to a tab |
+| `:save` | save now (also every 30 s and on quit) |
+| `:quit` | save and quit |
+| `:help` | this help |
+
+Amounts go through the game's number parser: `100`, `1.5k`, `1.5 billion`,
+`25%` (of what you can afford), `=N` (exactly N units, ignoring twins),
+`@N` (enough to have N).
+
+Mouse: click tabs, units, upgrades and `[buttons]`; the wheel scrolls the
+list under it; double-click a unit to open its upgrades. Mouse capture
+(`m`, `:mouse off`) stops the terminal's own text selection, so turn it
+off to copy text (e.g. `:export`); many terminals also select with
+Shift-drag while it is on. Animation (`A`, `:anim`), mouse capture and the
+number format are saved in the save's options bag (`tui.anim`,
+`tui.mouse`, `tui.numformat`).
