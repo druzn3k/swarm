@@ -9,7 +9,9 @@ use swarm_num::Num;
 use swarm_save::{decode_any, encode_v2, export_v2, legacy, prepare_save, Format};
 
 use crate::duration::{format_duration, parse_duration};
+use crate::lock::{Lock, LockError};
 use crate::render::{self, Fmt};
+use crate::undo_file::{Kind, Snapshot};
 use crate::{store, Cli, CliError, Cmd, Env, Output, SaveFormat, EXIT_OK};
 
 /// A loaded game and where it came from.
@@ -41,7 +43,10 @@ impl Session {
     fn commit(&mut self) -> Result<(), CliError> {
         let now = self.clock();
         self.engine.mark_closed(now);
-        store::write_save(&self.path, &export_v2(&self.engine, now))
+        store::write_save(&self.path, &export_v2(&self.engine, now))?;
+        // an undo whose window has closed (an `advance`, say) is dropped
+        read_undo(&self.path, now)?;
+        Ok(())
     }
 
     /// Applies a command; on success writes the undo snapshot (the save as
@@ -49,7 +54,7 @@ impl Session {
     fn apply(&mut self, cmd: Command) -> Result<CommandOutcome, CliError> {
         let before = self.engine.exported_state().clone();
         let outcome = self.engine.apply(cmd).map_err(command_error)?;
-        write_undo(&self.path, UndoTag::Undo, &encode_v2(&before))?;
+        write_undo(&self.path, Kind::Undo, self.clock(), &encode_v2(&before))?;
         self.commit()?;
         Ok(outcome)
     }
@@ -67,31 +72,58 @@ fn load_text(text: &str, what: &str, env: &Env, out: &mut Output) -> Result<Engi
     Ok(loaded.engine)
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum UndoTag {
-    Undo,
-    Redo,
-}
-
-fn write_undo(save: &Path, tag: UndoTag, text: &str) -> Result<(), CliError> {
-    let tag = match tag {
-        UndoTag::Undo => "undo",
-        UndoTag::Redo => "redo",
+/// Writes the undo snapshot (`date_ms`: the game clock of the command).
+fn write_undo(save: &Path, kind: Kind, date_ms: i64, text: &str) -> Result<(), CliError> {
+    let snap = Snapshot {
+        kind,
+        date_ms,
+        save: text.to_owned(),
     };
-    store::write_atomic(&store::undo_path(save), &format!("{tag}\n{text}\n"))
+    Ok(store::write_atomic(
+        &store::undo_path(save),
+        &snap.encode(),
+    )?)
 }
 
-fn read_undo(save: &Path) -> Result<Option<(UndoTag, String)>, CliError> {
-    let Some(text) = store::read_opt(&store::undo_path(save))? else {
+/// Reads the undo snapshot, which `swarm-tui` may have written. An undo
+/// whose window has closed at game time `now_ms` is deleted and not
+/// returned.
+fn read_undo(save: &Path, now_ms: i64) -> Result<Option<Snapshot>, CliError> {
+    let file = store::undo_path(save);
+    let Some(text) = store::read_opt(&file)? else {
         return Ok(None);
     };
-    let (tag, body) = text.split_once('\n').unwrap_or(("", ""));
-    let tag = match tag.trim() {
-        "undo" => UndoTag::Undo,
-        "redo" => UndoTag::Redo,
-        _ => return Err(CliError::Io("corrupt undo file".into())),
-    };
-    Ok(Some((tag, body.trim().to_owned())))
+    match Snapshot::parse(&text) {
+        Some(snap) if !snap.expired(now_ms) => Ok(Some(snap)),
+        _ => {
+            store::remove_opt(&file)?;
+            Ok(None)
+        }
+    }
+}
+
+/// Which commands write the save, and so take its lock. Read-only commands
+/// (and `convert`, `scenario`, `bench`) see an atomically written file and
+/// need none.
+fn writes_save(cmd: &Cmd) -> bool {
+    matches!(
+        cmd,
+        Cmd::New
+            | Cmd::Buy { .. }
+            | Cmd::BuyMax { .. }
+            | Cmd::Upgrade { .. }
+            | Cmd::UpgradeMax { .. }
+            | Cmd::UpgradeAll { .. }
+            | Cmd::Ascend
+            | Cmd::Respec { .. }
+            | Cmd::Undo
+            | Cmd::Advance { .. }
+            | Cmd::Import { .. }
+    )
+}
+
+fn lock_error(e: LockError) -> CliError {
+    CliError::Io(e.to_string())
 }
 
 /// Game rules are exit 1; names and numbers the player typed are usage
@@ -144,12 +176,19 @@ fn line(out: &mut Output, s: impl AsRef<str>) {
 
 pub(crate) fn dispatch(cli: &Cli, env: &Env, out: &mut Output) -> Result<i32, CliError> {
     let fmt = Fmt { long: cli.long };
-    let path = || store::save_path(cli.save.as_deref(), env);
+    let path = || store::save_path(cli.save.as_deref(), |k| env.var(k).map(str::to_owned));
     let data = GameData::embedded();
+    // held for the whole command
+    let _lock = if writes_save(&cli.command) {
+        let lock = Lock::acquire(&path()?, "swarm", cli.force).map_err(lock_error)?;
+        Some(lock)
+    } else {
+        None
+    };
     match &cli.command {
-        Cmd::New { force } => {
+        Cmd::New => {
             let path = path()?;
-            if !force && store::read_opt(&path)?.is_some() {
+            if !cli.force && store::read_opt(&path)?.is_some() {
                 return Err(CliError::Usage(format!(
                     "a save exists at {}; use `swarm new --force` to replace it",
                     path.display()
@@ -274,20 +313,20 @@ pub(crate) fn dispatch(cli: &Cli, env: &Env, out: &mut Output) -> Result<i32, Cl
         }
         Cmd::Undo => {
             let mut s = Session::open(path()?, env, out)?;
-            let (tag, text) = read_undo(&s.path)?
+            let snap = read_undo(&s.path, s.clock())?
                 .ok_or_else(|| CliError::Rule(CommandError::NoUndo.to_string()))?;
-            let undo = decode_any(&text)
+            let undo = decode_any(&snap.save)
                 .map_err(|e| CliError::Io(format!("undo file: {e}")))?
                 .state;
             let current = s.engine.exported_state().clone();
             s.engine
                 .import_state(undo)
                 .map_err(|e| CliError::Rule(e.to_string()))?;
-            let (next, msg) = match tag {
-                UndoTag::Undo => (UndoTag::Redo, "Undone. Run `swarm undo` again to redo."),
-                UndoTag::Redo => (UndoTag::Undo, "Redone."),
+            let (next, msg) = match snap.kind {
+                Kind::Undo => (Kind::Redo, "Undone. Run `swarm undo` again to redo."),
+                Kind::Redo => (Kind::Undo, "Redone."),
             };
-            write_undo(&s.path, next, &encode_v2(&current))?;
+            write_undo(&s.path, next, s.clock(), &encode_v2(&current))?;
             s.commit()?;
             line(out, msg);
         }

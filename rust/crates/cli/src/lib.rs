@@ -17,8 +17,10 @@
 
 pub mod duration;
 mod game;
+pub mod lock;
 mod render;
 pub mod store;
+pub mod undo_file;
 
 use std::collections::HashMap;
 use std::fmt;
@@ -66,6 +68,13 @@ impl fmt::Display for CliError {
 }
 
 impl std::error::Error for CliError {}
+
+/// Store, lock and undo-file errors are strings; they are I/O errors here.
+impl From<String> for CliError {
+    fn from(e: String) -> CliError {
+        CliError::Io(e)
+    }
+}
 
 /// What a command printed, and its exit code.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -136,13 +145,22 @@ impl Env {
 /// Each command that changes the game rewrites the save (v2) and keeps the
 /// previous one as save.prev.txt.
 ///
-/// Exit codes: 0 ok, 1 refused by a game rule, 2 usage error, 3 I/O error.
+/// Commands that write the save take save.lock next to it for their
+/// duration. While swarm-tui (or another swarm) holds it they exit 3 naming
+/// the pid; --force overrides.
+///
+/// Exit codes: 0 ok, 1 refused by a game rule, 2 usage error, 3 I/O error
+/// (including a locked save).
 #[derive(Debug, Parser)]
 #[command(name = "swarm", version, about, long_about, max_term_width = 100)]
 pub struct Cli {
     /// The save file.
     #[arg(long, global = true, value_name = "PATH")]
     pub save: Option<PathBuf>,
+    /// Override the save lock held by a running swarm-tui (or another
+    /// swarm), and let `new` replace an existing save.
+    #[arg(long, global = true)]
+    pub force: bool,
     /// Long number names ("1.23456 million") instead of short ("1.23M").
     #[arg(long, global = true)]
     pub long: bool,
@@ -155,11 +173,10 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Cmd {
     /// Start a new game.
-    New {
-        /// Replace an existing save (it is kept as the backup).
-        #[arg(long)]
-        force: bool,
-    },
+    ///
+    /// Refuses if a save exists; --force replaces it (the old one is kept as
+    /// the backup).
+    New,
     /// Show units, upgrades and tabs.
     Show(ShowArgs),
     /// Buy units.

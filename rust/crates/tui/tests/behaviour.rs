@@ -332,10 +332,10 @@ fn saves_export_and_import_through_files() {
     keys(&mut a, "5b", t);
     keys(&mut a, ":save\n", t);
     assert!(a.message.as_ref().unwrap().text.starts_with("Saved to"));
-    assert!(
-        !swarm_tui::store::undo_path(&path).exists(),
-        "the CLI's undo file is dropped"
-    );
+    // the stale snapshot is replaced by this session's own (5b is undoable)
+    let snap = std::fs::read_to_string(swarm_tui::store::undo_path(&path)).unwrap();
+    assert!(snap.starts_with("undo "), "{snap}");
+    assert!(!snap.contains("stale"));
     let (e, warnings) = swarm_tui::load(&path, common::NOW + 1000).unwrap();
     assert!(warnings.is_empty());
     assert_eq!(e.count(UnitId(unit(&a, "drone"))), count(&a, "drone"));

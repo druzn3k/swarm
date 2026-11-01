@@ -18,5 +18,9 @@ swarm-num = { path = "../num" }
 serde_json = "1"
 ratatui = { version = "0.30", default-features = false, features = ["crossterm", "layout-cache"] }
 
+[target.'cfg(unix)'.dependencies]
+signal-hook = "0.3"
+
 [dev-dependencies]
 insta = "1"
+swarm-cli = { path = "../cli", default-features = false }

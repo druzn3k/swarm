@@ -1,12 +1,15 @@
 ---
 source: crates/cli/tests/cli.rs
+assertion_line: 255
 expression: "sb.ok(&[\"--help\"]).stdout"
 ---
 Swarm Simulator, on the command line.
 
 The save lives in $XDG_DATA_HOME/swarm/save.txt (default ~/.local/share/swarm/save.txt); override it with --save or $SWARM_SAVE. Each command that changes the game rewrites the save (v2) and keeps the previous one as save.prev.txt.
 
-Exit codes: 0 ok, 1 refused by a game rule, 2 usage error, 3 I/O error.
+Commands that write the save take save.lock next to it for their duration. While swarm-tui (or another swarm) holds it they exit 3 naming the pid; --force overrides.
+
+Exit codes: 0 ok, 1 refused by a game rule, 2 usage error, 3 I/O error (including a locked save).
 
 Usage: swarm [OPTIONS] <COMMAND>
 
@@ -34,6 +37,9 @@ Commands:
 Options:
       --save <PATH>
           The save file
+
+      --force
+          Override the save lock held by a running swarm-tui (or another swarm), and let `new` replace an existing save
 
       --long
           Long number names ("1.23456 million") instead of short ("1.23M")

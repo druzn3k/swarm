@@ -167,6 +167,62 @@ fn undo_and_redo() {
 }
 
 #[test]
+fn undo_expires_after_thirty_seconds_of_game_time() {
+    let mut sb = Sandbox::new("undo-expiry");
+    sb.ok(&["new"]);
+    sb.ok(&["buy", "drone", "2"]);
+    let undo = sb.dir.join("swarm").join("save.undo.txt");
+    assert!(std::fs::read_to_string(&undo).unwrap().starts_with("undo "));
+    sb.at(T0 + 29_000);
+    sb.ok(&["show"]);
+    assert!(undo.exists(), "still open at 29 s");
+    sb.at(T0 + 30_000);
+    assert_eq!(sb.code(&["undo"]), EXIT_RULE);
+    assert!(!undo.exists(), "deleted once expired");
+    // `advance` moves the game clock past the window too
+    sb.at(T0);
+    sb.ok(&["buy", "drone", "1"]);
+    sb.ok(&["advance", "1m"]);
+    assert!(!undo.exists());
+    assert_eq!(sb.code(&["undo"]), EXIT_RULE);
+}
+
+#[test]
+fn a_locked_save_is_refused_unless_forced() {
+    let sb = Sandbox::new("lock");
+    sb.ok(&["new"]);
+    let lock = sb.dir.join("swarm").join("save.lock");
+    let held = |pid: u32| {
+        std::fs::write(&lock, format!("pid {pid}\nstarted 1\nwho swarm-tui\n")).unwrap();
+    };
+    // this test process is alive
+    held(std::process::id());
+    let o = sb.run(&["buy", "drone", "1"]);
+    assert_eq!(o.code, EXIT_IO, "{o:?}");
+    assert!(
+        o.stderr.contains(&format!("pid {}", std::process::id())),
+        "{o:?}"
+    );
+    assert!(
+        o.stderr.contains("swarm-tui") && o.stderr.contains("--force"),
+        "{o:?}"
+    );
+    for args in [&["undo"][..], &["advance", "1m"], &["ascend"]] {
+        assert_eq!(sb.code(args), EXIT_IO, "{args:?}");
+    }
+    // read-only commands don't need the lock
+    sb.ok(&["show"]);
+    // --force overrides (the lock is the command's own while it runs)
+    sb.ok(&["--force", "buy", "drone", "1"]);
+    assert!(!lock.exists());
+    held(std::process::id());
+    // a dead holder is taken over silently, and the lock is released after
+    held(4_000_000_000);
+    sb.ok(&["buy", "drone", "1"]);
+    assert!(!lock.exists());
+}
+
+#[test]
 fn amounts_go_through_parse_number() {
     let mut sb = Sandbox::new("amounts");
     sb.ok(&["new"]);

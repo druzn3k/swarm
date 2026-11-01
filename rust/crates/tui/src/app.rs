@@ -10,9 +10,9 @@ use ratatui::crossterm::event::{KeyEvent, MouseButton, MouseEvent, MouseEventKin
 use ratatui::layout::{Position, Rect};
 use serde_json::Value;
 use swarm_data::{GameData, TabId, UnitId, UpgradeId};
-use swarm_engine::view::{Sections, StaticView, UnitView, UpgradeView};
+use swarm_engine::view::{Sections, StaticView, UndoView, UnitView, UpgradeView, UNDO_LIMIT_SECS};
 use swarm_engine::{
-    Amount, Command, CommandError, CommandOutcome, Engine, OfflineReport, View, ViewEvent,
+    Amount, Command, CommandError, CommandOutcome, Engine, OfflineReport, State, View, ViewEvent,
     ViewRequest, WelcomeBack,
 };
 use swarm_num::Num;
@@ -21,6 +21,7 @@ use crate::cmdline::{self, Cmd};
 use crate::fmt::{self, Fmt};
 use crate::keymap::{Action, Keymap};
 use crate::store;
+use crate::undo_file::{Kind, Snapshot, WINDOW_MS as WINDOW};
 
 /// Ticks per second.
 pub const TICK: Duration = Duration::from_millis(100);
@@ -138,6 +139,14 @@ pub struct Message {
 /// Rows on the options screen.
 pub const OPTION_ROWS: usize = 5;
 
+/// An undo snapshot that came from outside this session (`swarm`, or an
+/// earlier `swarm-tui`), used while the engine has no undo of its own.
+struct Handoff {
+    kind: Kind,
+    date_ms: i64,
+    state: State,
+}
+
 /// The app.
 pub struct App {
     /// The game.
@@ -197,6 +206,7 @@ pub struct App {
     pub quit: bool,
     /// Full repaint requested.
     pub redraw: bool,
+    handoff: Option<Handoff>,
     /// Last mouse click, for double clicks.
     last_click: Option<(Hit, Instant)>,
 }
@@ -261,6 +271,7 @@ impl App {
             save_error: None,
             quit: false,
             redraw: false,
+            handoff: None,
             last_click: None,
         };
         app.refresh();
@@ -489,6 +500,7 @@ impl App {
                 self.info(format!("Achievement unlocked: {label}"));
             }
         }
+        self.sync_handoff_view();
         let n = self.upgrade_list().len();
         if self.sel_upgrade >= n {
             self.sel_upgrade = n.saturating_sub(1);
@@ -526,9 +538,7 @@ impl App {
         let now = self.engine.now_ms();
         self.engine.mark_closed(now);
         let text = swarm_save::export_v2(&self.engine, now);
-        // the CLI's undo snapshot predates this session: drop it
-        let res = store::write_save(&path, &text)
-            .and_then(|()| store::remove_opt(&store::undo_path(&path)));
+        let res = store::write_save(&path, &text).and_then(|()| self.sync_undo_file());
         match res {
             Ok(()) => {
                 self.save_error = None;
@@ -545,12 +555,89 @@ impl App {
         }
     }
 
+    // ------------------------------------------------------------ undo file
+
+    /// Adopts an undo snapshot read from `save.undo.txt` (see
+    /// [`crate::undo_file`]) so that `z` undoes what `swarm` did. Ignored
+    /// once the engine has an undo of its own.
+    pub fn set_handoff_undo(&mut self, snap: &Snapshot) -> Result<(), String> {
+        let state = swarm_save::decode_any(&snap.save)
+            .map_err(|e| format!("undo file: {e}"))?
+            .state;
+        self.handoff = Some(Handoff {
+            kind: snap.kind,
+            date_ms: snap.date_ms,
+            state,
+        });
+        self.refresh();
+        Ok(())
+    }
+
+    /// The undo to show and write: the engine's, else the hand-off's. Drops a
+    /// hand-off that the engine's undo replaced or whose window closed.
+    fn sync_handoff_view(&mut self) {
+        let now = self.engine.now_ms();
+        if self.engine.undo_state().is_some() {
+            self.handoff = None;
+        }
+        let expired = |h: &Handoff| h.kind == Kind::Undo && now.saturating_sub(h.date_ms) >= WINDOW;
+        if self.handoff.as_ref().is_some_and(expired) {
+            self.handoff = None;
+        }
+        if let Some(h) = &self.handoff {
+            let secs_since = (now - h.date_ms) as f64 / 1000.0;
+            let undoable = h.kind == Kind::Undo;
+            self.view.undo = Some(UndoView {
+                undoable,
+                secs_since,
+                secs_left: if undoable {
+                    (UNDO_LIMIT_SECS - secs_since + 0.5).floor().max(0.0) as u32
+                } else {
+                    0
+                },
+                is_redo: h.kind == Kind::Redo,
+            });
+        }
+    }
+
+    /// Makes `save.undo.txt` match the undo state: the snapshot while its
+    /// window is open (a redo has none), no file otherwise. Called after
+    /// each successful command and on each save.
+    fn sync_undo_file(&self) -> Result<(), String> {
+        let Some(path) = &self.path else {
+            return Ok(());
+        };
+        let snap = match (self.engine.undo_state(), &self.handoff) {
+            (Some(u), _) => Some((
+                if u.is_redo { Kind::Redo } else { Kind::Undo },
+                u.date_ms,
+                &u.state,
+            )),
+            (None, Some(h)) => Some((h.kind, h.date_ms, &h.state)),
+            (None, None) => None,
+        }
+        .map(|(kind, date_ms, state)| Snapshot {
+            kind,
+            date_ms,
+            save: swarm_save::encode_v2(state),
+        })
+        .filter(|s| !s.expired(self.engine.now_ms()));
+        let file = store::undo_path(path);
+        match snap {
+            Some(s) => store::write_atomic(&file, &s.encode()),
+            None => store::remove_opt(&file),
+        }
+    }
+
     // ------------------------------------------------------------ commands
 
     fn apply(&mut self, cmd: Command) -> Option<CommandOutcome> {
         match self.engine.apply(cmd) {
             Ok(o) => {
                 self.refresh();
+                if let Err(e) = self.sync_undo_file() {
+                    self.error(format!("undo file: {e}"));
+                }
                 Some(o)
             }
             Err(e) => {
@@ -727,6 +814,35 @@ impl App {
 
     /// Undo or redo.
     pub fn undo(&mut self) {
+        if let Some(h) = self.handoff.take() {
+            // the engine has no undo yet: do what `swarm undo` does
+            let now = self.engine.now_ms();
+            let current = self.engine.exported_state().clone();
+            match self.engine.import_state(h.state) {
+                Ok(()) => {
+                    let (kind, msg) = match h.kind {
+                        Kind::Undo => (Kind::Redo, "Undone (z again to redo)"),
+                        Kind::Redo => (Kind::Undo, "Redone"),
+                    };
+                    self.handoff = Some(Handoff {
+                        kind,
+                        date_ms: now,
+                        state: current,
+                    });
+                    self.info(msg);
+                }
+                Err(e) => self.error(e.to_string()),
+            }
+            self.refresh();
+            if let Err(e) = self.sync_undo_file() {
+                self.error(format!("undo file: {e}"));
+            }
+            return;
+        }
+        if self.view.undo.is_some_and(|u| !u.is_redo && !u.undoable) {
+            self.error("Too late to undo (30 s)");
+            return;
+        }
         let redo = self.view.undo.is_some_and(|u| u.is_redo);
         if self.apply(Command::Undo).is_some() {
             self.info(if redo {
