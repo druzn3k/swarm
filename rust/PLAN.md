@@ -316,6 +316,35 @@ Start with JSON strings, since they are simple and easy to inspect. Switch to
 `serde-wasm-bindgen` only if profiling at 10 Hz (`TICK_MILLIS = 100`,
 `app/src/game/store.ts:14`) shows a need.
 
+As built (M2 engine core, `swarm-engine`), with these deviations:
+
+- Queries are `&self` methods on `Engine` taking ids (`count(UnitId)`,
+  `upgrade_max_cost_met(UpgradeId, Num)`, ...; caches in a `RefCell`).
+  `Engine::from_state` (no backfill, TS `new Game`) and `import_state` (TS
+  `importSave` without backfill) exist for the save/scenario crates.
+  `load` doesn't fail when the clock is more than 120 s before `reified`: it
+  resumes at `reified` with a warning.
+- The `parity` feature gates `set_now_ms`, `force_now_ms` (TS `game.now = x`)
+  and `Command::Cheat` (`SetUnitCount`, `SetUpgradeCount`, `SkipMs`).
+- `Command` is serde-tagged `{"do": "buy_unit", ...}`; `Amount` is
+  `{"num": ..}`/`{"input": ..}`; buy commands carry `ui: Option<String>`.
+  `BuyAllUpgrades` with an empty set is a no-op without an undo snapshot
+  (what the app's buy-all button does). `Event::Command(CommandEvent)` is
+  queued for every TS `'command'` event, and `CommandOutcome.commands`
+  repeats this command's.
+- Sentinels: `unit_max_cost_met`/`upgrade_max_cost_met` without costs return
+  `Num::MAX`; `cost_met_percent` is `Option`; `estimate_secs_until_buyable`
+  returns `UpgradeEstimate::{MaxAffordable, Unavailable (TS TypeError), Wait
+  {secs, unit, cache_safe}}`, where `secs` can be `Secs(NaN)` like the TS;
+  `ascend_cost_duration` returns `Option<Estimate>`.
+- `Upgrade.buy` refuses more than `MAX_LEVELS_PER_BUY` (1e7) levels at once
+  (`CommandError::TooManyLevels`) instead of hanging.
+- `watch(level)` stores the default level as absent (TS stores a numeric 1).
+- The unit suffix is computed from the level (`Engine::suffix`), not as a
+  stats side effect, so it never lags.
+- `view()` is minimal (`ViewRequest { focus }`; units, upgrades,
+  achievements, events); `OfflineReport` is `{closed_ms, resumed_ms}`.
+
 ## 5. Save format v2
 
 ```rust
