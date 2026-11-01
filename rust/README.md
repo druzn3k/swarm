@@ -63,8 +63,12 @@ change rewrites it atomically as a v2 save and keeps the previous one as
 `save.prev.txt`; the undo snapshot is `save.undo.txt`. `$SWARM_NOW_MS` fixes
 the clock (epoch ms) for reproducible sessions.
 
+Commands that write the save hold `save.lock` (pid and start time) next to
+it. While `swarm-tui` (or another `swarm`) holds it they exit 3 naming the
+pid; `--force` overrides. A lock whose process is gone is ignored.
+
 Exit codes: 0 ok, 1 refused by a game rule (can't afford, nothing to undo),
-2 usage or parse error, 3 I/O error or unreadable save.
+2 usage or parse error, 3 I/O error, unreadable save or locked save.
 
 ## Playing with `swarm-tui`
 
@@ -75,9 +79,11 @@ swarm-tui                       # or: swarm-tui --save path/to/save.txt
 A live game in the terminal (Linux). It uses the same save as `swarm`
 (`--save`, `$SWARM_SAVE`, else `$XDG_DATA_HOME/swarm/save.txt`; a missing
 save starts a new game), writes it atomically every 30 s and on quit (the
-previous one is kept as `save.prev.txt`), and drops the CLI's
-`save.undo.txt`, which a TUI session makes stale. Don't run `swarm` and
-`swarm-tui` on the same save at the same time: the last writer wins.
+previous one is kept as `save.prev.txt`). It holds `save.lock` for the
+whole session, so `swarm` refuses to write the save meanwhile and a second
+`swarm-tui` refuses to start; `--force` takes the lock over. SIGTERM, SIGHUP
+and SIGINT save and quit cleanly. `save.undo.txt` is shared with `swarm`:
+undo works across a hand-off for 30 s.
 
 The game ticks at 10 Hz on the monotonic clock and checks the wall clock
 once a second, so after a suspend it catches up the time away and shows
@@ -148,3 +154,55 @@ off to copy text (e.g. `:export`); many terminals also select with
 Shift-drag while it is on. Animation (`A`, `:anim`), mouse capture and the
 number format are saved in the save's options bag (`tui.anim`,
 `tui.mouse`, `tui.numformat`).
+
+## Desktop (Tauri)
+
+`crates/tauri` (`swarm-tauri`) wraps the built web app (`app/dist`) in a
+Tauri 2 window. The engine runs as wasm inside the webview, so the desktop
+game is the web game; there is no second code path. Linux only.
+
+It is left out of the workspace's `default-members`, so `cargo build`,
+`cargo test` and `cargo clippy` in `rust/` don't need the GTK libraries.
+Name it to build it (`cargo build -p swarm-tauri`).
+
+System packages (Ubuntu 24.04):
+
+```sh
+sudo apt-get install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+  librsvg2-dev libxdo-dev libssl-dev build-essential file patchelf pkg-config
+```
+
+Plus Rust stable with `rustup target add wasm32-unknown-unknown`, the
+wasm-bindgen CLI at the version in `Cargo.lock`
+(`cargo install wasm-bindgen-cli --locked --version 0.2.130`), Node 22 with
+pnpm (`pnpm install` at the repo root), and the Tauri CLI:
+
+```sh
+cargo install tauri-cli --locked --version '^2'
+cd rust/crates/tauri
+cargo tauri dev       # run against a fresh app build
+cargo tauri build     # AppImage and .deb
+```
+
+`cargo tauri build` first runs `beforeBuildCommand` from the repo root:
+`SWARM_WASM_REQUIRED=1 pnpm --filter "@swarmsim/app..." build`, i.e. the app
+and its workspace dependencies, failing if the wasm engine can't be built.
+It then compiles the `swarm-desktop` binary and bundles it with `app/dist`
+into `rust/target/release/bundle/appimage/Swarm Simulator_<version>_amd64.AppImage`
+and `rust/target/release/bundle/deb/Swarm Simulator_<version>_amd64.deb`. The
+AppImage carries its own WebKitGTK; the .deb depends on the system's
+`libwebkit2gtk-4.1-0`. The icons in `crates/tauri/icons` were generated
+from `app/public/icons/icon-512.png` with
+`cargo tauri icon ../../../app/public/icons/icon-512.png`.
+
+Saves: the shell exposes `load_save` and `store_save` commands that keep the
+save in `$XDG_DATA_HOME/com.swarmsim.desktop/save.txt` (default
+`~/.local/share/com.swarmsim.desktop/save.txt`), written atomically with the
+previous save kept as `save.prev.txt`. The app uses them instead of
+localStorage when `window.__TAURI__` exists; `crates/tauri/shim/storage.ts`
+shows how. The fs plugin is enabled with its scope limited to that directory.
+
+CI: `.github/workflows/desktop.yml` runs on `v*` tags and by hand on
+Ubuntu 24.04. It builds the AppImage and .deb plus stripped `swarm` and
+`swarm-tui` binaries, uploads them as a workflow artifact and, on tags,
+attaches them to the GitHub release.
