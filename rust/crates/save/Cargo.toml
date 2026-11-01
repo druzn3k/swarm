@@ -1,0 +1,21 @@
+[package]
+name = "swarm-save"
+version = "0.1.0"
+description = "Swarm Simulator save formats: the v2 envelope and the legacy (v1) TS/Coffee reader and writer."
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+swarm-engine = { path = "../engine" }
+swarm-num = { path = "../num" }
+swarm-data = { path = "../data" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+lz-str = "0.2.1"
+base64 = "0.23"
+
+[features]
+# `legacy::encode`: write saves the TS/Coffee engine can import (harness
+# resync, rollback path during the wasm swap).
+legacy-write = []
