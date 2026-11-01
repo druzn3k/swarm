@@ -381,3 +381,258 @@ fn args() {
     assert!(swarm_tui::parse_args(["-h".to_string()]).unwrap().help);
     assert!(swarm_tui::parse_args(["--bogus".to_string()]).is_err());
 }
+
+// ---------------------------------------------------------------- names and completion
+
+/// The late-game fixture, welcome back dismissed.
+fn late(t: Instant) -> App {
+    let mut a = common::midgame(t);
+    keys(&mut a, "\x1b", t);
+    assert!(a.overlay.is_none());
+    a
+}
+
+fn press(a: &mut App, code: KeyCode, mods: KeyModifiers, t: Instant) {
+    a.key(KeyEvent::new(code, mods), t);
+}
+
+fn upgrade_level(a: &App, name: &str) -> Num {
+    a.engine
+        .state()
+        .upgrades
+        .get(name)
+        .copied()
+        .unwrap_or(Num::ZERO)
+}
+
+#[test]
+fn completion_candidates_are_shown_names() {
+    let t = Instant::now();
+    let a = late(t);
+    let c = a.completions();
+    for shown in [
+        "culicimorph",
+        "greater queen",
+        "giant arachnomorph",
+        "overmind II",
+        "lesser hive mind",
+    ] {
+        assert!(c.units.iter().any(|u| u == shown), "{shown}: {:?}", c.units);
+    }
+    for internal in [
+        "mosquito",
+        "greaterqueen",
+        "giantspider",
+        "pantheon3",
+        "overmind2",
+    ] {
+        assert!(!c.units.iter().any(|u| u == internal), "{internal}");
+    }
+    // resources can't be bought, so `buy` doesn't offer them
+    for resource in ["meat", "territory", "mutagen"] {
+        assert!(!c.units.iter().any(|u| u == resource), "{resource}");
+    }
+    // in list order: the current (meat) tab's buyable units come first
+    let listed: Vec<String> = a
+        .tab_units()
+        .iter()
+        .filter(|&&u| {
+            let su = &a.sv.units[u as usize];
+            !su.unbuyable && !su.is_buy_hidden && !su.cost.is_empty()
+        })
+        .map(|&u| a.unit_shown(u))
+        .collect();
+    assert_eq!(c.units[..listed.len()], listed[..]);
+    // upgrades as the upgrades pane labels them
+    assert!(c.upgrades.iter().any(|g| g == "Twin culicimorphs"));
+    assert!(c.upgrades.iter().any(|g| g == "Faster drones"));
+    assert!(!c
+        .upgrades
+        .iter()
+        .any(|g| g.contains("twin") || g == "droneprod"));
+    assert_eq!(
+        c.tabs,
+        [
+            "Meat",
+            "Larva",
+            "Territory",
+            "Energy",
+            "Mutagen",
+            "Achievements",
+            "Stats",
+            "Options"
+        ]
+    );
+    // the early game offers only what is visible and buyable
+    let early = common::app("v1", t);
+    assert_eq!(early.completions().units, ["queen", "drone", "larva"]);
+}
+
+#[test]
+fn command_line_takes_multi_word_shown_names() {
+    let t = Instant::now();
+    let mut a = late(t);
+    // late-game counts are too big to change visibly: check what was bought
+    let bought = |a: &mut App, line: &str, label: &str| {
+        a.message = None;
+        a.command_line(line);
+        let m = a.message.as_ref().unwrap();
+        assert!(!m.error && m.text.starts_with('+'), "{line}: {}", m.text);
+        assert!(m.text.contains(label), "{line}: {}", m.text);
+    };
+    bought(&mut a, "buy drone 1.5 thousand", "Drones");
+    bought(&mut a, "buy greater queen 100", "Greater queen");
+    // internal name, capitalised label, plural
+    bought(&mut a, "buy mosquito 10", "Culicimorph");
+    bought(&mut a, "buy Culicimorph", "Culicimorph");
+    bought(&mut a, "buy culicimorphs 25%", "Culicimorph");
+    bought(&mut a, "buy Greater  Queen max", "Greater queen");
+    // an upgrade by its label, with max
+    let lv = upgrade_level(&a, "mosquitotwin");
+    a.command_line("upgrade twin culicimorphs max");
+    assert!(upgrade_level(&a, "mosquitotwin") >= lv);
+    assert!(!a.message.as_ref().unwrap().text.starts_with("No such"));
+    a.command_line("upgrade mosquitotwin 1");
+    assert!(!a.message.as_ref().unwrap().text.starts_with("No such"));
+    // resolved, then refused by the game (not "No such unit")
+    a.command_line("buy giant arachnomorph 1.5 billion");
+    let m = a.message.as_ref().unwrap();
+    assert!(m.error && !m.text.starts_with("No such"), "{}", m.text);
+    // unknown names suggest close ones
+    a.command_line("buy arachno 5");
+    let m = a.message.as_ref().unwrap();
+    assert!(m.error, "{}", m.text);
+    assert!(
+        m.text.contains("did you mean") && m.text.contains("giant arachnomorph"),
+        "{}",
+        m.text
+    );
+    // the quantity prompt uses the shown name
+    a.command_line("tab territory");
+    keys(&mut a, "%", t);
+    let shown = a.unit_shown(a.selected_unit().unwrap());
+    assert_eq!(a.keys.line, format!("buy {shown} "));
+}
+
+#[test]
+fn tab_completes_vim_style() {
+    let t = Instant::now();
+    let mut a = late(t);
+    let n = KeyModifiers::NONE;
+    // a unique prefix is inserted with a space
+    keys(&mut a, ":buy arach\t", t);
+    assert_eq!(a.keys.line, "buy arachnomorph ");
+    assert!(a.keys.wild.is_none());
+    keys(&mut a, "\x1b", t);
+    // multi-word: the whole argument is completed
+    keys(&mut a, ":up twin cu\t", t);
+    assert_eq!(a.keys.line, "up Twin culicimorphs ");
+    keys(&mut a, "\x1b", t);
+    // several matches: the menu opens on the typed text; Tab cycles
+    keys(&mut a, ":buy hive\t", t);
+    let w = a.keys.wild.clone().unwrap();
+    assert_eq!(
+        w.items,
+        [
+            "hive mind",
+            "hive network",
+            "hive neuron",
+            "hive empress",
+            "hive queen",
+            "hive"
+        ]
+    );
+    assert_eq!((a.keys.line.as_str(), w.sel), ("buy hive", None));
+    keys(&mut a, "\t\t", t);
+    assert_eq!(a.keys.line, "buy hive network");
+    press(&mut a, KeyCode::BackTab, n, t);
+    assert_eq!(a.keys.line, "buy hive mind");
+    press(&mut a, KeyCode::BackTab, n, t);
+    assert_eq!(a.keys.line, "buy hive");
+    press(&mut a, KeyCode::Char('p'), KeyModifiers::CONTROL, t);
+    assert_eq!(a.keys.line, "buy hive");
+    assert_eq!(a.keys.wild.as_ref().unwrap().sel, Some(5));
+    // Esc closes the menu (back to the typed text), Esc again leaves
+    keys(&mut a, "\t\t\x1b", t);
+    assert_eq!(
+        (a.keys.line.as_str(), a.keys.wild.is_none()),
+        ("buy hive", true)
+    );
+    keys(&mut a, "\x1b", t);
+    assert!(a.keys.line.is_empty());
+    // substring fallback; typing accepts; Enter runs
+    keys(&mut a, ":buy morph\t", t);
+    assert_eq!(
+        a.keys.wild.as_ref().unwrap().items,
+        [
+            "chilopodomorph",
+            "giant arachnomorph",
+            "culicimorph",
+            "arachnomorph"
+        ]
+    );
+    assert_eq!(a.keys.line, "buy morph");
+    press(&mut a, KeyCode::BackTab, n, t);
+    assert_eq!(a.keys.line, "buy arachnomorph");
+    let before = count(&a, "spider");
+    keys(&mut a, " 5", t);
+    assert!(a.keys.wild.is_none());
+    keys(&mut a, "\n", t);
+    assert!(count(&a, "spider") > before);
+    // Shift-Tab on a fresh line opens the menu on the last match
+    keys(&mut a, ":tab ", t);
+    press(&mut a, KeyCode::BackTab, n, t);
+    assert_eq!(a.keys.line, "tab Options");
+    keys(&mut a, "\n", t);
+    assert_eq!(a.screen, Screen::Options);
+    // an empty argument lists everything; the empty line lists commands
+    keys(&mut a, ":buy \t", t);
+    assert_eq!(a.keys.wild.as_ref().unwrap().items, a.completions().units);
+    keys(&mut a, "\x1b\x1b:\t", t);
+    assert_eq!(
+        a.keys.wild.as_ref().unwrap().items,
+        swarm_tui::cmdline::COMMANDS
+    );
+    keys(&mut a, "\x1b\x1b", t);
+    // the cursor in the middle: the text after it stays
+    keys(&mut a, ":buy cul 10", t);
+    for _ in 0..3 {
+        press(&mut a, KeyCode::Left, n, t);
+    }
+    keys(&mut a, "\t", t);
+    assert_eq!(a.keys.line, "buy culicimorph 10");
+    keys(&mut a, "\x1b", t);
+    // history still works with the menu closed
+    keys(&mut a, ":", t);
+    press(&mut a, KeyCode::Up, n, t);
+    assert_eq!(a.keys.line, "tab Options");
+}
+
+#[test]
+fn clicking_a_wildmenu_match_inserts_it() {
+    let t = Instant::now();
+    let mut a = late(t);
+    keys(&mut a, ":buy hive", t);
+    keys(&mut a, "\t", t);
+    common::render(&mut a, 120, 40);
+    let (r, _) = *a
+        .hits
+        .iter()
+        .find(|(_, h)| *h == Hit::Wild(4))
+        .expect("the menu's matches are clickable");
+    assert_eq!(r.y, 38, "the line above the command line");
+    a.mouse_event(
+        MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: r.x + 1,
+            row: r.y,
+            modifiers: KeyModifiers::NONE,
+        },
+        t,
+    );
+    assert_eq!(a.keys.line, "buy hive queen ");
+    assert!(a.keys.wild.is_none());
+    keys(&mut a, "1\n", t);
+    let m = a.message.as_ref().unwrap();
+    assert!(!m.error && m.text.contains("Hive queen"), "{}", m.text);
+}

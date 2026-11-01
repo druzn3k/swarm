@@ -130,7 +130,8 @@ Keys:
 | `^L` | repaint |
 | `q, ^C` | save and quit |
 
-Commands (type `:` first; Tab completes commands, unit and upgrade names):
+Commands (type `:` first; Tab completes commands, unit, upgrade and tab
+names):
 
 | Command | Does |
 |---|---|
@@ -152,6 +153,31 @@ Commands (type `:` first; Tab completes commands, unit and upgrade names):
 Amounts go through the game's number parser: `100`, `1.5k`, `1.5 billion`,
 `25%` (of what you can afford), `=N` (exactly N units, ignoring twins),
 `@N` (enough to have N).
+
+Names are the ones on screen: a unit's singular name as listed
+(`culicimorph`, `greater queen`, `overmind II`), an upgrade or ability as
+the upgrades pane labels it (`Twin culicimorphs`), a tab's title. Case does
+not matter and names may have spaces: `:buy greater queen 100`,
+`:buy giant arachnomorph 1.5 billion`, `:upgrade twin culicimorphs max`.
+Plurals (`:buy culicimorphs 25%`) and the internal names `swarm` uses
+(`:buy mosquito 10`) work too. An unknown name lists close ones.
+
+Completion works like vim's wildmenu (`wildmode=longest:full,full`) on the
+command word or the whole argument before the cursor (text after the
+cursor stays):
+
+| Key | Does |
+|---|---|
+| `Tab, ^N` | complete; one match is inserted with a space, several extend to their common prefix and show the matches on the line above; again: next match |
+| `Shift-Tab, ^P` | previous match (on a fresh line: open the menu on the last match) |
+| `↓ ↑` | next / previous match while the menu is open, else history |
+| `Esc` | close the menu (back to what you typed); again: leave the command line |
+| `Enter` | run the line, with the match shown |
+| any other key | keep the match shown and go on editing |
+
+After the last match Tab comes back to what you typed, then wraps. Matches
+are names that start with the typed text, else names that contain it
+(`morph`); an empty argument lists them all. Click a match to insert it.
 
 Mouse: click tabs, units, upgrades and `[buttons]`; the wheel scrolls the
 list under it; double-click a unit to open its upgrades. Mouse capture

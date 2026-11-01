@@ -70,8 +70,13 @@ pub enum Action {
     Redraw,
     /// The command line was entered.
     Submit(String),
-    /// Tab on the command line: the app completes [`Keymap::line`].
-    Complete,
+    /// Tab (or Shift-Tab, `back`) on the command line with no completion
+    /// menu open: the app finds the matches for the text before the cursor
+    /// and calls [`Keymap::begin_completion`].
+    Complete {
+        /// Shift-Tab or Ctrl-P.
+        back: bool,
+    },
 }
 
 /// Normal keys, or typing a command line.
@@ -81,6 +86,23 @@ pub enum Mode {
     Normal,
     /// Typing after `:`.
     Command,
+}
+
+/// The completion menu (vim's wildmenu) while it is open.
+///
+/// The completed text is `line[start..cursor]` (in chars); the text after
+/// the cursor is kept as it is. Tab cycles through `items`, then back to
+/// `base` (what was typed, extended to the matches' common prefix).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Wild {
+    /// Where the completed text starts, in chars.
+    pub start: usize,
+    /// The text before cycling: typed, extended to the common prefix.
+    pub base: String,
+    /// The full matches.
+    pub items: Vec<String>,
+    /// The match in the line; `None` while `base` is.
+    pub sel: Option<usize>,
 }
 
 /// The keyboard state.
@@ -98,6 +120,8 @@ pub struct Keymap {
     pub cursor: usize,
     history: Vec<String>,
     hist_pos: Option<usize>,
+    /// The completion menu, when open.
+    pub wild: Option<Wild>,
 }
 
 impl Default for Keymap {
@@ -124,6 +148,7 @@ impl Keymap {
             cursor: 0,
             history: Vec::new(),
             hist_pos: None,
+            wild: None,
         }
     }
 
@@ -144,14 +169,93 @@ impl Keymap {
         self.line = text.to_owned();
         self.cursor = self.line.chars().count();
         self.hist_pos = None;
+        self.wild = None;
         self.prefix.clear();
         self.pending_tab = None;
     }
 
-    /// Replaces the command line text (after completion).
+    /// Replaces the command line text (cursor at the end).
     pub fn set_line(&mut self, text: String) {
         self.line = text;
         self.cursor = self.line.chars().count();
+    }
+
+    /// The command line up to the cursor: what Tab completes.
+    pub fn head(&self) -> &str {
+        &self.line[..self.byte_at(self.cursor)]
+    }
+
+    /// Replaces the chars from `start` to the cursor with `text` and puts
+    /// the cursor after it.
+    fn replace_to_cursor(&mut self, start: usize, text: &str) {
+        let start = start.min(self.cursor);
+        let (a, b) = (self.byte_at(start), self.byte_at(self.cursor));
+        self.line.replace_range(a..b, text);
+        self.cursor = start + text.chars().count();
+    }
+
+    /// Inserts a whole match: the text, then a space unless one follows.
+    fn insert_match(&mut self, start: usize, text: &str) {
+        self.replace_to_cursor(start, text);
+        let next = self.line[self.byte_at(self.cursor)..].chars().next();
+        if next.is_none_or(|c| !c.is_whitespace()) {
+            let at = self.byte_at(self.cursor);
+            self.line.insert(at, ' ');
+        }
+        self.cursor += 1;
+        self.wild = None;
+    }
+
+    /// The first Tab: with one match, inserts it and a space; with several,
+    /// extends the text from `start` (chars) to the cursor to their common
+    /// prefix (when `prefix`: they all start with it) and opens the menu.
+    /// Does nothing without matches.
+    pub fn begin_completion(&mut self, start: usize, items: Vec<String>, prefix: bool) {
+        self.hist_pos = None;
+        match items.len() {
+            0 => self.wild = None,
+            1 => self.insert_match(start, &items[0]),
+            _ => {
+                let typed: String = self.head().chars().skip(start).collect();
+                let lcp = crate::cmdline::common_prefix(&items);
+                let base = if prefix && lcp.chars().count() > typed.chars().count() {
+                    lcp
+                } else {
+                    typed
+                };
+                self.replace_to_cursor(start, &base);
+                self.wild = Some(Wild {
+                    start,
+                    base,
+                    items,
+                    sel: None,
+                });
+            }
+        }
+    }
+
+    /// Moves through the open menu: the next (or previous) match, then the
+    /// base text, then around again.
+    pub fn cycle_completion(&mut self, by: i64) {
+        let Some(w) = self.wild.as_mut() else {
+            return;
+        };
+        let n = w.items.len() as i64;
+        let at = w.sel.map_or(n, |i| i as i64);
+        let next = (at + by).rem_euclid(n + 1);
+        w.sel = (next < n).then_some(next as usize);
+        let text = w.sel.map_or_else(|| w.base.clone(), |i| w.items[i].clone());
+        let start = w.start;
+        self.replace_to_cursor(start, &text);
+    }
+
+    /// Inserts match `i` of the open menu (a click) and closes it.
+    pub fn pick_completion(&mut self, i: usize) {
+        if let Some(w) = self.wild.clone() {
+            if let Some(text) = w.items.get(i) {
+                self.insert_match(w.start, text);
+            }
+        }
     }
 
     /// Time passes: a lone digit that waited long enough switches tabs.
@@ -271,10 +375,40 @@ impl Keymap {
         self.line.clear();
         self.cursor = 0;
         self.hist_pos = None;
+        self.wild = None;
     }
 
     fn command(&mut self, k: KeyEvent) -> Option<Action> {
         let ctrl = k.modifiers.contains(KeyModifiers::CONTROL);
+        if let Some(w) = &self.wild {
+            match k.code {
+                KeyCode::Tab | KeyCode::Down => {
+                    self.cycle_completion(1);
+                    return None;
+                }
+                KeyCode::Char('n') if ctrl => {
+                    self.cycle_completion(1);
+                    return None;
+                }
+                KeyCode::BackTab | KeyCode::Up => {
+                    self.cycle_completion(-1);
+                    return None;
+                }
+                KeyCode::Char('p') if ctrl => {
+                    self.cycle_completion(-1);
+                    return None;
+                }
+                KeyCode::Esc => {
+                    // back to what was there before cycling; Esc again leaves
+                    let (start, base) = (w.start, w.base.clone());
+                    self.replace_to_cursor(start, &base);
+                    self.wild = None;
+                    return None;
+                }
+                // anything else accepts the text in the line and goes on
+                _ => self.wild = None,
+            }
+        }
         match k.code {
             KeyCode::Esc => self.leave(),
             KeyCode::Char('c') if ctrl => self.leave(),
@@ -289,7 +423,10 @@ impl Keymap {
                 }
                 return Some(Action::Submit(line));
             }
-            KeyCode::Tab => return Some(Action::Complete),
+            KeyCode::Tab => return Some(Action::Complete { back: false }),
+            KeyCode::BackTab => return Some(Action::Complete { back: true }),
+            KeyCode::Char('n') if ctrl => return Some(Action::Complete { back: false }),
+            KeyCode::Char('p') if ctrl => return Some(Action::Complete { back: true }),
             KeyCode::Backspace => {
                 if self.line.is_empty() {
                     self.leave();
@@ -364,6 +501,9 @@ mod tests {
     }
     fn code(c: KeyCode) -> KeyEvent {
         KeyEvent::new(c, KeyModifiers::NONE)
+    }
+    fn ctrl(c: char) -> KeyEvent {
+        KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL)
     }
     fn typed(km: &mut Keymap, s: &str, now: Instant) -> Vec<Action> {
         s.chars().flat_map(|c| km.key(key(c), now)).collect()
@@ -471,7 +611,16 @@ mod tests {
         assert_eq!(typed(&mut km, "buy drone 10q", t), vec![]);
         km.key(code(KeyCode::Backspace), t);
         assert_eq!(km.line, "buy drone 10");
-        assert_eq!(km.key(code(KeyCode::Tab), t), vec![Action::Complete]);
+        assert_eq!(
+            km.key(code(KeyCode::Tab), t),
+            vec![Action::Complete { back: false }]
+        );
+        assert_eq!(
+            km.key(code(KeyCode::BackTab), t),
+            vec![Action::Complete { back: true }]
+        );
+        assert_eq!(km.key(ctrl('n'), t), vec![Action::Complete { back: false }]);
+        assert_eq!(km.key(ctrl('p'), t), vec![Action::Complete { back: true }]);
         assert_eq!(
             km.key(code(KeyCode::Enter), t),
             vec![Action::Submit("buy drone 10".into())]
@@ -495,5 +644,156 @@ mod tests {
         km.key(code(KeyCode::Left), t);
         typed(&mut km, "x", t);
         assert_eq!(km.line, "buy x 5");
+    }
+
+    fn items(v: &[&str]) -> Vec<String> {
+        v.iter().map(|s| s.to_string()).collect()
+    }
+
+    /// A command line with `text`, the cursor after `at` chars.
+    fn line(text: &str, at: usize) -> Keymap {
+        let mut km = Keymap::new();
+        km.open_line(text);
+        km.cursor = at;
+        km
+    }
+
+    fn state(km: &Keymap) -> (&str, usize, Option<Option<usize>>) {
+        (km.line.as_str(), km.cursor, km.wild.as_ref().map(|w| w.sel))
+    }
+
+    #[test]
+    fn completion_extends_to_the_common_prefix_and_cycles() {
+        let t = Instant::now();
+        let mut km = line("buy hi", 6);
+        let hives = items(&["hive", "hive queen", "hive empress"]);
+        km.begin_completion(4, hives.clone(), true);
+        // "hi" extends to "hive"; the menu opens with nothing selected
+        assert_eq!(state(&km), ("buy hive", 8, Some(None)));
+        assert_eq!(km.wild.as_ref().unwrap().items, hives);
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy hive", 8, Some(Some(0))));
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy hive queen", 14, Some(Some(1))));
+        km.key(ctrl('n'), t);
+        assert_eq!(state(&km), ("buy hive empress", 16, Some(Some(2))));
+        // past the last: back to the text before cycling, then around
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy hive", 8, Some(None)));
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy hive", 8, Some(Some(0))));
+        // backwards
+        km.key(code(KeyCode::BackTab), t);
+        assert_eq!(state(&km), ("buy hive", 8, Some(None)));
+        km.key(ctrl('p'), t);
+        assert_eq!(state(&km), ("buy hive empress", 16, Some(Some(2))));
+        km.key(code(KeyCode::Up), t);
+        assert_eq!(state(&km), ("buy hive queen", 14, Some(Some(1))));
+        km.key(code(KeyCode::Down), t);
+        assert_eq!(state(&km), ("buy hive empress", 16, Some(Some(2))));
+    }
+
+    #[test]
+    fn completion_returns_to_the_typed_text() {
+        let t = Instant::now();
+        // no longer common prefix: the typed text is the base
+        let mut km = line("buy qu", 6);
+        km.begin_completion(4, items(&["queen", "Quux"]), true);
+        assert_eq!(state(&km), ("buy qu", 6, Some(None)));
+        km.key(code(KeyCode::Tab), t);
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy Quux", 8, Some(Some(1))));
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy qu", 6, Some(None)));
+    }
+
+    #[test]
+    fn a_single_match_is_inserted_with_a_space() {
+        let mut km = line("buy greater q", 13);
+        km.begin_completion(4, items(&["greater queen"]), true);
+        assert_eq!(state(&km), ("buy greater queen ", 18, None));
+        // no matches: nothing happens
+        let mut km = line("buy zz", 6);
+        km.begin_completion(4, Vec::new(), true);
+        assert_eq!(state(&km), ("buy zz", 6, None));
+    }
+
+    #[test]
+    fn completion_keeps_the_text_after_the_cursor() {
+        let t = Instant::now();
+        // cursor right after "cul" in "buy cul 10"
+        let mut km = line("buy cul 10", 7);
+        km.begin_completion(4, items(&["culicimorph"]), true);
+        assert_eq!(state(&km), ("buy culicimorph 10", 16, None));
+        // with a menu: cycling replaces only the argument before the cursor
+        let mut km = line("buy giant 10", 9);
+        km.begin_completion(4, items(&["giant arachnomorph", "giantess"]), true);
+        assert_eq!(state(&km), ("buy giant 10", 9, Some(None)));
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy giant arachnomorph 10", 22, Some(Some(0))));
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(state(&km), ("buy giantess 10", 12, Some(Some(1))));
+        // a click inserts a match; a space already follows: the cursor skips it
+        km.pick_completion(0);
+        assert_eq!(state(&km), ("buy giant arachnomorph 10", 23, None));
+    }
+
+    #[test]
+    fn substring_matches_do_not_extend() {
+        let mut km = line("buy morph", 9);
+        km.begin_completion(4, items(&["arachnomorph", "arachnomorphs"]), false);
+        assert_eq!(state(&km), ("buy morph", 9, Some(None)));
+    }
+
+    #[test]
+    fn other_keys_accept_and_close_the_menu() {
+        let t = Instant::now();
+        let mut km = line("buy hi", 6);
+        km.begin_completion(4, items(&["hive", "hive queen"]), true);
+        km.key(code(KeyCode::Tab), t);
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(km.line, "buy hive queen");
+        typed(&mut km, " 5", t);
+        assert_eq!(state(&km), ("buy hive queen 5", 16, None));
+        // Up/Down are history again once the menu is closed
+        assert_eq!(
+            km.key(code(KeyCode::Enter), t),
+            vec![Action::Submit("buy hive queen 5".into())]
+        );
+        typed(&mut km, ":", t);
+        km.key(code(KeyCode::Up), t);
+        assert_eq!(km.line, "buy hive queen 5");
+        // Enter accepts and runs
+        let mut km = line("buy hi", 6);
+        km.begin_completion(4, items(&["hive", "hive queen"]), true);
+        km.key(code(KeyCode::Tab), t);
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(
+            km.key(code(KeyCode::Enter), t),
+            vec![Action::Submit("buy hive queen".into())]
+        );
+        assert!(km.wild.is_none());
+        // Backspace edits the accepted text
+        let mut km = line("buy hi", 6);
+        km.begin_completion(4, items(&["hive", "hive queen"]), true);
+        km.key(code(KeyCode::Tab), t);
+        km.key(code(KeyCode::Tab), t);
+        km.key(code(KeyCode::Backspace), t);
+        assert_eq!(state(&km), ("buy hive quee", 13, None));
+    }
+
+    #[test]
+    fn esc_closes_the_menu_then_leaves() {
+        let t = Instant::now();
+        let mut km = line("buy hi", 6);
+        km.begin_completion(4, items(&["hive", "hive queen"]), true);
+        km.key(code(KeyCode::Tab), t);
+        km.key(code(KeyCode::Tab), t);
+        assert_eq!(km.line, "buy hive queen");
+        assert_eq!(km.key(code(KeyCode::Esc), t), vec![]);
+        assert_eq!(state(&km), ("buy hive", 8, None));
+        assert_eq!(km.mode, Mode::Command);
+        km.key(code(KeyCode::Esc), t);
+        assert_eq!(km.mode, Mode::Normal);
     }
 }

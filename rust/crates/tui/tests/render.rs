@@ -5,9 +5,15 @@ mod common;
 use std::time::Instant;
 
 use common::{midgame, render};
+use ratatui::backend::TestBackend;
+use ratatui::buffer::Buffer;
+use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::style::Modifier;
+use ratatui::Terminal;
+use swarm_tui::app::Hit;
 use swarm_tui::app::{Overlay, Screen};
 use swarm_tui::keymap::Action;
-use swarm_tui::ui::{COMMANDS, KEYS};
+use swarm_tui::ui::{wild_layout, CMDLINE_KEYS, COMMANDS, KEYS};
 
 fn dismissed(t: Instant) -> swarm_tui::App {
     let mut a = midgame(t);
@@ -177,7 +183,7 @@ fn help_lists_every_key_and_command() {
     let mut a = dismissed(t);
     a.act(Action::Help, t);
     let s = render(&mut a, 140, 70);
-    for (k, _) in KEYS.iter().chain(COMMANDS) {
+    for (k, _) in KEYS.iter().chain(COMMANDS).chain(CMDLINE_KEYS) {
         assert!(s.contains(k), "missing {k:?}:\n{s}");
     }
 }
@@ -295,4 +301,144 @@ fn live_upgrade_description() {
         s.contains("Each hatchery produces") && s.contains("larvae per second."),
         "{s}"
     );
+}
+
+// ---------------------------------------------------------------- wildmenu
+
+fn draw(a: &mut swarm_tui::App, w: u16, h: u16) -> Buffer {
+    let mut term = Terminal::new(TestBackend::new(w, h)).unwrap();
+    term.draw(|f| swarm_tui::ui::draw(f, a)).unwrap();
+    term.backend().buffer().clone()
+}
+
+fn row(b: &Buffer, y: u16) -> String {
+    (0..b.area.width).map(|x| b[(x, y)].symbol()).collect()
+}
+
+fn type_keys(a: &mut swarm_tui::App, s: &str, t: Instant) {
+    for c in s.chars() {
+        let code = match c {
+            '\t' => KeyCode::Tab,
+            '\x1b' => KeyCode::Esc,
+            c => KeyCode::Char(c),
+        };
+        a.key(KeyEvent::new(code, KeyModifiers::NONE), t);
+    }
+}
+
+/// The columns of row `y` drawn reversed.
+fn reversed(b: &Buffer, y: u16) -> String {
+    (0..b.area.width)
+        .filter(|&x| b[(x, y)].modifier.contains(Modifier::REVERSED))
+        .map(|x| b[(x, y)].symbol())
+        .collect()
+}
+
+#[test]
+fn wildmenu_shows_matches_above_the_command_line() {
+    let t = Instant::now();
+    let mut a = dismissed(t);
+    type_keys(&mut a, ":buy hive\t", t);
+    let b = draw(&mut a, 100, 30);
+    assert_eq!(row(&b, 29).trim_end(), ":buy hive");
+    let menu = row(&b, 28);
+    assert!(
+        menu.starts_with("hive mind  hive network  hive neuron  hive empress  hive queen  hive "),
+        "{menu:?}"
+    );
+    assert!(menu.trim_end().ends_with("-/6"), "{menu:?}");
+    assert_eq!(reversed(&b, 28), "");
+    type_keys(&mut a, "\t\t", t);
+    let b = draw(&mut a, 100, 30);
+    assert_eq!(reversed(&b, 28), "hive network");
+    assert!(row(&b, 28).trim_end().ends_with("2/6"));
+    assert_eq!(row(&b, 29).trim_end(), ":buy hive network");
+    // closed by typing: the line above is the screen again
+    type_keys(&mut a, " ", t);
+    let b = draw(&mut a, 100, 30);
+    assert!(!row(&b, 28).contains("hive mind  hive network"));
+    assert!(!a.hits.iter().any(|(_, h)| matches!(h, Hit::Wild(_))));
+}
+
+#[test]
+fn wildmenu_scrolls_with_markers() {
+    let t = Instant::now();
+    let mut a = dismissed(t);
+    type_keys(&mut a, ":buy \t", t);
+    let n = a.keys.wild.as_ref().unwrap().items.len();
+    assert!(n > 20);
+    let b = draw(&mut a, 60, 20);
+    let menu = row(&b, 18);
+    assert!(menu.starts_with("overmind IV  overmind III"), "{menu:?}");
+    assert!(menu.contains(" >"), "{menu:?}");
+    assert!(!menu.starts_with('<'));
+    assert!(menu.trim_end().ends_with(&format!("-/{n}")), "{menu:?}");
+    // the last match: scrolled to the end, `<` on the left, no `>`
+    a.key(KeyEvent::new(KeyCode::BackTab, KeyModifiers::NONE), t);
+    let b = draw(&mut a, 60, 20);
+    let menu = row(&b, 18);
+    assert!(menu.starts_with("< "), "{menu:?}");
+    assert!(!menu.contains(" >"), "{menu:?}");
+    let last = a.keys.wild.as_ref().unwrap().items[n - 1].clone();
+    assert_eq!(reversed(&b, 18), last);
+    assert!(menu.trim_end().ends_with(&format!("{n}/{n}")), "{menu:?}");
+    // a match in the middle: both markers
+    for _ in 0..20 {
+        a.key(KeyEvent::new(KeyCode::Tab, KeyModifiers::NONE), t);
+    }
+    let sel = a.keys.wild.as_ref().unwrap().sel.unwrap();
+    let b = draw(&mut a, 60, 20);
+    let menu = row(&b, 18);
+    assert!(menu.starts_with("< ") && menu.contains(" >"), "{menu:?}");
+    assert_eq!(reversed(&b, 18), a.keys.wild.as_ref().unwrap().items[sel]);
+    // the clickable regions match what is drawn
+    for (r, h) in &a.hits {
+        if let Hit::Wild(i) = h {
+            let text: String = (r.x..r.x + r.width).map(|x| b[(x, r.y)].symbol()).collect();
+            assert_eq!(text, a.keys.wild.as_ref().unwrap().items[*i]);
+        }
+    }
+}
+
+#[test]
+fn wildmenu_on_tiny_terminals() {
+    let t = Instant::now();
+    let mut a = dismissed(t);
+    type_keys(&mut a, ":buy hive\t\t\t", t);
+    // 20 columns: too small for the game, the command line still works
+    let b = draw(&mut a, 20, 8);
+    assert_eq!(row(&b, 7).trim_end(), ":buy hive network");
+    let menu = row(&b, 6);
+    assert_eq!(menu, "< hive network > 2/6");
+    assert_eq!(reversed(&b, 6), "hive network");
+    // never panics, whatever the size and selection
+    for _ in 0..8 {
+        for w in 0..=30 {
+            for h in 0..=4 {
+                draw(&mut a, w, h);
+            }
+        }
+        draw(&mut a, 300, 3);
+        a.key(KeyEvent::new(KeyCode::Tab, KeyModifiers::NONE), t);
+    }
+    // one long match wider than the screen is clipped
+    a.keys.open_line("");
+    type_keys(&mut a, ":up house\t", t);
+    for w in 0..=30 {
+        draw(&mut a, w, 3);
+    }
+}
+
+#[test]
+fn wildmenu_layout() {
+    // everything fits
+    assert_eq!(wild_layout(&[3, 3, 3], 2, 13), 0..3);
+    // scrolls to keep the selection visible, leaving room for markers
+    assert_eq!(wild_layout(&[5, 5, 5, 5], 0, 14), 0..2);
+    assert_eq!(wild_layout(&[5, 5, 5, 5], 3, 14), 2..4);
+    assert_eq!(wild_layout(&[5, 5, 5, 5], 1, 16), 0..2);
+    // a match too wide for the line is shown alone
+    assert_eq!(wild_layout(&[50, 3], 0, 10), 0..1);
+    assert_eq!(wild_layout(&[], 0, 10), 0..0);
+    assert_eq!(wild_layout(&[4, 4], 1, 0), 1..2);
 }

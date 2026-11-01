@@ -124,6 +124,8 @@ pub enum Hit {
     UpgradeList,
     /// A scrolling page (wheel).
     Page,
+    /// A match in the command line's completion menu.
+    Wild(usize),
 }
 
 /// A status-bar message.
@@ -890,32 +892,139 @@ impl App {
             .map(|i| i as u16)
     }
 
-    /// Names to complete: visible units, upgrades of visible units, tabs.
-    fn completions(&self) -> (Vec<String>, Vec<String>, Vec<String>) {
-        let data = self.data();
-        let visible: Vec<UnitId> = data
-            .units()
-            .iter()
-            .map(|u| u.id)
-            .filter(|&u| self.engine.unit_visible(u))
+    /// A unit's shown name: its slug (the singular label), else its name.
+    pub fn unit_shown(&self, u: u16) -> String {
+        let su = &self.sv.units[u as usize];
+        su.slug
+            .clone()
+            .or_else(|| su.label.clone())
+            .unwrap_or_else(|| su.name.clone())
+    }
+
+    /// The visible units in the order the unit lists show them: tab by tab
+    /// as in the tab bar.
+    fn visible_units(&self) -> Vec<u16> {
+        let mut seen = std::collections::BTreeSet::new();
+        let mut out = Vec::new();
+        for s in self.screens() {
+            let Screen::Tab(t) = s else { continue };
+            let listed = self
+                .view
+                .tabs
+                .iter()
+                .find(|v| v.id as usize == t)
+                .map(|v| v.units.clone())
+                .filter(|v| !v.is_empty());
+            let units = listed.unwrap_or_else(|| {
+                self.sv
+                    .tabs
+                    .get(t)
+                    .map(|x| x.units.clone())
+                    .unwrap_or_default()
+            });
+            for u in units {
+                if self.engine.unit_visible(UnitId(u)) && seen.insert(u) {
+                    out.push(u);
+                }
+            }
+        }
+        out
+    }
+
+    /// The upgrades and abilities the upgrades pane can show: each listed
+    /// unit's visible upgrades (with its `showparent`'s), then abilities.
+    fn visible_upgrades(&self) -> Vec<u16> {
+        let mut seen = std::collections::BTreeSet::new();
+        let mut out = Vec::new();
+        for u in self.visible_units() {
+            let su = &self.sv.units[u as usize];
+            let parent = su.showparent.map(|p| &self.sv.units[p as usize].upgrades);
+            let ids: Vec<u16> = su
+                .upgrades
+                .iter()
+                .chain(parent.into_iter().flatten())
+                .copied()
+                .collect();
+            for ability in [false, true] {
+                for &g in &ids {
+                    if self.sv.upgrades[g as usize].ability == ability
+                        && self.engine.upgrade_visible(UpgradeId(g))
+                        && seen.insert(g)
+                    {
+                        out.push(g);
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    /// What Tab completes to, as shown on screen: visible units' slugs in
+    /// list order, visible upgrades' labels as in the upgrades pane, tab
+    /// titles as in the tab bar.
+    pub fn completions(&self) -> cmdline::Candidates {
+        // only what `buy` can buy: resources (meat, territory, mutagen…)
+        // and units without buy buttons are left out of the menu
+        let units = self
+            .visible_units()
+            .into_iter()
+            .filter(|&u| {
+                let su = &self.sv.units[u as usize];
+                !su.unbuyable && !su.is_buy_hidden && !su.cost.is_empty()
+            })
+            .map(|u| self.unit_shown(u))
             .collect();
-        let units = visible.iter().map(|u| data.unit(*u).name.clone()).collect();
-        let upgrades = data
-            .upgrades()
-            .iter()
-            .filter(|g| self.engine.upgrade_visible(g.id))
-            .map(|g| g.name.clone())
+        let mut seen = std::collections::BTreeSet::new();
+        let upgrades = self
+            .visible_upgrades()
+            .into_iter()
+            .map(|g| fmt::upgrade_label(&self.sv, g))
+            .filter(|l| seen.insert(l.clone()))
             .collect();
         let tabs = self
             .screens()
-            .iter()
-            .filter_map(|s| match s {
-                Screen::Tab(t) => Some(self.sv.tabs[*t].name.clone()),
-                _ => None,
-            })
-            .chain(["achievements", "statistics", "options"].map(String::from))
+            .into_iter()
+            .map(|s| crate::ui::screen_title(self, s))
             .collect();
-        (units, upgrades, tabs)
+        cmdline::Candidates {
+            units,
+            upgrades,
+            tabs,
+        }
+    }
+
+    /// Every spelling `buy` and `upgrade` accept: shown names, plurals,
+    /// internal names, labels; visible things first, so a label shared by
+    /// several upgrades (`construct nexus`) means the visible one.
+    pub fn names(&self) -> cmdline::Names {
+        let mut n = cmdline::Names::default();
+        let vu = self.visible_units();
+        let units = vu
+            .iter()
+            .copied()
+            .chain((0..self.sv.units.len() as u16).filter(|u| !vu.contains(u)));
+        for u in units {
+            let su = &self.sv.units[u as usize];
+            for a in [&su.slug, &su.plural, &su.label].into_iter().flatten() {
+                n.units.alias(a, u);
+            }
+            n.units.alias(&su.name, u);
+        }
+        n.units.shown = vu.iter().map(|&u| self.unit_shown(u)).collect();
+        let vg = self.visible_upgrades();
+        let ups = vg
+            .iter()
+            .copied()
+            .chain((0..self.sv.upgrades.len() as u16).filter(|g| !vg.contains(g)));
+        for g in ups {
+            let sg = &self.sv.upgrades[g as usize];
+            if let Some(l) = &sg.label {
+                n.upgrades.alias(l, g);
+            }
+            n.upgrades.alias(&sg.name, g);
+        }
+        n.upgrades.shown = self.completions().upgrades;
+        n
     }
 
     // ------------------------------------------------------------ input
@@ -992,7 +1101,7 @@ impl App {
             match (&ov, &a) {
                 (_, Action::Quit) => {}
                 (_, Action::Redraw) => {}
-                (_, Action::Submit(_) | Action::Complete) => {}
+                (_, Action::Submit(_) | Action::Complete { .. }) => {}
                 (Overlay::WelcomeBack(_), _) => {
                     self.dismiss_welcome();
                     return;
@@ -1081,7 +1190,7 @@ impl App {
             },
             Action::QtyPrompt => {
                 if let Some(u) = self.selected_unit() {
-                    let name = self.sv.units[u as usize].name.clone();
+                    let name = self.unit_shown(u);
                     self.keys.open_line(&format!("buy {name} "));
                 }
             }
@@ -1097,10 +1206,14 @@ impl App {
             Action::ToggleFormat => self.set_long(!self.fmt.long),
             Action::Yes | Action::No => {}
             Action::Submit(line) => self.command_line(&line),
-            Action::Complete => {
-                let (u, g, t) = self.completions();
-                let line = cmdline::complete(&self.keys.line, &u, &g, &t);
-                self.keys.set_line(line);
+            Action::Complete { back } => {
+                let cands = self.completions();
+                if let Some(m) = cmdline::find_matches(self.keys.head(), &cands) {
+                    self.keys.begin_completion(m.start, m.items, m.prefix);
+                    if back {
+                        self.keys.cycle_completion(-1);
+                    }
+                }
             }
         }
     }
@@ -1120,29 +1233,19 @@ impl App {
 
     /// Runs a `:` command line.
     pub fn command_line(&mut self, line: &str) {
-        let cmd = match cmdline::parse(line) {
+        let cmd = match cmdline::parse(line, &self.names()) {
             Ok(c) => c,
             Err(e) => return self.error(e),
         };
         match cmd {
-            Cmd::Buy { unit, amount } => {
-                let Some(u) = self.find_unit(&unit) else {
-                    return self.error(format!("No such unit: {unit}"));
-                };
-                match amount.as_deref() {
-                    Some("max") => self.buy_unit_max(u, 1.0),
-                    _ => self.buy_unit(u, amount),
-                }
-            }
-            Cmd::Upgrade { name, amount } => {
-                let Some(g) = self.find_upgrade(&name) else {
-                    return self.error(format!("No such upgrade: {name}"));
-                };
-                match amount.as_deref() {
-                    Some("max") => self.buy_upgrade_max(g, 1.0),
-                    _ => self.buy_upgrade(g, amount),
-                }
-            }
+            Cmd::Buy { unit: u, amount } => match amount.as_deref() {
+                Some(m) if m.eq_ignore_ascii_case("max") => self.buy_unit_max(u, 1.0),
+                _ => self.buy_unit(u, amount),
+            },
+            Cmd::Upgrade { upgrade: g, amount } => match amount.as_deref() {
+                Some(m) if m.eq_ignore_ascii_case("max") => self.buy_upgrade_max(g, 1.0),
+                _ => self.buy_upgrade(g, amount),
+            },
             Cmd::Ascend => self.ascend(),
             Cmd::Respec => self.respec(),
             Cmd::Undo => self.undo(),
@@ -1182,7 +1285,7 @@ impl App {
                     .and_then(|i| screens.get(i.wrapping_sub(1)).copied())
                     .or_else(|| {
                         screens.iter().copied().find(|s| match s {
-                            Screen::Tab(t) => self.sv.tabs[*t].name.starts_with(&n),
+                            Screen::Tab(t) => self.sv.tabs[*t].name.to_lowercase().starts_with(&n),
                             Screen::Achievements => "achievements".starts_with(&n),
                             Screen::Statistics => "statistics".starts_with(&n) || n == "stats",
                             Screen::Options => "options".starts_with(&n),
@@ -1305,6 +1408,7 @@ impl App {
 
     fn click(&mut self, hit: Hit, double: bool, now: Instant) {
         match hit {
+            Hit::Wild(i) => self.keys.pick_completion(i),
             Hit::Confirm => self.act(Action::Yes, now),
             Hit::Close => self.act(Action::Back, now),
             Hit::Respec => self.overlay = Some(Overlay::ConfirmRespec),

@@ -26,7 +26,7 @@ Download them from the [releases](https://github.com/druzn3k/swarm/releases);
 
 ![The terminal game on the Meat tab, with the drone detail, its count sparkline and upgrades](docs/screenshots/tui-meat.png)
 
-![Buying from the vim-style command line](docs/screenshots/tui-command.png)
+![Completing a unit name on the vim-style command line](docs/screenshots/tui-command.png)
 
 Built with love by Evan Rosson using
 [Coffeescript](http://coffeescript.org),

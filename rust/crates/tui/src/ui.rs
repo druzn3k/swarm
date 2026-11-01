@@ -89,6 +89,25 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("help", "this help"),
 ];
 
+/// Keys on the command line, for the help overlay and the README.
+pub const CMDLINE_KEYS: &[(&str, &str)] = &[
+    (
+        "Tab, ^N",
+        "complete the command or name before the cursor; again: next match",
+    ),
+    ("Shift-Tab, ^P", "previous match"),
+    (
+        "↓ ↑",
+        "next / previous match while the menu is open, else history",
+    ),
+    (
+        "Esc",
+        "close the menu (back to what you typed); again: leave",
+    ),
+    ("Enter", "run the line, with the match shown"),
+    ("^W ^U, ← → Home End", "delete a word / to the start; move"),
+];
+
 /// The tutorial hint for a step (`TutorialHint.tsx`, worded for keys).
 pub fn tutorial_text(step: u32) -> Option<&'static str> {
     Some(match step {
@@ -214,6 +233,13 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         ))
         .wrap(Wrap { trim: true });
         f.render_widget(p, area);
+        if app.keys.mode == Mode::Command && area.height > 0 {
+            // keep the command line usable (`:q`) on a tiny terminal
+            let status = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
+            f.render_widget(Clear, status);
+            draw_status(f, app, status);
+            draw_wildmenu(f, app, status);
+        }
         return;
     }
     let hint = tutorial_text(app.view.tutorial_step);
@@ -257,9 +283,121 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     if let Some(ov) = app.overlay.clone() {
         draw_overlay(f, app, body, &ov);
     }
+    draw_wildmenu(f, app, status);
 }
 
-fn screen_title(app: &App, s: Screen) -> String {
+/// Which matches of the completion menu fit in `avail` columns, as a range
+/// that includes `sel`: items two columns apart, with `< ` before when it
+/// does not start at the first and ` >` after when it stops before the
+/// last. At least one item (clipped when too wide).
+pub fn wild_layout(widths: &[usize], sel: usize, avail: usize) -> std::ops::Range<usize> {
+    let n = widths.len();
+    let total = widths.iter().sum::<usize>() + 2 * n.saturating_sub(1);
+    if total <= avail || n == 0 {
+        return 0..n;
+    }
+    let sel = sel.min(n - 1);
+    for first in 0..=sel {
+        let mut used = if first > 0 { 2 } else { 0 };
+        let mut end = first;
+        while end < n {
+            let w = widths[end] + if end > first { 2 } else { 0 };
+            let right = if end + 1 < n { 2 } else { 0 };
+            if used + w + right > avail {
+                break;
+            }
+            used += w;
+            end += 1;
+        }
+        let end = end.max(first + 1);
+        if sel < end {
+            return first..end;
+        }
+    }
+    sel..sel + 1
+}
+
+/// The completion menu (vim's wildmenu): the matches on the line above the
+/// command line, the current one reversed, scrolled with `<` / `>` when
+/// they overflow, and `i/n` on the right when there is room. Each match is
+/// clickable.
+fn draw_wildmenu(f: &mut Frame, app: &mut App, status: Rect) {
+    let Some(w) = app.keys.wild.clone() else {
+        return;
+    };
+    let full = f.area();
+    if app.keys.mode != Mode::Command
+        || w.items.is_empty()
+        || status.y <= full.y
+        || status.width == 0
+    {
+        return;
+    }
+    let area = Rect::new(status.x, status.y - 1, status.width, 1).intersection(full);
+    if area.is_empty() {
+        return;
+    }
+    f.render_widget(Clear, area);
+    let width = area.width as usize;
+    let n = w.items.len();
+    let count = match w.sel {
+        Some(i) => format!("{}/{n}", i + 1),
+        None => format!("-/{n}"),
+    };
+    let count_w = count.chars().count() + 1;
+    let show_count = width >= count_w + 12;
+    let avail = if show_count { width - count_w } else { width };
+    let widths: Vec<usize> = w.items.iter().map(|s| s.chars().count()).collect();
+    let range = wild_layout(&widths, w.sel.unwrap_or(0), avail);
+    let more_right = range.end < n;
+    let mut x = 0usize;
+    let put = |f: &mut Frame, x: &mut usize, text: &str, style: Style| -> Option<Rect> {
+        let room = avail.saturating_sub(*x);
+        let text = clip(text, room);
+        let tw = text.chars().count();
+        if tw == 0 {
+            return None;
+        }
+        let r = Rect::new(area.x + *x as u16, area.y, tw as u16, 1);
+        f.render_widget(Paragraph::new(Span::styled(text, style)), r);
+        *x += tw;
+        Some(r)
+    };
+    if range.start > 0 {
+        put(f, &mut x, "< ", dim());
+    }
+    for i in range.clone() {
+        if i > range.start {
+            put(f, &mut x, "  ", Style::default());
+        }
+        // leave room for the " >" marker
+        let reserve = if more_right { 2 } else { 0 };
+        let room = avail.saturating_sub(x + reserve);
+        let text = clip(&w.items[i], room.max(1));
+        let style = if w.sel == Some(i) {
+            Style::default().add_modifier(Modifier::REVERSED | Modifier::BOLD)
+        } else {
+            Style::default()
+        };
+        if let Some(r) = put(f, &mut x, &text, style) {
+            app.hits.push((r, Hit::Wild(i)));
+        }
+    }
+    if more_right && avail >= 2 {
+        let r = Rect::new(area.x + (avail - 2) as u16, area.y, 2, 1);
+        f.render_widget(Paragraph::new(Span::styled(" >", dim())), r);
+    }
+    if show_count {
+        let r = Rect::new(area.x + avail as u16, area.y, count_w as u16, 1);
+        f.render_widget(
+            Paragraph::new(Span::styled(count, dim())).alignment(Alignment::Right),
+            r,
+        );
+    }
+}
+
+/// A screen's title in the tab bar.
+pub fn screen_title(app: &App, s: Screen) -> String {
     match s {
         Screen::Tab(t) => fmt::tab_label(&app.sv, t),
         Screen::Achievements => "Achievements".into(),
@@ -1135,6 +1273,20 @@ fn draw_overlay(f: &mut Frame, app: &mut App, area: Rect, ov: &Overlay) {
             for (k, d) in COMMANDS {
                 lines.push(Line::from(vec![
                     Span::styled(format!("  {k:<28}"), Style::default().fg(ACCENT)),
+                    Span::raw(*d),
+                ]));
+            }
+            lines.push(Line::from(
+                "Names as on screen: buy greater queen 100, upgrade twin culicimorphs max; mosquito etc. work too.",
+            ));
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                "On the command line (Tab shows the matches above it, like vim's wildmenu; click one to insert it)",
+                bold(),
+            )));
+            for (k, d) in CMDLINE_KEYS {
+                lines.push(Line::from(vec![
+                    Span::styled(format!("  {k:<22}"), Style::default().fg(ACCENT)),
                     Span::raw(*d),
                 ]));
             }
