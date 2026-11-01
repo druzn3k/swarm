@@ -7,7 +7,8 @@
   "scripts": {
     "test": "tsc --noEmit && jest",
     "typecheck": "tsc --noEmit",
-    "oracle:golden": "ts-node --transpile-only oracle/generate.ts"
+    "oracle:golden": "ts-node --transpile-only oracle/generate.ts",
+    "dump:rust-fixtures": "ts-node --transpile-only scripts/dump-rust-fixtures.ts"
   },
   "dependencies": {
     "@swarmsim/tables": "workspace:*",

@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "test", "oracle"]
+  "include": ["src", "test", "oracle", "scripts"]
 }

@@ -129,6 +129,27 @@ are `null` or absent, never `""`.
 }
 ```
 
+As built (M1), the shape above holds with these refinements, all forced by
+what the engine actually sees (`engine/test/gamedata-json.test.ts` checks every
+field against `buildTypes()`):
+
+- Optional values are always present as `null`, never absent. Empty text
+  (e.g. `verb` of non-buyable units, `freeRespec`'s `label`) is `null`, so
+  `slug` can be `null`; so can `tab`, `column` and `tier`.
+- Values that `S.number` encodes, where 0 means "absent" to the engine, are
+  `null` when 0: unit `cost`/`prod` `val`, `warnfirst.val`, upgrade
+  `maxlevel` and cost `factor`, and the mtx numbers. Thirteen maxlevel-1
+  upgrade costs have `"factor": null`; `swarm-data` applies the default 1.
+  `init` stays a number (0 when absent), as shown.
+- Upgrade effects can lack `unittype` (`skipTime`, `addUpgrade`), and unit
+  effects `stat`, so both are nullable.
+- mtx also keeps `price_kreds` and `price_usd_paypal`.
+- The file has one record per line (117 KB), for readable diffs.
+- Besides `producer-paths.json`, `engine/scripts/dump-rust-fixtures.ts`
+  (`pnpm --filter @swarmsim/engine dump:rust-fixtures`) also dumps each unit's
+  tab, upgrade list and `affectedBy` (`units.json`) and the tabs
+  (`tabs.json`). The engine parity test fails while any of them is stale.
+
 Watch these when writing the generator. The engine today sees the data only after an
 encode → `parseRows` round trip (`tables/src/spreadsheet/data.ts`,
 `engine/src/spreadsheetutil.ts`), and that round trip has semantics of its own:
