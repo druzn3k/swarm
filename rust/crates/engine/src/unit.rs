@@ -2,7 +2,7 @@
 //! visibility and buying.
 
 use swarm_data::{
-    json_num, EffectKind, EffectParent, RequireOp, Resource, StatId, UnitAmount, UnitId, UpgradeId,
+    json_num, EffectParent, RequireOp, Resource, StatId, UnitAmount, UnitId, UpgradeId,
 };
 use swarm_num::Num;
 
@@ -79,7 +79,21 @@ impl Engine {
 
     /// The count `secs` seconds after now, assuming nothing is bought.
     pub fn count_in_secs_from_now(&self, unit: UnitId, secs: Num) -> Num {
-        self.count_in_secs_from_reified(unit, secs + json_num(self.diff_seconds()))
+        self.count_in_secs_from_reified(unit, secs + self.diff_seconds_num())
+    }
+
+    /// `json_num(diff_seconds)`, memoised on the `f64` (the decimal parse
+    /// is most of a cached count's cost).
+    fn diff_seconds_num(&self) -> Num {
+        let diff = self.diff_seconds();
+        if let Some((d, n)) = self.cache.borrow().diff_seconds {
+            if d.to_bits() == diff.to_bits() {
+                return n;
+            }
+        }
+        let n = json_num(diff);
+        self.cache.borrow_mut().diff_seconds = Some((diff, n));
+        n
     }
 
     /// The count `secs` seconds after the last reify (used by the app's
@@ -158,7 +172,17 @@ impl Engine {
 
     /// Cost of one, after the `cost` and `cost.<currency>` stats
     /// (`unit.ts:680-686`).
+    /// Cached in the update generation.
     pub fn each_cost(&self, unit: UnitId) -> Vec<UnitAmount> {
+        if let Some(v) = &self.cache.borrow().each_cost[unit.index()] {
+            return v.clone();
+        }
+        let v = self.compute_each_cost(unit);
+        self.cache.borrow_mut().each_cost[unit.index()] = Some(v.clone());
+        v
+    }
+
+    fn compute_each_cost(&self, unit: UnitId) -> Vec<UnitAmount> {
         let costs = &self.data.unit(unit).cost;
         if costs.is_empty() {
             return Vec::new();
@@ -241,8 +265,13 @@ impl Engine {
     /// The fraction of one purchase the cheapest cost allows: `min(count /
     /// cost)` over costs above zero. `None` (TS `Infinity`) without costs.
     pub fn cost_met_percent(&self, unit: UnitId) -> Option<Num> {
+        self.cost_met_percent_of(&self.each_cost(unit))
+    }
+
+    /// [`Engine::cost_met_percent`] given [`Engine::each_cost`].
+    pub(crate) fn cost_met_percent_of(&self, costs: &[UnitAmount]) -> Option<Num> {
         let mut max: Option<Num> = None;
-        for cost in self.each_cost(unit) {
+        for &cost in costs {
             if cost.val.is_positive() {
                 let m = self.count(cost.unit) / cost.val;
                 max = Some(max.map_or(m, |x| x.min(m)));
@@ -295,6 +324,12 @@ impl Engine {
         v
     }
 
+    /// [`Engine::unit_visible`] without recording it in the sticky cache.
+    pub(crate) fn unit_visible_peek(&self, unit: UnitId) -> bool {
+        !self.data.unit(unit).disabled
+            && (self.cache.borrow().unit_visible[unit.index()] || self.compute_unit_visible(unit))
+    }
+
     fn compute_unit_visible(&self, unit: UnitId) -> bool {
         if self.count(unit).is_positive() {
             return true;
@@ -323,7 +358,11 @@ impl Engine {
 
     /// Buy buttons shown: buyable, has costs, and every cost is visible.
     pub fn is_buy_button_visible(&self, unit: UnitId) -> bool {
-        let costs = self.each_cost(unit);
+        self.is_buy_button_visible_of(unit, &self.each_cost(unit))
+    }
+
+    /// [`Engine::is_buy_button_visible`] given [`Engine::each_cost`].
+    pub(crate) fn is_buy_button_visible_of(&self, unit: UnitId, costs: &[UnitAmount]) -> bool {
         if self.data.unit(unit).unbuyable || costs.is_empty() {
             return false;
         }
@@ -394,17 +433,15 @@ impl Engine {
     /// can lag until stats are next computed; here it is computed from the
     /// current level.
     pub fn suffix(&self, unit: UnitId) -> String {
-        let mut ret = String::new();
-        for e in self.data.effects() {
-            if e.kind == EffectKind::Suffix && e.unit == Some(unit) {
-                let level = match e.parent {
-                    EffectParent::Upgrade(g) => self.upgrade_count(g),
-                    EffectParent::Unit(p) => self.count(p),
-                };
-                ret = crate::effects::suffix_for_level(level);
-            }
-        }
-        ret
+        // the last suffix effect targeting the unit wins
+        let Some(effect) = self.cache.borrow().suffix_effect[unit.index()] else {
+            return String::new();
+        };
+        let level = match self.data.effect(effect).parent {
+            EffectParent::Upgrade(g) => self.upgrade_count(g),
+            EffectParent::Unit(p) => self.count(p),
+        };
+        crate::effects::suffix_for_level(level)
     }
 
     /// This unit's purchase statistics.

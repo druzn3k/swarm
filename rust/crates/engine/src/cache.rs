@@ -20,10 +20,10 @@
 
 use std::collections::HashMap;
 
-use swarm_data::{GameData, StatId, UnitId, UpgradeId};
+use swarm_data::{EffectId, EffectKind, GameData, StatId, UnitAmount, UnitId, UpgradeId};
 use swarm_num::Num;
 
-use crate::upgrade::UpgradeEstimateCached;
+use crate::upgrade::{UpgradeCostVal, UpgradeEstimateCached};
 
 /// Milliseconds of clock time between periodic clears (`game.ts:86`).
 pub const PERIODIC_MS: i64 = 3000;
@@ -40,7 +40,13 @@ pub(crate) struct Cache {
     pub coefficients: Vec<Option<Vec<Num>>>,
     pub cap: Vec<Option<Option<Num>>>,
     pub upgrade_estimate: HashMap<UpgradeId, UpgradeEstimateCached>,
+    /// An upgrade's next-level cost (a pure memo of its level and stats).
+    pub total_cost: Vec<Option<Vec<UpgradeCostVal>>>,
+    /// A unit's cost of one (a pure memo of its stats).
+    pub each_cost: Vec<Option<Vec<UnitAmount>>>,
     // ---- tick generation (the clock moved) ----
+    /// `json_num(diff_seconds)`, keyed by the `f64` (a pure memo).
+    pub diff_seconds: Option<(f64, Num)>,
     pub count: Vec<Option<Num>>,
     pub velocity: Vec<Option<Num>>,
     // ---- periodic generation ----
@@ -49,6 +55,9 @@ pub(crate) struct Cache {
     // ---- respec generation ----
     pub unit_visible: Vec<bool>,
     pub upgrade_visible: Vec<bool>,
+    // ---- never cleared (derived from the data) ----
+    /// Per unit, the last `suffix` effect targeting it.
+    pub suffix_effect: Vec<Option<EffectId>>,
 }
 
 impl Cache {
@@ -63,12 +72,24 @@ impl Cache {
             coefficients: vec![None; units],
             cap: vec![None; units],
             upgrade_estimate: HashMap::new(),
+            total_cost: vec![None; upgrades],
+            each_cost: vec![None; units],
+            diff_seconds: None,
             count: vec![None; units],
             velocity: vec![None; units],
             last_periodic_ms: clock_ms,
             upgradable: HashMap::new(),
             unit_visible: vec![false; units],
             upgrade_visible: vec![false; upgrades],
+            suffix_effect: {
+                let mut list = vec![None; units];
+                for e in data.effects() {
+                    if let (EffectKind::Suffix, Some(u)) = (e.kind, e.unit) {
+                        list[u.index()] = Some(e.id);
+                    }
+                }
+                list
+            },
         }
     }
 
@@ -97,6 +118,8 @@ impl Cache {
         self.coefficients.iter_mut().for_each(|c| *c = None);
         self.cap.iter_mut().for_each(|c| *c = None);
         self.upgrade_estimate.clear();
+        self.total_cost.iter_mut().for_each(|c| *c = None);
+        self.each_cost.iter_mut().for_each(|c| *c = None);
     }
 
     /// `Cache.onRespec`: forget sticky visibility.

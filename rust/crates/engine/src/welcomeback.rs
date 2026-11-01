@@ -4,7 +4,8 @@
 //! same numbers.
 //!
 //! [`Engine::load`] computes it once, right after loading (later, the
-//! counts would include time played since). It stays pending until
+//! counts would include time played since), and [`Engine::resync_wall`]
+//! after a suspend of at least [`WELCOME_BACK_MIN_MS`]. It stays pending until
 //! [`Command::DismissWelcomeBack`](crate::Command::DismissWelcomeBack), and
 //! the view carries it as [`View::welcome_back`](crate::View::welcome_back).
 
@@ -12,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use swarm_data::UnitId;
 use swarm_num::Num;
 
-use crate::engine::Engine;
+use crate::engine::{Engine, OfflineReport};
 
 /// Shown only after at least this long away, so a page refresh shows
 /// nothing (`WELCOME_BACK_MINUTES = 3`).
@@ -103,7 +104,21 @@ impl Engine {
         })
     }
 
-    /// The pending welcome-back report: computed at load, `None` when the
+    /// [`Engine::compute_welcome_back`] for `offline`, leaving the caches
+    /// as they were: memoised stats would otherwise capture this moment's
+    /// counts (PARITY(cache)) where later queries would not.
+    pub(crate) fn welcome_back_cache_neutral(
+        &mut self,
+        offline: OfflineReport,
+    ) -> Option<WelcomeBack> {
+        let caches = self.cache.borrow().clone();
+        let wb = self.compute_welcome_back(offline.closed_ms, false);
+        *self.cache.get_mut() = caches;
+        wb
+    }
+
+    /// The pending welcome-back report: computed at load (and by
+    /// [`Engine::resync_wall`] after a long suspend), `None` when the
     /// game was away for less than [`WELCOME_BACK_MIN_MS`] or after
     /// [`Command::DismissWelcomeBack`](crate::Command::DismissWelcomeBack).
     pub fn welcome_back(&self) -> Option<&WelcomeBack> {

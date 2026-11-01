@@ -42,6 +42,7 @@ use swarm_data::{
 };
 use swarm_num::Num;
 
+use crate::description::{is_templated, unit_template, upgrade_template, DescriptionOwner};
 use crate::engine::{Engine, OfflineReport};
 use crate::estimate::Estimate;
 use crate::events::Event;
@@ -321,6 +322,11 @@ pub struct UnitDetail {
     /// Its own effects ([`StaticUnit::effects`] order).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub effects: Vec<EffectView>,
+    /// Its [`StaticUnit::description_template`] rendered now (paragraphs
+    /// joined by `\n`); `None` for units described by the spreadsheet
+    /// text ([`StaticUnit::description`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
 
 /// An upgrade or ability.
@@ -378,6 +384,11 @@ pub struct UpgradeDetail {
     /// descriptions show.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub effects: Vec<EffectView>,
+    /// Its [`StaticUpgrade::description_template`] rendered now
+    /// (paragraphs joined by `\n`); `None` for upgrades described by the
+    /// spreadsheet text ([`StaticUpgrade::description`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
 
 /// [`UpgradeEstimate`], with indices.
@@ -713,6 +724,10 @@ pub struct StaticUnit {
     /// Description; "-" or none means a live template.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// The live template used instead of a "-" description (see
+    /// [`crate::description`]); rendered in [`UnitDetail::description`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description_template: Option<String>,
     /// Flavour text.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lol: Option<String>,
@@ -764,6 +779,10 @@ pub struct StaticUpgrade {
     /// Description; "-" or none means a live template.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// The live template used instead of a "-" description (see
+    /// [`crate::description`]); rendered in [`UpgradeDetail::description`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description_template: Option<String>,
     /// Flavour text.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lol: Option<String>,
@@ -853,6 +872,11 @@ fn is_false(b: &bool) -> bool {
     !*b
 }
 
+/// A unit's live template, if its sheet description asks for one.
+fn unit_template_of(sheet: Option<&str>, name: &str) -> Option<String> {
+    is_templated(sheet).then(|| unit_template(name)).flatten()
+}
+
 fn amounts(it: impl IntoIterator<Item = (u16, Num)>) -> Amounts {
     it.into_iter().collect()
 }
@@ -878,12 +902,13 @@ impl Engine {
             Some(list) => list.clone(),
             None => data.units().iter().map(|u| u.id).collect(),
         };
+        let mut newly = vec![None; nunits];
         let units = if req.sections.units {
             unit_ids
                 .iter()
                 .map(|&id| {
                     let detail = req.detail_all || focus.contains(&id);
-                    self.unit_view(id, &percents, quarter, detail)
+                    self.unit_view(id, &percents, quarter, detail, &mut newly)
                 })
                 .collect()
         } else {
@@ -932,10 +957,9 @@ impl Engine {
                 .map(|(i, t)| TabView {
                     id: i as u16,
                     visible: self.unit_visible(t.lead),
-                    newly_upgradable: t
-                        .units
-                        .iter()
-                        .any(|&u| self.unit_visible(u) && self.unit_is_newly_upgradable(u)),
+                    newly_upgradable: t.units.iter().any(|&u| {
+                        self.unit_visible(u) && self.unit_newly_upgradable_memo(u, &mut newly)
+                    }),
                     units: self
                         .sort_tab_units(t.sorted_units())
                         .into_iter()
@@ -1015,30 +1039,47 @@ impl Engine {
         }
     }
 
-    fn unit_view(&self, id: UnitId, percents: &[Num], quarter: Num, detail: bool) -> UnitView {
+    fn unit_view(
+        &self,
+        id: UnitId,
+        percents: &[Num],
+        quarter: Num,
+        detail: bool,
+        newly: &mut [Option<bool>],
+    ) -> UnitView {
         let visible = self.unit_visible(id);
+        let costs = self.each_cost(id);
+        let met_percent = self.cost_met_percent_of(&costs);
+        // Engine::unit_max_cost_met
+        let max_cost_met = |p: Num| met_percent.map_or(Num::MAX, |m| (m * p).floor());
+        let max = max_cost_met(Num::ONE);
+        let cost_met = max.is_positive();
+        let button = visible && self.is_buy_button_visible_of(id, &costs);
         UnitView {
             id: id.0,
             count: self.count(id),
             velocity: self.velocity(id),
             visible,
             suffix: self.suffix(id),
-            buyable: visible && self.unit_is_buyable(id, false),
-            buy_button_visible: visible && self.is_buy_button_visible(id),
-            cost_met: self.unit_is_cost_met(id),
-            max_cost_met: self.unit_max_cost_met(id, Num::ONE),
-            max_cost_met_quarter: self.unit_max_cost_met(id, quarter),
-            max_cost_met_at: percents
-                .iter()
-                .map(|&p| self.unit_max_cost_met(id, p))
-                .collect(),
+            // Engine::unit_is_buyable (unbuyable units have no button)
+            buyable: cost_met && button,
+            buy_button_visible: button,
+            cost_met,
+            max_cost_met: max,
+            max_cost_met_quarter: max_cost_met(quarter),
+            max_cost_met_at: percents.iter().map(|&p| max_cost_met(p)).collect(),
             twin_mult: self.twin_mult(id),
-            each_cost: amounts(self.each_cost(id).into_iter().map(|c| (c.unit.0, c.val))),
+            each_cost: amounts(costs.iter().map(|c| (c.unit.0, c.val))),
             cap: self.cap(id),
             cap_percent: self.cap_percent(id),
-            newly_upgradable: visible && self.unit_is_newly_upgradable(id),
+            newly_upgradable: visible && self.unit_newly_upgradable_memo(id, newly),
             detail: (detail && visible).then(|| self.unit_detail(id)),
         }
+    }
+
+    /// [`Engine::unit_is_newly_upgradable`], once per view.
+    fn unit_newly_upgradable_memo(&self, id: UnitId, memo: &mut [Option<bool>]) -> bool {
+        *memo[id.index()].get_or_insert_with(|| self.unit_is_newly_upgradable(id))
     }
 
     fn unit_detail(&self, id: UnitId) -> UnitDetail {
@@ -1061,6 +1102,11 @@ impl Engine {
             max_cost_met_of_velocity: self.cost_met_percent_of_velocity(id),
             eta,
             cap_eta: self.cap_eta(id),
+            description: unit_template_of(
+                self.data.unit(id).text.description.as_deref(),
+                &self.data.unit(id).name,
+            )
+            .map(|t| self.render_description(&t, DescriptionOwner::Unit(id))),
             effects: self
                 .data
                 .unit(id)
@@ -1080,23 +1126,26 @@ impl Engine {
         detail: bool,
     ) -> UpgradeView {
         let visible = self.upgrade_visible(id);
+        let totals = self.total_cost(id);
+        let max_cost_met = self.upgrade_max_cost_met_with(id, &totals, Num::ONE);
+        let cost_met = max_cost_met.is_positive();
         UpgradeView {
             id: id.0,
             count: self.upgrade_count(id),
             visible,
-            buyable: visible && self.upgrade_is_buyable(id),
+            buyable: visible && cost_met,
             upgradable: visible && self.upgrade_is_upgradable(id, None, false),
             newly_upgradable: visible && self.upgrade_is_newly_upgradable(id, 1.0),
             watched: self.watched_at(id),
-            cost_met: self.upgrade_is_cost_met(id),
-            max_cost_met: self.upgrade_max_cost_met(id, Num::ONE),
-            max_cost_met_quarter: self.upgrade_max_cost_met(id, quarter),
+            cost_met,
+            max_cost_met,
+            max_cost_met_quarter: self.upgrade_max_cost_met_with(id, &totals, quarter),
             max_cost_met_at: percents
                 .iter()
-                .map(|&p| self.upgrade_max_cost_met(id, p))
+                .map(|&p| self.upgrade_max_cost_met_with(id, &totals, p))
                 .collect(),
-            cost_met_percent: self.upgrade_cost_met_percent(id),
-            total_cost: amounts(self.total_cost(id).into_iter().map(|c| (c.unit.0, c.val))),
+            cost_met_percent: self.upgrade_cost_met_percent_with(id, &totals, max_cost_met),
+            total_cost: amounts(totals.iter().map(|c| (c.unit.0, c.val))),
             sum_costs: sum_amounts
                 .iter()
                 .map(|&n| {
@@ -1109,6 +1158,13 @@ impl Engine {
                 .collect(),
             detail: (detail && visible).then(|| UpgradeDetail {
                 eta: self.estimate_secs_until_buyable(id).into(),
+                description: {
+                    let g = self.data.upgrade(id);
+                    is_templated(g.text.description.as_deref())
+                        .then(|| upgrade_template(&g.name))
+                        .flatten()
+                        .map(|t| self.render_description(&t, DescriptionOwner::Upgrade(id)))
+                },
                 effects: self
                     .data
                     .upgrade(id)
@@ -1291,6 +1347,7 @@ impl Engine {
                     verbone: u.text.verbone.clone(),
                     verbing: u.text.verbing.clone(),
                     description: u.text.description.clone(),
+                    description_template: unit_template_of(u.text.description.as_deref(), &u.name),
                     lol: u.text.lol.clone(),
                     tab: d.tabs().of_unit(u.id).map(|t| t.index() as u16),
                     column: u.column,
@@ -1317,6 +1374,9 @@ impl Engine {
                     name: g.name.clone(),
                     label: g.text.label.clone(),
                     description: g.text.description.clone(),
+                    description_template: is_templated(g.text.description.as_deref())
+                        .then(|| upgrade_template(&g.name))
+                        .flatten(),
                     lol: g.text.lol.clone(),
                     ability: g.class == UpgradeClass::Ability,
                     unit: g.unit.0,

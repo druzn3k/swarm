@@ -48,6 +48,17 @@ pub enum UpgradeEstimate {
 pub const UPGRADE_ESTIMATE_TYPE_ERROR: &str =
     "Cannot read properties of undefined (reading 'plus')";
 
+/// The cost of `num` levels from a level's cost: the geometric series, or
+/// `val · num` when `factor == 1` (`upgrade.ts:149-162`).
+fn sum_cost_of(mut c: UpgradeCostVal, num: Num) -> UpgradeCostVal {
+    if c.factor == Num::ONE {
+        c.val *= num;
+    } else {
+        c.val *= (Num::ONE - c.factor.pow_num(&num)) / (Num::ONE - c.factor);
+    }
+    c
+}
+
 /// A difference of two values of magnitude `scale`, with differences below
 /// `Num`'s precision (a few ulps) taken as exactly zero: decimal.js loses
 /// them too, at 20 digits, where `Num` would keep an ulp of noise.
@@ -158,7 +169,17 @@ impl Engine {
     }
 
     /// The cost of the next level (`upgrade.ts:136-148`).
+    /// Cached in the update generation.
     pub fn total_cost(&self, upgrade: UpgradeId) -> Vec<UpgradeCostVal> {
+        if let Some(v) = &self.cache.borrow().total_cost[upgrade.index()] {
+            return v.clone();
+        }
+        let v = self.compute_total_cost(upgrade);
+        self.cache.borrow_mut().total_cost[upgrade.index()] = Some(v.clone());
+        v
+    }
+
+    fn compute_total_cost(&self, upgrade: UpgradeId) -> Vec<UpgradeCostVal> {
         let unit = self.data.upgrade(upgrade).unit;
         let level =
             self.upgrade_count(upgrade) + self.stat(unit, self.data.stats().upgradecost, Num::ZERO);
@@ -195,17 +216,7 @@ impl Engine {
             Some(s) => self.total_cost_at(upgrade, s),
             None => self.total_cost(upgrade),
         };
-        totals
-            .into_iter()
-            .map(|mut c| {
-                if c.factor == Num::ONE {
-                    c.val *= num;
-                } else {
-                    c.val *= (Num::ONE - c.factor.pow_num(&num)) / (Num::ONE - c.factor);
-                }
-                c
-            })
-            .collect()
+        totals.iter().map(|&c| sum_cost_of(c, num)).collect()
     }
 
     /// How many levels `percent` of the resources buy (`upgrade.ts:167-207`):
@@ -214,9 +225,19 @@ impl Engine {
     /// what we have). A `factor == 1` cost ignores `percent`, like the TS.
     /// [`Num::MAX`] (TS `Infinity`) without costs or `maxlevel`.
     pub fn upgrade_max_cost_met(&self, upgrade: UpgradeId, percent: Num) -> Num {
+        self.upgrade_max_cost_met_with(upgrade, &self.total_cost(upgrade), percent)
+    }
+
+    /// [`Engine::upgrade_max_cost_met`] given [`Engine::total_cost`].
+    pub(crate) fn upgrade_max_cost_met_with(
+        &self,
+        upgrade: UpgradeId,
+        totals: &[UpgradeCostVal],
+        percent: Num,
+    ) -> Num {
         let g = self.data.upgrade(upgrade);
         let mut max: Option<Num> = g.maxlevel.map(|m| m - self.upgrade_count(upgrade));
-        for cost in self.total_cost(upgrade) {
+        for &cost in totals {
             let have = self.count(cost.unit);
             let m = if cost.factor == Num::ONE {
                 have / cost.val
@@ -232,7 +253,8 @@ impl Engine {
         };
         let max = max.floor();
         if !max.is_negative() {
-            for cost in self.sum_cost(upgrade, max, None) {
+            for &cost in totals {
+                let cost = sum_cost_of(cost, max);
                 if self.count(cost.unit) < cost.val {
                     return max - Num::ONE;
                 }
@@ -259,14 +281,33 @@ impl Engine {
     /// lost to rounding next to what was already paid (`0 / 0`), as with
     /// huge resource counts.
     pub fn upgrade_cost_met_percent(&self, upgrade: UpgradeId) -> Option<Num> {
-        let met = self.upgrade_max_cost_met(upgrade, Num::ONE);
-        if self.upgrade_is_max_affordable(upgrade) {
+        let totals = self.total_cost(upgrade);
+        let met = self.upgrade_max_cost_met_with(upgrade, &totals, Num::ONE);
+        self.upgrade_cost_met_percent_with(upgrade, &totals, met)
+    }
+
+    /// [`Engine::upgrade_cost_met_percent`] given [`Engine::total_cost`] and
+    /// the levels affordable with all the resources.
+    pub(crate) fn upgrade_cost_met_percent_with(
+        &self,
+        upgrade: UpgradeId,
+        totals: &[UpgradeCostVal],
+        met: Num,
+    ) -> Option<Num> {
+        if self
+            .data
+            .upgrade(upgrade)
+            .maxlevel
+            .is_some_and(|m| met >= m)
+        {
             return Some(Num::ONE);
         }
-        let cost_of_met = self.sum_cost(upgrade, met, None);
+        let cost_of_met: Vec<UpgradeCostVal> =
+            totals.iter().map(|&c| sum_cost_of(c, met)).collect();
         // decimal.js `Decimal.min`, NaN-propagating; starts at Infinity
         let mut max = JsRatio::PosInf;
-        for cost in self.sum_cost(upgrade, met + Num::ONE, None) {
+        for &cost in totals {
+            let cost = sum_cost_of(cost, met + Num::ONE);
             // TS `keyBy(unit name)`: the last entry for a unit wins
             let paid = cost_of_met
                 .iter()
@@ -330,14 +371,18 @@ impl Engine {
     /// Watched and upgradable with `cost_percent` / watch level of the
     /// resources: the "new upgrade" arrow.
     pub fn upgrade_is_newly_upgradable(&self, upgrade: UpgradeId, cost_percent: f64) -> bool {
-        self.watched_at(upgrade) > 0
-            && self.upgrade_is_upgradable(
-                upgrade,
-                Some(swarm_data::json_num(
-                    cost_percent / self.watched_divisor(upgrade) as f64,
-                )),
-                false,
-            )
+        let watched = self.watched_at(upgrade);
+        if watched <= 0 {
+            return false;
+        }
+        let pct = cost_percent / f64::from(watched);
+        // json_num parses a decimal string; 1 is the common case
+        let pct = if pct == 1.0 {
+            Num::ONE
+        } else {
+            swarm_data::json_num(pct)
+        };
+        self.upgrade_is_upgradable(upgrade, Some(pct), false)
     }
 
     /// The default watch level: 1, but 0 for upgrades of mutagen-tab units.

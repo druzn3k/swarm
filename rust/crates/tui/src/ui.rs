@@ -575,13 +575,15 @@ fn draw_detail(f: &mut Frame, app: &mut App, area: Rect) {
     let fm = app.fmt;
     let sv = &app.sv;
     let mut info: Vec<Line> = Vec::new();
-    let desc = fmt::unit_description(sv, u);
+    let desc = fmt::unit_description(sv, u, uv.detail.as_ref());
     let roomy = inner.height >= 18;
-    if roomy && !desc.is_empty() {
-        info.push(Line::from(Span::styled(
-            desc,
-            Style::default().add_modifier(Modifier::ITALIC),
-        )));
+    if roomy {
+        info.extend(desc.lines().map(|p| {
+            Line::from(Span::styled(
+                p.to_owned(),
+                Style::default().add_modifier(Modifier::ITALIC),
+            ))
+        }));
     }
     let mut count = vec![
         Span::styled("Count ", dim()),
@@ -671,13 +673,16 @@ fn draw_detail(f: &mut Frame, app: &mut App, area: Rect) {
                 dim(),
             )));
         }
-        for ev in &d.effects {
-            if let Some(l) = fmt::effect_line(sv, &fm, ev) {
-                info.push(Line::from(Span::styled(l, dim())));
+        // a live description already reads the effects
+        if d.description.is_none() {
+            for ev in &d.effects {
+                if let Some(l) = fmt::effect_line(sv, &fm, ev) {
+                    info.push(Line::from(Span::styled(l, dim())));
+                }
             }
         }
     }
-    let info_h = (info.len() as u16).min(inner.height.saturating_sub(1).max(1));
+    let info_h = wrapped_height(&info, inner.width).min(inner.height.saturating_sub(1).max(1));
     let buy_h = u16::from(uv.buy_button_visible && !sstatic.unbuyable);
     let spark_h = if inner.height >= 16 && app.history.len() > 1 {
         2
@@ -731,6 +736,33 @@ fn draw_detail(f: &mut Frame, app: &mut App, area: Rect) {
         f.render_widget(s, spark_a);
     }
     draw_upgrades(f, app, ups_a);
+}
+
+/// Rows `lines` take when word-wrapped to `width` (greedy, like
+/// `Wrap { trim: true }`).
+fn wrapped_height(lines: &[Line], width: u16) -> u16 {
+    let width = usize::from(width.max(1));
+    let rows: usize = lines
+        .iter()
+        .map(|l| {
+            let text: String = l.spans.iter().map(|s| s.content.as_ref()).collect();
+            let (mut rows, mut col) = (1, 0);
+            for word in text.split_whitespace() {
+                let w = word.chars().count();
+                if col > 0 && col + 1 + w > width {
+                    rows += 1;
+                    col = 0;
+                }
+                col += if col > 0 { 1 } else { 0 } + w;
+                while col > width {
+                    rows += 1;
+                    col -= width;
+                }
+            }
+            rows
+        })
+        .sum();
+    u16::try_from(rows).unwrap_or(u16::MAX)
 }
 
 fn draw_upgrades(f: &mut Frame, app: &mut App, area: Rect) {
@@ -804,17 +836,20 @@ fn draw_upgrades(f: &mut Frame, app: &mut App, area: Rect) {
     let da = Rect::new(inner.x, inner.y + rows as u16, inner.width, detail_h);
     let [text_a, btn_a] = Layout::vertical([Constraint::Min(0), Constraint::Length(1)]).areas(da);
     let mut lines: Vec<Line> = Vec::new();
-    let desc = fmt::upgrade_description(&app.sv, g);
-    if !desc.is_empty() {
-        lines.push(Line::from(Span::styled(
-            desc,
+    let desc = fmt::upgrade_description(&app.sv, g, gv.detail.as_ref());
+    lines.extend(desc.lines().map(|p| {
+        Line::from(Span::styled(
+            p.to_owned(),
             Style::default().add_modifier(Modifier::ITALIC),
-        )));
-    }
+        ))
+    }));
     if let Some(d) = &gv.detail {
-        for ev in &d.effects {
-            if let Some(l) = fmt::effect_line(&app.sv, &fm, ev) {
-                lines.push(Line::from(Span::styled(l, dim())));
+        // a live description already reads the effects
+        if d.description.is_none() {
+            for ev in &d.effects {
+                if let Some(l) = fmt::effect_line(&app.sv, &fm, ev) {
+                    lines.push(Line::from(Span::styled(l, dim())));
+                }
             }
         }
         let eta = match &d.eta {

@@ -261,7 +261,8 @@ impl GameCore {
     }
 
     /// After a suspend or hidden tab: adds the wall-clock gap; the
-    /// `OfflineReport` JSON if there was one.
+    /// `OfflineReport` JSON if there was one. A long enough gap also sets
+    /// the view's `welcome_back` ([`swarm_engine::Engine::resync_wall`]).
     pub fn resync_wall(&mut self, wall_now_ms: f64) -> Result<Option<String>, Error> {
         let now = ms(wall_now_ms, "wall_now_ms")?;
         Ok(self.engine.resync_wall(now).map(|r| to_json(&r)))

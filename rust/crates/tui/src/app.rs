@@ -323,7 +323,8 @@ impl App {
     fn resumed(&mut self, r: OfflineReport) {
         self.resyncs += 1;
         let away = fmt::duration(r.away_ms() as f64 / 1000.0);
-        if let Some(wb) = self.engine.compute_welcome_back(r.closed_ms, false) {
+        // the engine sets the welcome back after a long enough suspend
+        if let Some(wb) = self.engine.welcome_back().cloned() {
             if self.overlay.is_none() {
                 self.overlay = Some(Overlay::WelcomeBack(wb));
             }

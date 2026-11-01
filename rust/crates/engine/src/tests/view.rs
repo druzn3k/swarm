@@ -567,3 +567,129 @@ fn ui_events_reach_the_view() {
     let json = serde_json::to_string(&e.view(&ViewRequest::default())).unwrap();
     assert!(json.contains("\"tutorial_step\":1"));
 }
+
+#[test]
+fn live_descriptions_render() {
+    let mut e = midgame();
+    let d = data();
+    let mut seen = 0;
+    for unit in d.units() {
+        let text = e.unit_description(unit.id);
+        assert!(!text.contains("{{"), "{}: {text}", unit.name);
+        seen += usize::from(!text.is_empty());
+    }
+    for up in d.upgrades() {
+        let text = e.upgrade_description(up.id);
+        assert!(!text.contains("{{"), "{}: {text}", up.name);
+        seen += usize::from(!text.is_empty());
+    }
+    assert!(seen > 100);
+    let up = |name: &str| e.upgrade_description(g(name));
+    assert!(
+        up("larvarush").starts_with("Instantly give birth to ")
+            && up("larvarush").ends_with(" new larvae."),
+        "{}",
+        up("larvarush")
+    );
+    assert_eq!(
+        up("swarmlingempower"),
+        "Dramatically increase both your swarmlings' meat cost and territory captured.\n\
+         This will destroy all 100 thousand of your swarmlings."
+    );
+    let hatchery = up("hatchery");
+    assert!(
+        hatchery.starts_with("Each hatchery produces 1 more larvae per second."),
+        "{hatchery}"
+    );
+    assert!(hatchery.contains("crystals."), "{hatchery}");
+    let clone = up("clonelarvae");
+    assert!(clone.contains("available to clone."), "{clone}");
+    let army = up("clonearmy");
+    assert!(
+        army.contains("Create ") && army.contains(" swarmlings."),
+        "{army}"
+    );
+    let meat = e.unit_description(u("mutantmeat"));
+    assert!(meat.starts_with("Drones are "), "{meat}");
+    let bat = e.unit_description(u("bat"));
+    assert!(bat.contains("more powerful"), "{bat}");
+    assert_eq!(
+        e.unit_description(u("drone")),
+        d.unit(u("drone")).text.description.clone().unwrap()
+    );
+
+    // the view: templates once, rendered text for detailed items only
+    for name in [
+        "hatchery",
+        "clonearmy",
+        "swarmwarp",
+        "expansion",
+        "achievementbonus",
+    ] {
+        eprintln!("{name}: {}", up(name));
+    }
+    for name in [
+        "cocoon",
+        "crystal",
+        "mutantfreq",
+        "mutantnexus",
+        "mutanthatchery",
+        "nightbug",
+    ] {
+        eprintln!("{name}: {}", e.unit_description(u(name)));
+    }
+    let rush_text = up("larvarush");
+    let st = e.static_view();
+    assert!(st.upgrades[g("larvarush").index()]
+        .description_template
+        .is_some());
+    assert!(st.upgrades[g("droneprod").index()]
+        .description_template
+        .is_none());
+    let v = e.view(&full());
+    let rush = v.upgrades[g("larvarush").index()].detail.as_ref().unwrap();
+    assert_eq!(rush.description.as_deref(), Some(rush_text.as_str()));
+    let plain = e.view(&ViewRequest::default());
+    assert!(plain.upgrades[g("larvarush").index()].detail.is_none());
+}
+
+#[test]
+fn resync_wall_sets_the_welcome_back_cache_neutrally() {
+    let d = data();
+    let state = State::with_units(0, [("drone", n("10"))]);
+    let mut e = Engine::load(d, state.clone(), 0, None).unwrap().engine;
+    let mut plain = Engine::load(d, state, 0, None).unwrap().engine;
+    assert!(e.welcome_back().is_none());
+    // a short suspend: caught up, nothing to show
+    let r = e.resync_wall(60_000).unwrap();
+    assert_eq!(r.away_ms(), 60_000);
+    assert!(e.welcome_back().is_none() && e.offline().is_none());
+    // ten minutes: 10 drones made 6000 meat
+    let r = e.resync_wall(660_000).unwrap();
+    let wb = e.welcome_back().cloned().unwrap();
+    assert_eq!(e.offline(), Some(r));
+    assert_eq!((wb.away_ms, wb.closed_ms), (600_000, 60_000));
+    assert_eq!(wb.gains[0].unit_id(), u("meat"));
+    assert_eq!(wb.gains[0].val, n("6000"));
+    assert_eq!(
+        e.view(&ViewRequest::default()).welcome_back,
+        Some(wb.clone())
+    );
+    // the same as computing it by hand
+    assert_eq!(e.compute_welcome_back(60_000, false), Some(wb));
+    // cache-neutral: the memos are those of a plain clock move
+    let mut e2 = Engine::load(d, State::with_units(0, [("drone", n("10"))]), 0, None)
+        .unwrap()
+        .engine;
+    e2.resync_wall(60_000);
+    e2.resync_wall(660_000);
+    plain.set_now_ms(60_000).unwrap();
+    plain.set_now_ms(660_000).unwrap();
+    let memo = |e: &Engine| {
+        let c = e.cache.borrow();
+        format!("{:?} {:?} {:?}", c.stats, c.count, c.velocity)
+    };
+    assert_eq!(memo(&e2), memo(&plain));
+    e.apply(Command::DismissWelcomeBack).unwrap();
+    assert!(e.welcome_back().is_none());
+}

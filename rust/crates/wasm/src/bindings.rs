@@ -70,7 +70,9 @@ impl Game {
     }
 
     /// `OfflineReport` JSON if the wall clock jumped ahead (suspend), else
-    /// `undefined`.
+    /// `undefined`. After at least `welcome_back_min_ms` away, the view's
+    /// `welcome_back` is set too (until `dismiss_welcome_back`), as after a
+    /// load.
     pub fn resync_wall(&mut self, wall_now_ms: f64) -> Result<Option<String>, JsError> {
         self.inner.resync_wall(wall_now_ms).map_err(js_err)
     }

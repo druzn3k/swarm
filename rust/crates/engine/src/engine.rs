@@ -153,12 +153,7 @@ impl Engine {
             resumed_ms: wall_now_ms,
         });
         engine.rt.offline = offline;
-        // cache-neutral: memoised stats would otherwise capture load-time
-        // counts (PARITY(cache)) that later queries would not
-        let caches = engine.cache.borrow().clone();
-        engine.rt.welcome_back =
-            offline.and_then(|o| engine.compute_welcome_back(o.closed_ms, false));
-        *engine.cache.get_mut() = caches;
+        engine.rt.welcome_back = offline.and_then(|o| engine.welcome_back_cache_neutral(o));
         Ok(LoadOutcome {
             engine,
             offline,

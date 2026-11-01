@@ -103,6 +103,7 @@ export interface View {
   /** `[unit, now_ms of its first spawn]`. */
   first_spawn?: Array<[Index, number]>
   offline?: OfflineReport
+  /** Set by `load` and by `resync_wall` after `welcome_back_min_ms` away; until `dismiss_welcome_back`. */
   welcome_back?: WelcomeBack
   /** Drained: each event is reported by one view only. */
   events?: ViewEvent[]
@@ -140,6 +141,8 @@ export interface UnitDetail {
   eta?: Estimate
   cap_eta?: Estimate
   effects?: EffectView[]
+  /** `StaticUnit.description_template` rendered now: paragraphs joined by `\n`. Absent for spreadsheet descriptions. */
+  description?: string
 }
 
 export interface UpgradeView {
@@ -165,6 +168,8 @@ export interface UpgradeView {
 export interface UpgradeDetail {
   eta: UpgradeEta
   effects?: EffectView[]
+  /** `StaticUpgrade.description_template` rendered now: paragraphs joined by `\n`. Absent for spreadsheet descriptions. */
+  description?: string
 }
 
 export type UpgradeEta =
@@ -290,7 +295,10 @@ export interface StaticUnit {
   verb?: string
   verbone?: string
   verbing?: string
+  /** "-" or absent: see `description_template`. */
   description?: string
+  /** The live template (engine `description` module syntax) used instead of a "-" description; rendered in `UnitDetail.description`. */
+  description_template?: string
   lol?: string
   tab?: Index
   column?: number
@@ -311,7 +319,10 @@ export interface StaticUnit {
 export interface StaticUpgrade {
   name: string
   label?: string
+  /** "-" or absent: see `description_template`. */
   description?: string
+  /** The live template (engine `description` module syntax) used instead of a "-" description; rendered in `UpgradeDetail.description`. */
+  description_template?: string
   lol?: string
   ability: boolean
   unit: Index

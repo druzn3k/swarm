@@ -1,7 +1,7 @@
 //! Text: numbers (`swarm_num::format`), durations, names and the
 //! descriptions the React app shows.
 
-use swarm_engine::view::{EffectView, StaticView};
+use swarm_engine::view::{EffectView, StaticView, UnitDetail, UpgradeDetail};
 use swarm_engine::Estimate;
 use swarm_num::format::{format_long, format_short};
 use swarm_num::Num;
@@ -131,99 +131,39 @@ pub fn costs(sv: &StaticView, f: &Fmt, list: &[(u16, Num)]) -> String {
         .join(", ")
 }
 
-fn templated(d: Option<&str>) -> bool {
-    matches!(d, None | Some("") | Some("-"))
-}
-
-/// Static fallbacks for descriptions the spreadsheet leaves as "-"
-/// (`app/src/content/descriptions.ts`).
-fn unit_fallback(name: &str) -> &'static str {
-    match name {
-        "cocoon" => "Each cocoon is a larva encased within a protective shell. Larvae can freely enter and leave their cocoons, but cannot be transformed into other units while cocooned. Clone Larvae clones cocoons as if they were normal larvae.",
-        "territory" => "Your swarm's military captures territory, fueling your expansion.",
-        "energy" => "Energy is consumed to use special abilities.",
-        "nexus" => "Nexus are the focal points for the energy needed to cast spells and use special abilities. Each nexus is more expensive than the last.",
-        "crystal" => "Energy frozen into a solid form. Crystals can be thawed and used as energy at any time.",
-        "nightbug" => "Nightbugs wriggle and glow when exposed to the energy of your nexus. Gather nightbugs near your nexus to store additional energy.",
-        "moth" => "Lepidoptera are attracted to the light of your nightbugs, and energy is attracted to the lepidoptera.",
-        "bat" => "Bats empower all of your swarm's energy-based abilities.",
-        "mutagen" => "Allows mutation, increasing the power of each member of your swarm.",
-        "premutagen" => "Mutagen cannot be used while inactive. Ascend to begin a new swarm, resetting most of your units and upgrades, but activating all of your mutagen.",
-        "mutanthatchery" => "Increases larvae production.",
-        "mutantbat" => "Increases power of all abilities.",
-        "mutantclone" => "Increases Clone Larvae's maximum.",
-        "mutantswarmwarp" => "Increases Swarmwarp's power.",
-        "mutantrush" => "Increases the power of Larvae Rush, Meat Rush and Territory Rush.",
-        "mutanteach" => "When a hatchery or expansion spawns mutagen, more mutagen is generated.",
-        "mutantfreq" => "Increases the chance of spawning mutagen when buying a hatchery or expansion.",
-        "mutantnexus" => "Increases energy generation and maximum energy.",
-        "mutantarmy" => "Increases all territory generated.",
-        "mutantmeat" => "Makes your meat units more productive.",
-        _ => "",
+/// A unit's description: the engine's rendered live template (in the
+/// unit's [`UnitDetail`], for the focused unit), else the sheet's text.
+pub fn unit_description(sv: &StaticView, unit: u16, detail: Option<&UnitDetail>) -> String {
+    if let Some(d) = detail.and_then(|d| d.description.clone()) {
+        return d;
     }
+    sheet_text(
+        sv.units
+            .get(unit as usize)
+            .and_then(|u| u.description.as_deref()),
+    )
 }
 
-fn upgrade_fallback(name: &str) -> String {
-    let empower = |p: &str| {
-        format!("Dramatically increase both your {p}' meat cost and territory captured. This will destroy all of your {p}.")
-    };
-    let s = match name {
-        "hatchery" => "Each hatchery produces more larvae.",
-        "expansion" => "Each expansion increases your hatcheries' larvae production.",
-        "clonearmy" => "Summon a mirrored copy of your army. Unlike Clone Larvae, this ability has no cap.",
-        "clonelarvae" => "Clone new larvae.",
-        "larvarush" => "Instantly give birth to new larvae.",
-        "meatrush" => "Instantly create new meat.",
-        "territoryrush" => "Instantly capture new territory.",
-        "swarmwarp" => "Warp time around your swarm. Instantly travel into the future, gaining production. Does not produce energy.",
-        "achievementbonus" => "Larva production increases with your achievement points.",
-        "mutatearmy" => "Increases the amount of territory captured, and increases the cost of unlocking other mutagen powers.",
-        "mutatebat" => "Increases the power of all abilities, and increases the cost of unlocking other mutagen powers.",
-        "mutateclone" => "Increases Clone Larvae's maximum, and increases the cost of unlocking other mutagen powers.",
-        "mutateeach" => "When a hatchery or expansion spawns mutagen, more mutagen is generated. Increases the cost of unlocking other mutagen powers.",
-        "mutatefreq" => "Increases the chance of spawning mutagen when buying a hatchery or expansion, and increases the cost of unlocking other mutagen powers.",
-        "mutatehatchery" => "Increases larvae production, and increases the cost of unlocking other mutagen powers.",
-        "mutatemeat" => "Increases production of all meat units, and increases the cost of unlocking other mutagen powers.",
-        "mutatenexus" => "Increases energy generated, but also increases the energy cost of ascending. Increases the cost of unlocking other mutagen powers.",
-        "mutaterush" => "Increases the power of Larvae Rush, Meat Rush, and Territory Rush, and increases the cost of unlocking other mutagen powers.",
-        "mutateswarmwarp" => "Increases Swarmwarp's power, and increases the cost of unlocking other mutagen powers.",
-        "centipedeempower" => return empower("chilopodomorphs"),
-        "devourerempower" => return empower("devourers"),
-        "giantspiderempower" => return empower("giant arachnomorphs"),
-        "goonempower" => return empower("goons"),
-        "locustempower" => return empower("locusts"),
-        "mosquitoempower" => return empower("culicimorphs"),
-        "roachempower" => return empower("roaches"),
-        "spiderempower" => return empower("arachnomorphs"),
-        "stingerempower" => return empower("stingers"),
-        "swarmlingempower" => return empower("swarmlings"),
-        "waspempower" => return empower("wasps"),
-        _ => "",
-    };
-    s.to_owned()
-}
-
-/// A unit's description: the sheet's, or the app's fallback.
-pub fn unit_description(sv: &StaticView, unit: u16) -> String {
-    let Some(u) = sv.units.get(unit as usize) else {
-        return String::new();
-    };
-    if templated(u.description.as_deref()) {
-        unit_fallback(&u.name).to_owned()
-    } else {
-        u.description.clone().unwrap_or_default()
+/// An upgrade's description: the engine's rendered live template (in its
+/// [`UpgradeDetail`]), else the sheet's text.
+pub fn upgrade_description(sv: &StaticView, up: u16, detail: Option<&UpgradeDetail>) -> String {
+    if let Some(d) = detail.and_then(|d| d.description.clone()) {
+        return d;
     }
+    sheet_text(
+        sv.upgrades
+            .get(up as usize)
+            .and_then(|g| g.description.as_deref()),
+    )
 }
 
-/// An upgrade's description: the sheet's, or the app's fallback.
-pub fn upgrade_description(sv: &StaticView, up: u16) -> String {
-    let Some(g) = sv.upgrades.get(up as usize) else {
-        return String::new();
-    };
-    if templated(g.description.as_deref()) {
-        upgrade_fallback(&g.name)
+/// The spreadsheet's description, or nothing where it stands for a live
+/// template.
+fn sheet_text(d: Option<&str>) -> String {
+    if swarm_engine::description::is_templated(d) {
+        String::new()
     } else {
-        g.description.clone().unwrap_or_default()
+        d.unwrap_or_default().to_owned()
     }
 }
 

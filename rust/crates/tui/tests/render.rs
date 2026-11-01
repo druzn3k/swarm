@@ -275,3 +275,24 @@ fn snapshot_options_screen() {
     a.message = None;
     insta::assert_snapshot!(render(&mut a, 80, 16));
 }
+
+#[test]
+fn live_upgrade_description() {
+    let t = Instant::now();
+    let mut a = dismissed(t);
+    a.command_line("tab larva");
+    let larva = a
+        .tab_units()
+        .iter()
+        .position(|&u| a.sv.units[u as usize].name == "larva")
+        .unwrap();
+    a.act(Action::Top, t);
+    a.act(Action::Move(larva as i64), t);
+    a.act(Action::Open, t); // focus the upgrades: the hatchery
+    let s = render(&mut a, 120, 50);
+    // the engine's rendered template, not a copied static string
+    assert!(
+        s.contains("Each hatchery produces") && s.contains("larvae per second."),
+        "{s}"
+    );
+}

@@ -27,6 +27,7 @@ pub mod achievement;
 pub mod backfill;
 pub mod cache;
 pub mod command;
+pub mod description;
 pub mod effects;
 pub mod engine;
 pub mod estimate;
@@ -53,6 +54,7 @@ pub use command::{
     Amount, Command, CommandError, CommandEvent, CommandOutcome, UndoState, UnitRef, UpgradeRef,
     UpgradeSet,
 };
+pub use description::DescriptionOwner;
 pub use effects::{EffectOutput, RandOutput};
 pub use engine::{Engine, LoadError, LoadOutcome, OfflineReport};
 pub use estimate::Estimate;

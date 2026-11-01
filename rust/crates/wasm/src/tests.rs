@@ -203,6 +203,9 @@ fn resync_and_mark_closed() {
     assert_eq!(g.resync_wall(T0 + 1000.0).unwrap(), None);
     let r = parse(&g.resync_wall(T0 + 3_600_000.0).unwrap().unwrap());
     assert_eq!(r["resumed_ms"], (T0 + 3_600_000.0) as i64);
+    // an hour away: the view carries the welcome back, as after a load
+    let wb = &parse(&g.view("").unwrap())["welcome_back"];
+    assert_eq!(wb["away_ms"], 3_600_000);
     g.mark_closed(T0 + 3_600_000.0).unwrap();
     let save = g.export_v2(T0 + 3_600_000.0).unwrap();
     let back = GameCore::load(&save, T0 + 7_200_000.0, None).unwrap();

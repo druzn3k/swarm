@@ -138,6 +138,11 @@ impl Engine {
     /// After a suspend or a hidden tab, monotonic clocks may have stopped:
     /// if the wall clock is more than 5 s ahead of the game clock, jump to it
     /// and report the gap. Never moves the clock back.
+    ///
+    /// A gap of at least [`WELCOME_BACK_MIN_MS`](crate::welcomeback::WELCOME_BACK_MIN_MS)
+    /// also sets the pending welcome back, as [`Engine::load`] does
+    /// ([`Engine::offline`], [`Engine::welcome_back`], replacing one still
+    /// pending), without touching the caches.
     pub fn resync_wall(&mut self, wall_now_ms: i64) -> Option<OfflineReport> {
         if wall_now_ms - self.rt.now_ms > RESYNC_THRESHOLD_MS {
             let report = OfflineReport {
@@ -145,6 +150,12 @@ impl Engine {
                 resumed_ms: wall_now_ms,
             };
             let _ = self.tick_to(wall_now_ms);
+            if report.away_ms() >= crate::welcomeback::WELCOME_BACK_MIN_MS {
+                if let Some(wb) = self.welcome_back_cache_neutral(report) {
+                    self.rt.offline = Some(report);
+                    self.rt.welcome_back = Some(wb);
+                }
+            }
             Some(report)
         } else {
             None
