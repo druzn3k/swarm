@@ -13,17 +13,10 @@
  * `withGlobalTauri` is on, so `window.__TAURI__.core.invoke` exists in the shell
  * and nowhere else; no @tauri-apps/api dependency is needed.
  *
- * HOW THE APP SHOULD USE THIS (not wired up yet; that is the app's job):
- *   1. Copy this file into app/src (or import it) and route the app's save
- *      load/store through `saveStorage()` instead of calling localStorage
- *      directly. In a browser it falls back to localStorage under the app's
- *      existing key, so the web build behaves as before.
- *   2. Load once at startup with `await storage.load()` (it is async in the shell).
- *   3. Keep saving on the app's existing schedule (autosave, visibilitychange /
- *      pagehide); `store` is async, so don't block on it, but do log failures.
- *   4. Optional migration: if `isDesktop()` and `load()` returns null, read the
- *      old localStorage key once and `store` it, so a first desktop run keeps
- *      a save made earlier in the same webview profile.
+ * STATUS: the app now imports its save storage from app/src/game/storage.ts
+ * (openSaveStorage / tauriBackend), which includes the one-time copy of a
+ * browser-side save into the desktop file. This file is kept only as a
+ * standalone reference of the command contract and is not used by the build.
  */
 
 type Invoke = <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;

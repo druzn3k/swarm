@@ -2,6 +2,7 @@
 // asks the browser to keep the save from being evicted, and remembers
 // Chrome's install prompt so the More menu can offer "Install app".
 import { useSyncExternalStore } from "react";
+import { isDesktop } from "./game/storage";
 
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -23,7 +24,8 @@ export function setupPwa(): void {
     deferred = null;
     notify();
   });
-  if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  // (not in the desktop shell: it serves the files itself, and the worker adds nothing)
+  if (import.meta.env.PROD && !isDesktop() && "serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("./sw.js").catch(() => {
         /* no offline support; the game still runs */

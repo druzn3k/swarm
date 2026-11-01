@@ -3,9 +3,11 @@ import { initEngine } from "@swarmsim/engine-wasm";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { GameProvider } from "./game/GameContext";
-import { useRunningStore } from "./game/useGameStore";
+import { createBrowserStore, useRunningStore } from "./game/useGameStore";
 import { FormatContext } from "./format";
 import type { ReactNode } from "react";
+import type { GameStore } from "./game/store";
+import { SaveErrorToast } from "./components/meta/SaveErrorToast";
 import { useOptionsFormatter } from "./game/options";
 import { setupPwa } from "./pwa";
 import { watchListScroll } from "./scrollMemory";
@@ -16,8 +18,8 @@ function FormatProvider({ children }: { children: ReactNode }) {
   return <FormatContext.Provider value={useOptionsFormatter()}>{children}</FormatContext.Provider>;
 }
 
-function Root() {
-  const store = useRunningStore();
+function Root({ store: loaded }: { store: GameStore }) {
+  const store = useRunningStore(loaded);
   return (
     <GameProvider store={store}>
       {/* the formatter follows the player's options (game/options.ts) */}
@@ -34,11 +36,15 @@ watchListScroll();
 
 const root = createRoot(document.getElementById("root")!);
 // the engine is WebAssembly: fetched and compiled once, before the first render
-initEngine().then(
-  () =>
+// then the save is loaded (async in the desktop app) before the game is created
+initEngine()
+  .then(createBrowserStore)
+  .then(
+  (store) =>
     root.render(
       <StrictMode>
-        <Root />
+        <Root store={store} />
+        <SaveErrorToast />
       </StrictMode>
     ),
   (e) => {
