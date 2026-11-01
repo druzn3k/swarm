@@ -3,8 +3,8 @@
 // oracle), which runScenario() then replays on a fresh old-engine instance.
 import * as fs from "fs";
 import * as path from "path";
-import { createOracle, Oracle } from "./oracle";
-import { Action, runStep, Scenario, SnapshotKind, snapshotFull, Step } from "./scenario";
+import { createOracle } from "./oracle";
+import { Action, runStep, Scenario, ScenarioEngine, SnapshotKind, snapshotFull, Step, StepResult } from "./scenario";
 
 export const T0 = "2020-01-01T00:00:00.000Z";
 const T0_MS = Date.parse(T0);
@@ -32,15 +32,16 @@ export const SAVE_V1 =
 
 // ---- planning helpers ----
 
-/** Records steps while applying them to a live planning oracle. */
-class Planner {
+/** Records steps while applying them to a live planning engine (the oracle, or the TS engine for the Rust harness corpus). */
+export class Planner {
   readonly steps: Step[] = [];
-  constructor(readonly o: Oracle) {}
+  constructor(readonly o: ScenarioEngine) {}
   /** apply exactly like runScenario does (including snapshot queries, which touch caches) */
-  push(action: Action, snapshot?: SnapshotKind) {
+  push(action: Action, snapshot?: SnapshotKind): StepResult {
     const step: Step = snapshot ? { action, snapshot } : { action };
-    runStep(this.o, step);
+    const r = runStep(this.o, step);
     this.steps.push(step);
+    return r;
   }
   get game() {
     return this.o.game;
@@ -55,7 +56,7 @@ function plan(start: Scenario["start"], fn: (p: Planner) => void): Step[] {
 }
 
 /** Buy max of every affordable unit in a tab, highest tier first. */
-function buyTab(p: Planner, tabName: string, percent: number) {
+export function buyTab(p: Planner, tabName: string, percent: number) {
   const tab = p.game.tabs.byName[tabName];
   if (!tab) return;
   for (const u of [...tab.units].reverse()) {

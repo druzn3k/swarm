@@ -1,0 +1,1280 @@
+{
+ "name": "fixture-session-publictestBroken",
+ "description": "importSave of engine/test/fixtures/session-saves.json \"publictestBroken\" at T0 (does not import), then the random auto-player.",
+ "start": {
+  "now": "2020-01-01T00:00:00.000Z"
+ },
+ "steps": [
+  {
+   "action": {
+    "do": "importSave",
+    "save": "MS4wLjAtcHVibGljdGVzdDI2|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"
+   }
+  },
+  {
+   "action": {
+    "do": "respec"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "drone",
+    "num": "1e30"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-01T03:49:01.488Z"
+   }
+  },
+  {
+   "action": {
+    "do": "countInSecs",
+    "unit": "meat",
+    "secs": 86400
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-01T03:49:05.257Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "larva",
+    "num": 1000
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-01T03:49:18.160Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "hatchery",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "hatchery",
+    "num": 2
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-01T03:49:18.748Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "larva",
+    "num": "0"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-01T03:49:56.440Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "territoryrush",
+    "num": 2
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "expansion",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "larva",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T08:43:18.739Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:15:38.092Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "meat",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:16:09.242Z"
+   }
+  },
+  {
+   "action": {
+    "do": "countInSecs",
+    "unit": "meat",
+    "secs": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:16:35.921Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:16:36.671Z"
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "ascend"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:17:14.189Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "swarmwarp",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:27:40.543Z"
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "larva",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:27:54.437Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T09:27:54.549Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "drone",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "respecFree"
+   }
+  },
+  {
+   "action": {
+    "do": "estimateUnit",
+    "unit": "larva",
+    "target": "815690.044"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T10:24:00.535Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T10:24:01.585Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T10:28:06.132Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "larvarush",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "estimateUpgrade",
+    "upgrade": "expansion"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T10:28:10.928Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "crystal",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "effects",
+    "upgrade": "hatchery"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "meat",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-02T22:00:52.538Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T00:44:37.896Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T02:36:40.006Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T06:52:54.200Z"
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "swarmwarp",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T06:52:56.463Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T06:53:11.997Z"
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T06:54:28.473Z"
+   }
+  },
+  {
+   "action": {
+    "do": "parseNumber",
+    "input": "=10",
+    "unit": "queen"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T06:56:56.033Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T08:28:47.723Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-04T08:28:52.595Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "queen",
+    "num": "327"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "achievementbonus",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "swarmwarp",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "respecFree"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-05T09:24:28.595Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "larvarush",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-07T08:11:40.037Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-07T08:11:44.980Z"
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-07T08:23:01.402Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-07T08:23:05.390Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-09T16:06:09.051Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "locust",
+    "num": "1e30"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-09T18:11:18.354Z"
+   }
+  },
+  {
+   "action": {
+    "do": "respecFree"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUpgrade",
+    "upgrade": "hatchery",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "spider",
+    "num": 10
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "swarmwarp",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "swarmwarp",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-09T18:19:35.961Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "energy",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUpgrade",
+    "upgrade": "expansion",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "meat",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-10T00:49:02.905Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "locust",
+    "num": "3"
+   },
+   "snapshot": "full"
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "queen",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "drone",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "effects",
+    "upgrade": "droneprod"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "meatrush",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-10T00:52:07.719Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T12:07:10.373Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "stinger",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T12:08:26.118Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T12:08:27.244Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T12:19:17.242Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T12:19:17.821Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T13:18:44.706Z"
+   }
+  },
+  {
+   "action": {
+    "do": "parseNumber",
+    "input": "1e3",
+    "unit": "nexus"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "energy",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T13:42:38.248Z"
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "effects",
+    "upgrade": "dronetwin"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "roach",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "locust",
+    "percent": 0.25
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "mosquito",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "spider",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "stinger",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "swarmling",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "crystal",
+    "num": 3
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "energy",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUpgrade",
+    "upgrade": "nexus2",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-11T18:53:48.576Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-13T18:24:13.892Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-13T18:24:13.995Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-13T18:24:21.059Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-14T02:27:04.671Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-14T02:27:15.250Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "larvarush",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-14T04:13:26.542Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-14T04:13:26.847Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-16T13:54:20.337Z"
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-16T13:54:25.886Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "meat",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-16T13:54:51.335Z"
+   }
+  },
+  {
+   "action": {
+    "do": "ascendInfo"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-16T13:55:58.473Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUpgrade",
+    "upgrade": "queenprod",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "nest",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "queen",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "drone",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "roach",
+    "num": 3
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "nest",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "queen",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-16T21:29:24.393Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-16T21:29:24.695Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-17T20:39:00.740Z"
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "nestprod",
+    "num": 2
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "queenprod",
+    "num": 1
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "nest",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "queen",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "drone",
+    "percent": 0.5
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-18T16:33:31.754Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUpgrade",
+    "upgrade": "spidertwin",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-18T16:33:32.045Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T01:28:12.932Z"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T01:28:25.684Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T06:36:08.465Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades",
+    "percent": 0.25
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T07:30:38.433Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyAllUpgrades"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T08:04:49.324Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "swarmwarp",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "undo"
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T08:04:49.676Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "meatrush",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUpgrade",
+    "upgrade": "stingertwin",
+    "percent": 1
+   },
+   "snapshot": "counts"
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T08:04:51.885Z"
+   }
+  },
+  {
+   "action": {
+    "do": "respecFree"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "moth",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "energy",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyUnit",
+    "unit": "centipede",
+    "num": 10
+   }
+  },
+  {
+   "action": {
+    "do": "buyUpgrade",
+    "upgrade": "clonelarvae",
+    "num": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "moth",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "wasp",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "centipede",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "giantspider",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "roach",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "locust",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "mosquito",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "spider",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "stinger",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "swarmling",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-21T20:24:14.855Z"
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "cocoon",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "buyMaxUnit",
+    "unit": "larva",
+    "percent": 1
+   }
+  },
+  {
+   "action": {
+    "do": "tick",
+    "at": "2020-01-22T02:48:04.116Z"
+   },
+   "snapshot": "full"
+  }
+ ]
+}
