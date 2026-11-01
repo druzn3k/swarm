@@ -71,6 +71,7 @@ impl Engine {
 
     /// Sets the debug speed multiplier, reifying first (`game.ts:231-234`).
     pub fn set_game_speed(&mut self, speed: f64) {
+        self.snapshot_export();
         self.reify();
         self.rt.game_speed = speed;
     }
@@ -164,6 +165,27 @@ impl Engine {
         self.rt.now_ms = ms;
     }
 
+    /// Replaces the state but keeps the runtime (sticky visibility, undo,
+    /// the clock), for the harness's lockstep mode: continue from the TS
+    /// engine's state after a snapshot. Memoised values are dropped.
+    #[cfg(any(test, feature = "parity"))]
+    pub fn resync_state(&mut self, state: crate::State) {
+        self.state = state;
+        self.rt.skipped_ms = 0;
+        // keep the caches that are game behaviour (stale estimates and
+        // "upgradable" flags), as the TS engine, which never left its
+        // state, still has them
+        let cache = self.cache.get_mut();
+        let estimates = std::mem::take(&mut cache.upgrade_estimate);
+        let upgradable = std::mem::take(&mut cache.upgradable);
+        let last_periodic = cache.last_periodic_ms;
+        self.on_update();
+        let cache = self.cache.get_mut();
+        cache.upgrade_estimate = estimates;
+        cache.upgradable = upgradable;
+        cache.last_periodic_ms = last_periodic;
+    }
+
     /// Writes the current counts back to the state and restarts the
     /// polynomial at now (`game.ts:374-382`). Every unit is written, so
     /// afterwards every unit counts as initialised.
@@ -197,6 +219,8 @@ impl Engine {
     /// erosson/swarm#241), save. If `f` fails, its changes so far are kept
     /// and nothing more happens, like the TS exception.
     pub fn with_save<T, E>(&mut self, f: impl FnOnce(&mut Engine) -> Result<T, E>) -> Result<T, E> {
+        // a failure leaves unsaved changes: keep the last saved state for undo
+        self.snapshot_export();
         self.reify();
         let ret = f(self)?;
         self.reify();

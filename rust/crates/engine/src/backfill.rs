@@ -14,6 +14,9 @@ impl Engine {
     /// 2. a save without a `freeRespec` count gets its `init`;
     /// 3. a lost ascension count is restored from statistics
     ///    (erosson/swarm#431).
+    ///
+    /// Its changes are not saved (TS: no `withSave`), so undo and
+    /// [`Engine::exported_state`] still see the state before backfill.
     pub fn run_backfill(&mut self) {
         let data = self.data;
         let wk = data.well_known();
@@ -26,6 +29,7 @@ impl Engine {
             && self.count(wk.ascension).is_zero()
             && (reached(self, wk.hatchery, min_hatch) || reached(self, wk.expansion, min_expo))
         {
+            self.snapshot_export();
             for up in [wk.hatchery, wk.expansion] {
                 let n = self.upgrade_count(up).to_f64();
                 let mut i = 0.0;
@@ -39,6 +43,7 @@ impl Engine {
         }
 
         if !self.is_count_initialized(wk.free_respec) {
+            self.snapshot_export();
             self.set_unit_count(wk.free_respec, data.unit(wk.free_respec).init);
         }
 
@@ -47,6 +52,7 @@ impl Engine {
             .map_or(Num::ZERO, |s| s.num);
         let count = self.count(wk.ascension);
         if num > count && count.is_zero() {
+            self.snapshot_export();
             self.set_unit_count(wk.ascension, num);
         }
     }

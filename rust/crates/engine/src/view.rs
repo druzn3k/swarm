@@ -84,8 +84,8 @@ pub struct UpgradeView {
     pub watched: i32,
     /// Affordable levels.
     pub max_cost_met: Num,
-    /// Progress to the next level, 0..=1.
-    pub cost_met_percent: Num,
+    /// Progress to the next level, 0..=1; `None` where the TS gives NaN.
+    pub cost_met_percent: Option<Num>,
     /// Cost of the next level, `(unit index, amount)`.
     pub total_cost: Vec<(u16, Num)>,
 }

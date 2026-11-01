@@ -48,6 +48,52 @@ pub enum UpgradeEstimate {
 pub const UPGRADE_ESTIMATE_TYPE_ERROR: &str =
     "Cannot read properties of undefined (reading 'plus')";
 
+/// A difference of two values of magnitude `scale`, with differences below
+/// `Num`'s precision (a few ulps) taken as exactly zero: decimal.js loses
+/// them too, at 20 digits, where `Num` would keep an ulp of noise.
+pub(crate) fn absorbed(diff: Num, scale: Num) -> Num {
+    if diff.abs() <= scale * Num::from_f64(4.0 * f64::EPSILON) {
+        Num::ZERO
+    } else {
+        diff
+    }
+}
+
+/// A quotient with the JS/decimal.js special values, for the few places
+/// where the TS lets them flow into `Decimal.min`/`max`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum JsRatio {
+    Finite(Num),
+    PosInf,
+    NegInf,
+    NaN,
+}
+
+impl JsRatio {
+    fn div(a: Num, b: Num) -> JsRatio {
+        if !b.is_zero() {
+            JsRatio::Finite(a / b)
+        } else if a.is_zero() {
+            JsRatio::NaN
+        } else if a.is_positive() == !b.is_negative() {
+            JsRatio::PosInf
+        } else {
+            JsRatio::NegInf
+        }
+    }
+
+    /// `Decimal.min(self, other)`: NaN wins.
+    fn min(self, other: JsRatio) -> JsRatio {
+        use JsRatio::*;
+        match (self, other) {
+            (NaN, _) | (_, NaN) => NaN,
+            (NegInf, _) | (_, NegInf) => NegInf,
+            (PosInf, x) | (x, PosInf) => x,
+            (Finite(a), Finite(b)) => Finite(a.min(b)),
+        }
+    }
+}
+
 /// A cached estimate: the raw value, and when it was taken.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum UpgradeEstimateCached {
@@ -209,14 +255,17 @@ impl Engine {
     }
 
     /// Progress towards the next unaffordable level, 0..=1
-    /// (`upgrade.ts:213-225`).
-    pub fn upgrade_cost_met_percent(&self, upgrade: UpgradeId) -> Num {
+    /// (`upgrade.ts:213-225`). `None` is the TS NaN: a level's cost is
+    /// lost to rounding next to what was already paid (`0 / 0`), as with
+    /// huge resource counts.
+    pub fn upgrade_cost_met_percent(&self, upgrade: UpgradeId) -> Option<Num> {
         let met = self.upgrade_max_cost_met(upgrade, Num::ONE);
         if self.upgrade_is_max_affordable(upgrade) {
-            return Num::ONE;
+            return Some(Num::ONE);
         }
         let cost_of_met = self.sum_cost(upgrade, met, None);
-        let mut max: Option<Num> = None;
+        // decimal.js `Decimal.min`, NaN-propagating; starts at Infinity
+        let mut max = JsRatio::PosInf;
         for cost in self.sum_cost(upgrade, met + Num::ONE, None) {
             // TS `keyBy(unit name)`: the last entry for a unit wins
             let paid = cost_of_met
@@ -224,12 +273,18 @@ impl Engine {
                 .rev()
                 .find(|c| c.unit == cost.unit)
                 .map_or(Num::ZERO, |c| c.val);
-            let m = (self.count(cost.unit) - paid) / (cost.val - paid);
-            max = Some(max.map_or(m, |x| x.min(m)));
+            let count = self.count(cost.unit);
+            let m = JsRatio::div(
+                absorbed(count - paid, count.abs().max(paid.abs())),
+                absorbed(cost.val - paid, cost.val.abs().max(paid.abs())),
+            );
+            max = max.min(m);
         }
         match max {
-            Some(m) => Num::ONE.min(Num::ZERO.max(m)),
-            None => Num::ONE,
+            JsRatio::NaN => None,
+            JsRatio::PosInf => Some(Num::ONE),
+            JsRatio::NegInf => Some(Num::ZERO),
+            JsRatio::Finite(m) => Some(Num::ONE.min(Num::ZERO.max(m))),
         }
     }
 

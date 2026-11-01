@@ -28,6 +28,7 @@ impl Engine {
                     num: Num::ZERO,
                     twinnum: Num::ZERO,
                     elapsed_first: Some(cmd.elapsed_ms),
+                    ..Default::default()
                 }
             });
             s.clicks += 1;
@@ -45,6 +46,7 @@ impl Engine {
                     clicks: 0,
                     num: Num::ZERO,
                     elapsed_first: Some(cmd.elapsed_ms),
+                    ..Default::default()
                 }
             });
             s.clicks += 1;

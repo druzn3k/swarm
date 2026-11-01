@@ -474,3 +474,45 @@ fn recovers_nan_saves() {
     let e = mkgame(&[("meat", "9999999"), ("drone", "99999")]);
     assert_eq!(e.count(u("larva")).to_f64(), 0.0);
 }
+
+#[test]
+fn quadratic_estimate_without_cancellation() {
+    // b^2 >> 4ac: the TS form `(-b + sqrt(b^2 - 4ac)) / 2a` cancels to 0 at
+    // 15 digits (decimal.js's 20 still resolve it); seen on an overmind
+    // upgrade 1.19e12 s away in the fixture-session-whitespace corpus run
+    // (4ac / b^2 = 1e-17)
+    let e = mkgame(&[("hive", "1"), ("greaterqueen", "1e24")]);
+    assert_eq!(e.max_degree(u("nest")), 2);
+    let s = est(&e, "nest", 4e30);
+    assert!((s / 1e6 - 1.0).abs() < 1e-9, "{s}");
+}
+
+#[test]
+fn quadratic_estimate_cancels_like_decimal_js() {
+    // 4ac / b^2 below 1e-19: decimal.js's `-b + sqrt(b^2 - 4ac)` is 0, so
+    // the TS estimate is 0 (min of the linear and quadratic roots); the
+    // fixture-session-whitespace corpus run has one (NaN upgrade estimate)
+    let e = mkgame(&[("hive", "1"), ("greaterqueen", "1e30")]);
+    assert_eq!(
+        e.estimate_secs_until_earned(u("nest"), n("4e24")),
+        Estimate::Secs(0.0)
+    );
+}
+
+#[test]
+fn a_target_within_rounding_of_the_count_is_reached() {
+    // golden ascend-respec step 21: decimal.js sees `target - count` as 0
+    // where Num keeps an ulp of noise
+    let e = mkgame(&[("meat", "1e100")]);
+    let count = e.count(u("meat"));
+    let target = Num::new(1.0 + 2.0 * f64::EPSILON, 100);
+    assert!(target > count);
+    assert_eq!(
+        e.estimate_secs_until_earned(u("meat"), target),
+        Estimate::Reached
+    );
+    assert_eq!(
+        e.estimate_secs_until_earned(u("meat"), count * Num::from_f64(1.001)),
+        Estimate::Never
+    );
+}

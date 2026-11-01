@@ -1,0 +1,17 @@
+[package]
+name = "swarm-scenario"
+version = "0.1.0"
+description = "Swarm Simulator scenario harness: the oracle action language over swarm-engine, TS-identical serialisation, and a tolerant comparator against the TS engine's outputs."
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+swarm-engine = { path = "../engine", features = ["parity"] }
+swarm-save = { path = "../save", features = ["legacy-write"] }
+swarm-data = { path = "../data" }
+swarm-num = { path = "../num" }
+serde = { version = "1", features = ["derive"] }
+# preserve_order: scenario actions, `start` and the outputs keep their key
+# order, like JSON.stringify
+serde_json = { version = "1", features = ["preserve_order"] }

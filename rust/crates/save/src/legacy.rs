@@ -270,7 +270,8 @@ fn btoa(text: &str) -> String {
 /// rounded to whole milliseconds; a `"NaN"` count reads as zero with a
 /// warning (decimal.js would carry a NaN that the engine reads as zero);
 /// a missing `unittypes`/`upgrades` reads as empty with a warning (the TS
-/// throws); unknown keys inside `statistics` and `version` are dropped.
+/// throws); unknown keys inside `statistics` and `version` are dropped,
+/// except those of the per-unit and per-upgrade entries, which are kept.
 pub fn decode(text: &str) -> Result<LegacyDecoded, LegacyError> {
     // 1. strip whitespace
     let text = strip_whitespace(text);
@@ -538,6 +539,14 @@ fn read_clicks(v: Option<&Value>) -> u64 {
         .map_or(0, |x| x.round() as u64)
 }
 
+/// The keys of `o` other than `known`, kept as-is.
+fn extra_keys(o: &Map<String, Value>, known: &[&str]) -> Map<String, Value> {
+    o.iter()
+        .filter(|(k, _)| !known.contains(&k.as_str()))
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect()
+}
+
 fn read_statistics(
     obj: Option<Value>,
     warnings: &mut Vec<String>,
@@ -573,6 +582,7 @@ fn read_statistics(
                 warnings,
             )?,
             elapsed_first: o.get("elapsedFirst").and_then(as_ms),
+            extra: extra_keys(&o, &["clicks", "num", "twinnum", "elapsedFirst"]),
         };
         stats.by_unit.insert(name, s);
     }
@@ -586,6 +596,7 @@ fn read_statistics(
                 warnings,
             )?,
             elapsed_first: o.get("elapsedFirst").and_then(as_ms),
+            extra: extra_keys(&o, &["clicks", "num", "elapsedFirst"]),
         };
         stats.by_upgrade.insert(name, s);
     }
@@ -671,6 +682,10 @@ pub fn to_legacy_json(state: &State) -> String {
             w.key("elapsedFirst");
             w.raw(&e.to_string());
         }
+        for (k, v) in &s.extra {
+            w.key(k);
+            w.raw(&v.to_string());
+        }
         w.close();
     });
     w.key("byUpgrade");
@@ -683,6 +698,10 @@ pub fn to_legacy_json(state: &State) -> String {
         if let Some(e) = s.elapsed_first {
             w.key("elapsedFirst");
             w.raw(&e.to_string());
+        }
+        for (k, v) in &s.extra {
+            w.key(k);
+            w.raw(&v.to_string());
         }
         w.close();
     });
@@ -797,6 +816,25 @@ mod tests {
         assert_eq!(parse_int(""), None);
         assert_eq!(parse_int("x"), None);
         assert_eq!(parse_int("-3"), Some(-3.0));
+    }
+
+    #[test]
+    fn keeps_unknown_statistics_keys() {
+        // old games wrote `elapsedFirstStr`; the TS keeps it in the state
+        let json = r#"{"unittypes":{},"upgrades":{},"date":{"started":0,"reified":0},"version":{"started":"1.1.17"},
+            "statistics":{"byUnit":{"drone":{"clicks":1,"num":"1","twinnum":"1","elapsedFirst":5,"elapsedFirstStr":"0h 00:00.005"}},
+            "byUpgrade":{"hatchery":{"clicks":1,"num":"1","elapsedFirstStr":"x"}},"clicks":2}}"#;
+        let text = format!("{PREFIX}{}", crate::lz::compress_to_base64(json));
+        let s = decode(&text).unwrap().state;
+        let drone = &s.statistics.by_unit["drone"];
+        assert_eq!(drone.elapsed_first, Some(5));
+        assert_eq!(drone.extra["elapsedFirstStr"], "0h 00:00.005");
+        assert_eq!(
+            s.statistics.by_upgrade["hatchery"].extra["elapsedFirstStr"],
+            "x"
+        );
+        #[cfg(feature = "legacy-write")]
+        assert!(to_legacy_json(&s).contains(r#""elapsedFirst":5,"elapsedFirstStr":"0h 00:00.005""#));
     }
 
     #[test]

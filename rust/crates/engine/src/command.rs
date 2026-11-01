@@ -218,6 +218,8 @@ pub struct CommandEvent {
     pub upgrade: Option<UpgradeId>,
     /// Its name.
     pub upgradename: Option<String>,
+    /// The game clock when it ran, epoch ms (TS `now`).
+    pub now_ms: i64,
     /// Milliseconds since the game started.
     pub elapsed_ms: i64,
     /// The amount asked for (`buyUnit`).
@@ -372,9 +374,11 @@ impl Engine {
         }
     }
 
+    /// TS `_setUndo`: the **last saved** state (`session.exportSave()`),
+    /// which is not the current one after a failed command or backfill.
     fn set_undo(&mut self, is_redo: bool) {
         self.rt.undo = Some(UndoState {
-            state: self.state.clone(),
+            state: self.exported_state().clone(),
             date_ms: self.rt.now_ms,
             is_redo,
         });
@@ -387,6 +391,7 @@ impl Engine {
             unitname: None,
             upgrade: None,
             upgradename: None,
+            now_ms: self.rt.now_ms,
             elapsed_ms: self.elapsed_start_ms(),
             attempt: None,
             num: None,

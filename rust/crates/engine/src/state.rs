@@ -115,6 +115,10 @@ pub struct UnitStatistics {
     pub twinnum: Num,
     /// Milliseconds since `started` of the first purchase.
     pub elapsed_first: Option<i64>,
+    /// Other keys of a legacy save's entry (old games wrote
+    /// `elapsedFirstStr`), kept as-is.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, Value>,
 }
 
 /// Statistics of one upgrade.
@@ -127,6 +131,9 @@ pub struct UpgradeStatistics {
     pub num: Num,
     /// Milliseconds since `started` of the first purchase.
     pub elapsed_first: Option<i64>,
+    /// Other keys of a legacy save's entry, kept as-is.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, Value>,
 }
 
 impl Default for State {
@@ -236,6 +243,7 @@ mod tests {
                 num: Num::ONE,
                 twinnum: Num::TWO,
                 elapsed_first: Some(3),
+                ..Default::default()
             },
         );
         let json = serde_json::to_string(&s).unwrap();

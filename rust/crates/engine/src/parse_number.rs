@@ -19,7 +19,8 @@
 //!   digits); here `Num` keeps 15 significant digits, so inputs with more than
 //!   15 digits are rounded to nearest by `Num`, not ceiled. Ceil semantics are
 //!   kept where they are observable on `Num` (after the twin division).
-//! * decimal.js also accepts hex/binary/octal literals; this does not.
+//! * decimal.js also accepts hex/binary/octal literals; integer ones are
+//!   supported (`0x10`), fractional ones (`0x1.8`, `0x1p3`) are not.
 //! * Whitespace other than the single space before a long suffix makes the
 //!   input unparseable (decimal.js rejects it too).
 //! * `%`, `=` and `@` with no unit return `None` (the TS throws or returns
@@ -31,7 +32,8 @@ use swarm_num::Num;
 /// The slice of a unit that parsing needs; the engine implements it.
 pub trait ParseNumberUnit {
     /// How many of this unit can be bought with `percent` (0..=1) of the
-    /// resources currently available.
+    /// resources currently available; [`Num::MAX`] without costs (TS
+    /// `Infinity`), which makes `%` input unparseable like the TS.
     fn max_cost_met(&self, percent: Num) -> Num;
     /// Current count of the unit.
     fn count(&self) -> Num;
@@ -52,9 +54,39 @@ fn suffix_replacement(lowercase: &str) -> Option<String> {
     None
 }
 
-/// Strict decimal parse: only digits, `.`, signs and `e`/`E`, so that
-/// whitespace, `inf`, `nan` and stray text are all rejected.
+/// decimal.js's `0x`/`0b`/`0o` integer literals (`new Decimal("0x10")` is
+/// 16), with an optional sign. Fractional and `p`-exponent forms, which
+/// decimal.js also reads, are not supported.
+fn parse_radix(s: &str) -> Option<Num> {
+    let (neg, rest) = match s.as_bytes().first()? {
+        b'-' => (true, &s[1..]),
+        b'+' => (false, &s[1..]),
+        _ => (false, s),
+    };
+    let radix = match rest.get(..2)? {
+        "0x" | "0X" => 16,
+        "0b" | "0B" => 2,
+        "0o" | "0O" => 8,
+        _ => return None,
+    };
+    let digits = &rest[2..];
+    if digits.is_empty() {
+        return None;
+    }
+    let mut v = Num::ZERO;
+    for c in digits.chars() {
+        v = v * Num::from(radix) + Num::from(c.to_digit(radix)?);
+    }
+    Some(if neg { -v } else { v })
+}
+
+/// Strict decimal parse: only digits, `.`, signs and `e`/`E` (or a
+/// [`parse_radix`] literal), so that whitespace, `inf`, `nan` and stray text
+/// are all rejected.
 fn parse_plain(s: &str) -> Option<Num> {
+    if let Some(n) = parse_radix(s) {
+        return Some(n);
+    }
     if s.is_empty()
         || !s
             .bytes()
@@ -82,7 +114,12 @@ pub fn parse_number(input: &str, unit: Option<&dyn ParseNumberUnit>) -> Option<N
             Some(p) => p.max(Num::ZERO).min(Num::from(100)),
             None => Num::ZERO,
         };
-        unit?.max_cost_met(percent / Num::from(100))
+        let max = unit?.max_cost_met(percent / Num::from(100));
+        if max == Num::MAX {
+            // the TS Infinity of a unit without costs: not finite, undefined
+            return None;
+        }
+        max
     } else {
         // replace suffixes ('billion'): first run of letters, with an
         // optional preceding space
@@ -151,6 +188,9 @@ mod tests {
     }
     impl ParseNumberUnit for Fake {
         fn max_cost_met(&self, percent: Num) -> Num {
+            if self.max_cost == Num::MAX {
+                return Num::MAX;
+            }
             (self.max_cost * percent).floor()
         }
         fn count(&self) -> Num {
@@ -196,6 +236,20 @@ mod tests {
         // only the first comma is stripped
         assert_eq!(p("1,000,000"), None);
         assert_eq!(parse_number("1e3000", None), Some(n("1e3000")));
+        // decimal.js reads radix literals (golden parsenumber.json step 48)
+        assert_eq!(p("0x10"), Some(16.0));
+        // like the TS, "b" is first read as the billions suffix: "0e9101"
+        assert_eq!(p("0b101"), Some(1.0));
+        assert_eq!(parse_radix("0b101"), Some(Num::from(5)));
+        assert_eq!(p("0o17"), Some(15.0));
+        assert_eq!(p("0x"), None);
+        // a unit without costs: maxCostMet is Infinity, so undefined
+        let free = Fake {
+            max_cost: Num::MAX,
+            ..Fake::new()
+        };
+        assert_eq!(pu("50%", &free), None);
+        assert_eq!(p("0xg"), None);
         assert_eq!(parse_number("55e3000", None), Some(n("5.5e3001")));
     }
 

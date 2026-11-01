@@ -2,7 +2,7 @@
 
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
-use swarm_data::UnitId;
+use swarm_data::{json_num, UnitId};
 use swarm_num::Num;
 
 use crate::engine::Engine;
@@ -61,6 +61,10 @@ impl Serialize for Estimate {
     }
 }
 
+/// Below this `4ac / b^2`, decimal.js (20 digits) computes the quadratic
+/// formula's `-b + sqrt(b^2 - 4ac)` as 0.
+pub const QUADRATIC_CANCEL: f64 = 1e-19;
+
 /// Bisection stops when the bracket's half-width is below this many seconds.
 const BISECTION_THRESHOLD: f64 = 0.2;
 /// Bisection iterations at most.
@@ -73,7 +77,9 @@ impl Engine {
     /// one-second rate).
     pub fn estimate_secs_until_earned(&self, unit: UnitId, target: Num) -> Estimate {
         let count = self.count(unit);
-        let remaining = target - count;
+        // a remainder below Num's precision is noise: decimal.js (20 digits)
+        // sees `target == count` there (golden ascend-respec, step 21)
+        let remaining = crate::upgrade::absorbed(target - count, target.abs().max(count.abs()));
         if !remaining.is_positive() {
             return Estimate::Reached;
         }
@@ -96,7 +102,21 @@ impl Engine {
                     let c = -remaining;
                     a /= Num::TWO; // the "/2!" of "c * t^2/2!"
                     let disc = (b * b - a * c * Num::from(4)).sqrt();
-                    ret = min(ret, (-b + disc) / (a * Num::TWO));
+                    // TS `(-b + disc) / 2a`; `-b + disc` cancels when
+                    // `4ac << b^2`, which 15 digits lose long before
+                    // decimal.js's 20 (an overmind upgrade 1e12 s away read
+                    // as 0). Same root, without the cancellation...
+                    let root = if b.is_negative() {
+                        (-b + disc) / (a * Num::TWO)
+                    } else if (a * c * Num::from(4)).abs() / (b * b) < json_num(QUADRATIC_CANCEL) {
+                        // ...except where decimal.js cancels too: there the
+                        // TS root is 0, so the estimate is 0 (PARITY: a
+                        // pantheon5twin 330 s away estimated as reached)
+                        Num::ZERO
+                    } else {
+                        (c * Num::TWO).abs() / (b + disc)
+                    };
+                    ret = min(ret, root);
                 }
                 if degree > 2 {
                     let max_sec = linear.unwrap_or_else(|| {

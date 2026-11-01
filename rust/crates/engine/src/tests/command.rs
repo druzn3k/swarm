@@ -246,3 +246,59 @@ fn options_and_watch() {
     .unwrap();
     assert_eq!(e.watched_at(g("expansion")), -1);
 }
+
+#[test]
+fn undo_restores_the_last_saved_state_not_the_current_one() {
+    // TS `_setUndo` snapshots `session.exportSave()`: the state as of the
+    // last save. A command that fails inside `withSave` has reified (and
+    // maybe changed counts) without saving, so the next undo state is
+    // still the last saved one.
+    let mut e = game();
+    e.set_unit_count(u("meat"), n("10000"));
+    e.set_unit_count(u("larva"), n("10000"));
+    e.apply(buy_unit("drone", "1")).unwrap();
+    let saved_at = e.state().dates.reified;
+    e.set_now_ms(T2020 + 60_000).unwrap();
+    // fails inside withSave, after reifying at the new time
+    assert_eq!(
+        e.apply(Command::Respec),
+        Err(CommandError::InsufficientResources)
+    );
+    assert_eq!(e.state().dates.reified, T2020 + 60_000);
+    assert_eq!(e.exported_state().dates.reified, saved_at);
+    e.apply(buy_unit("drone", "1")).unwrap();
+    assert_eq!(e.undo_state().unwrap().state.dates.reified, saved_at);
+    // a successful command saves: the export is the current state again
+    assert_eq!(e.exported_state(), e.state());
+}
+
+#[test]
+fn undo_after_a_load_skips_backfill_like_the_ts() {
+    // the TS undo state after an import is the imported save, before
+    // backfill (which doesn't save), and undo re-imports without backfill
+    let mut e = game();
+    let mut s = e.state().clone();
+    s.units.remove("freeRespec");
+    e.import_state(s).unwrap();
+    e.run_backfill();
+    assert!(e.is_count_initialized(u("freeRespec")));
+    assert!(!e.exported_state().units.contains_key("freeRespec"));
+    e.set_unit_count(u("meat"), n("10000"));
+    e.set_unit_count(u("larva"), n("10000"));
+    e.apply(buy_unit("drone", "1")).unwrap();
+    e.apply(Command::Undo).unwrap();
+    assert!(!e.is_count_initialized(u("freeRespec")));
+}
+
+#[test]
+fn saving_stamps_the_game_version() {
+    let mut e = game();
+    let mut s = e.state().clone();
+    s.version.as_mut().unwrap().saved = Some("1.0.0".into());
+    e.import_state(s).unwrap();
+    e.save();
+    assert_eq!(
+        e.state().version.as_ref().unwrap().saved.as_deref(),
+        Some("1.1.17")
+    );
+}

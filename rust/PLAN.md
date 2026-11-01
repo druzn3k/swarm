@@ -541,3 +541,22 @@ existing vitest and e2e suites (and `app/bench`) run against the wasm store.
     is about 30-60 KB of JSON at 10 Hz. Degree-20 bisections over every
     upgrade cost could be ~1-3 ms in wasm. Budget for focus- and slow-tier
     trimming early, and profile against `app/bench`.
+
+## 9. M2 as built: parity results
+
+`swarm-scenario` replays the 12 goldens and the 60-scenario corpus against the
+TS outputs. All pass in lockstep mode, which restarts the Rust engine from the
+TS state at each full snapshot (initial, steps 99 and 199, each successful
+ascend or respec). Between snapshots the run is free, and 25 precision
+cascades are accepted: each starts at a purchase whose cost resource is a
+remainder of a much larger peak (15- versus 20-digit cancellation), and an
+every-step offline rerun of the TS oracle confirmed these are precision only.
+Run with no resyncs at all, 36 of 60 scenarios match end to end. Tolerances
+and the cascade rule are documented in the crate. The whitelist is empty.
+
+Fixes found by the harness: undo snapshots the last saved state, saving sets
+`version.saved`, `costMetPercent` is `None` where TS gives NaN, estimate
+remainders within a few ulps count as reached, the quadratic estimate uses a
+cancellation-free form, `parseNumber` accepts `0x`/`0o`, unknown statistics
+keys survive saves, command events carry `now_ms`, and `resync_state` exists
+behind the `parity` feature.

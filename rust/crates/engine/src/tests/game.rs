@@ -136,6 +136,7 @@ fn backfill_restores_a_lost_ascension_count() {
             num: n("3"),
             twinnum: n("3"),
             elapsed_first: None,
+            ..Default::default()
         },
     );
     e.run_backfill();

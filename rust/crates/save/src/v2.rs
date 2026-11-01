@@ -117,6 +117,8 @@ pub struct UnitStatisticsV2 {
     pub num: ExactNum,
     pub twinnum: ExactNum,
     pub elapsed_first: Option<i64>,
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
 /// [`UpgradeStatistics`] with lossless numbers.
@@ -127,6 +129,8 @@ pub struct UpgradeStatisticsV2 {
     pub clicks: u64,
     pub num: ExactNum,
     pub elapsed_first: Option<i64>,
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
 /// A [`Num`] that serialises losslessly ([`crate::num_text::exact`]) and
@@ -199,6 +203,7 @@ impl SaveV2 {
                             num: ExactNum(u.num),
                             twinnum: ExactNum(u.twinnum),
                             elapsed_first: u.elapsed_first,
+                            extra: u.extra.clone(),
                         };
                         (k.clone(), v)
                     })
@@ -211,6 +216,7 @@ impl SaveV2 {
                             clicks: u.clicks,
                             num: ExactNum(u.num),
                             elapsed_first: u.elapsed_first,
+                            extra: u.extra.clone(),
                         };
                         (k.clone(), v)
                     })
@@ -252,6 +258,7 @@ impl SaveV2 {
                             num: u.num.0,
                             twinnum: u.twinnum.0,
                             elapsed_first: u.elapsed_first,
+                            extra: u.extra,
                         };
                         (k, v)
                     })
@@ -264,6 +271,7 @@ impl SaveV2 {
                             clicks: u.clicks,
                             num: u.num.0,
                             elapsed_first: u.elapsed_first,
+                            extra: u.extra,
                         };
                         (k, v)
                     })

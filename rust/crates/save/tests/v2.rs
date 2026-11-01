@@ -112,6 +112,7 @@ fn mutate(s: &mut State, r: &mut Rng, legacy_safe: bool) {
                     num: rand_num(r),
                     twinnum: rand_num(r),
                     elapsed_first: r.chance(0.8).then(|| r.range(0, 1 << 40)),
+                    ..Default::default()
                 },
             );
         }
@@ -122,6 +123,7 @@ fn mutate(s: &mut State, r: &mut Rng, legacy_safe: bool) {
                     clicks: r.below(1000),
                     num: rand_num(r),
                     elapsed_first: r.chance(0.8).then(|| r.range(0, 1 << 40)),
+                    ..Default::default()
                 },
             );
         }

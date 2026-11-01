@@ -472,3 +472,18 @@ fn guards_huge_purchases() {
     assert_eq!(e.state(), &before);
     assert_eq!(e.buy_upgrade(warp, n("2")), Ok(n("2")));
 }
+
+#[test]
+fn cost_met_percent_is_nan_when_a_level_is_lost_to_rounding() {
+    // golden ascend-respec step 7: 2e100 energy, larvarush costs 1600:
+    // decimal.js computes (count - paid) / (cost - paid) as 0 / 0
+    // (nexus raise the energy cap)
+    let e = mkgame(&[("energy", "2e100"), ("nexus", "1e100")]);
+    assert_eq!(e.upgrade_cost_met_percent(g("larvarush")), None);
+    let e = mkgame(&[("energy", "800"), ("nexus", "1e100")]);
+    let cost = e.total_cost(g("larvarush"))[0].val;
+    assert_eq!(
+        e.upgrade_cost_met_percent(g("larvarush")),
+        Some(n("800") / cost)
+    );
+}

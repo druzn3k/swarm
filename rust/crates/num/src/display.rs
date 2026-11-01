@@ -278,6 +278,29 @@ impl Num {
     }
 }
 
+impl Num {
+    /// The value as decimal.js 7 `Decimal#toString` lays it out, from the
+    /// canonical 15 significant digits: plain notation when the decimal
+    /// exponent is in `-7 < e < 21` (`"0.000001"`, `"123456789"`),
+    /// otherwise `d.ddde+X` / `d.ddde-X` (`"1e+21"`, `"1.5e-7"`,
+    /// `"1e+100000"`). Differs from [`Display`](fmt::Display) only in the
+    /// `+` of positive exponents. Zero prints `"0"` (decimal.js prints
+    /// negative zero as `"0"` too).
+    pub fn to_decimal_js_string(&self) -> String {
+        if self.is_zero() {
+            return "0".to_owned();
+        }
+        let c = self.canonical_digits();
+        let mut out = String::new();
+        if c.exp > -7 && c.exp < 21 {
+            c.plain(&mut out);
+        } else {
+            c.exponential(&mut out, true);
+        }
+        out
+    }
+}
+
 impl fmt::Display for Num {
     /// The canonical, round-trippable form, rounded to 15 significant digits:
     /// plain notation when `1e-7 < |x| < 1e21` (`"0"`, `"123"`, `"0.5"`,
@@ -297,5 +320,34 @@ impl fmt::Display for Num {
             c.exponential(&mut out, false);
         }
         f.pad(&out)
+    }
+}
+
+#[cfg(test)]
+mod decimal_js_tests {
+    use crate::Num;
+
+    fn js(s: &str) -> String {
+        s.parse::<Num>().unwrap().to_decimal_js_string()
+    }
+
+    #[test]
+    fn matches_decimal_js_to_string() {
+        // decimal.js 7.1.1 defaults: toExpNeg -7, toExpPos 21
+        assert_eq!(js("0"), "0");
+        assert_eq!(js("-0"), "0");
+        assert_eq!(js("35"), "35");
+        assert_eq!(js("181027177.703539"), "181027177.703539");
+        assert_eq!(js("1e21"), "1e+21");
+        assert_eq!(js("1.2345e21"), "1.2345e+21");
+        assert_eq!(js("123456789012345678901"), "123456789012346000000");
+        assert_eq!(js("1e-7"), "1e-7");
+        assert_eq!(js("1.5e-7"), "1.5e-7");
+        assert_eq!(js("0.000001"), "0.000001");
+        assert_eq!(js("0.0000015"), "0.0000015");
+        assert_eq!(js("-2.5e300"), "-2.5e+300");
+        assert_eq!(js("1e100000"), "1e+100000");
+        assert_eq!(js("-1253203"), "-1253203");
+        assert!(Num::MAX.to_decimal_js_string().contains("e+"));
     }
 }

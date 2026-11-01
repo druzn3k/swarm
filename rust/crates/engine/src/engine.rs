@@ -45,6 +45,11 @@ pub(crate) struct Runtime {
     /// Debug speed multiplier (TS `game.gameSpeed`).
     pub game_speed: f64,
     pub undo: Option<UndoState>,
+    /// TS `session._exportCache`: the state as of the last save or import,
+    /// which undo snapshots and `exportSave` returns. `None` means "the
+    /// current state" (nothing changed since the last save, or never saved,
+    /// where the TS builds the export lazily from the current state).
+    pub exported: Option<Box<State>>,
     pub events: Vec<Event>,
     pub offline: Option<OfflineReport>,
     /// TS `cache.firstSpawn`: tutorial flags, cleared on reload. Unit ->
@@ -128,6 +133,8 @@ impl Engine {
         let closed = state.date_closed().max(heartbeat_ms.unwrap_or(0));
         state.dates.loaded = Some(wall_now_ms);
         let reified = state.dates.reified;
+        let mut exported = state.clone();
+        exported.dates.loaded = None;
         let mut engine = match Engine::from_state(data, state, wall_now_ms) {
             Ok(e) => e,
             Err((err, state)) => {
@@ -135,6 +142,7 @@ impl Engine {
                 Engine::from_state_unchecked_at(data, *state, reified, wall_now_ms)
             }
         };
+        engine.rt.exported = Some(Box::new(exported));
         engine.run_backfill();
         let offline = (wall_now_ms > closed).then_some(OfflineReport {
             closed_ms: closed,
@@ -185,6 +193,7 @@ impl Engine {
                 skipped_ms: 0,
                 game_speed: 1.0,
                 undo: None,
+                exported: None,
                 events: Vec::new(),
                 offline: None,
                 first_spawn: BTreeMap::new(),
@@ -206,7 +215,11 @@ impl Engine {
 
     /// Replaces the state, like TS `game.importSave` without backfill: the
     /// runtime caches (sticky visibility included) are rebuilt. Undo is kept.
+    /// Like the TS, the imported state is also what the next undo snapshot
+    /// and [`Engine::exported_state`] give, until the next save.
     pub fn import_state(&mut self, mut state: State) -> Result<(), TimeError> {
+        state.dates.loaded = None;
+        self.rt.exported = Some(Box::new(state.clone()));
         state.dates.loaded = Some(self.rt.clock_ms);
         self.state = state;
         self.reinit()
@@ -256,12 +269,33 @@ impl Engine {
         &self.rt.first_spawn
     }
 
+    /// The state as of the last save or import (TS `session.exportSave()`,
+    /// decoded): what [`Command::Undo`](crate::Command::Undo) snapshots
+    /// before each command. It differs from [`Engine::state`] after changes
+    /// that were not saved: a command that failed midway (its reify and
+    /// partial changes), or backfill after a load.
+    pub fn exported_state(&self) -> &State {
+        self.rt.exported.as_deref().unwrap_or(&self.state)
+    }
+
+    /// Keeps the last saved state before an unsaved change (see
+    /// [`Engine::exported_state`]).
+    pub(crate) fn snapshot_export(&mut self) {
+        if self.rt.exported.is_none() {
+            self.rt.exported = Some(Box::new(self.state.clone()));
+        }
+    }
+
     /// TS `session.save()`: the dates a save writes. The save itself is the
     /// caller's job (read [`Engine::state`]); a [`Event::SaveRequested`] is
     /// queued once per batch.
     pub(crate) fn session_save(&mut self) {
         self.state.dates.saved = Some(self.rt.clock_ms);
         self.state.dates.loaded = None;
+        if let Some(v) = &mut self.state.version {
+            v.saved = Some(crate::state::DEFAULT_VERSION.to_owned());
+        }
+        self.rt.exported = None;
         if !matches!(self.rt.events.last(), Some(Event::SaveRequested)) {
             self.rt.events.push(Event::SaveRequested);
         }
