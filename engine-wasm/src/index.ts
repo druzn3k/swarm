@@ -184,7 +184,8 @@ export class GameHandle {
   /**
    * A welcome-back report computed now for the time since the loaded save
    * was closed; `force`: even after a short absence. Not stored in the
-   * game (unlike `view().welcome_back`, which `load` computes once).
+   * game (unlike `view().welcome_back`, which `load` sets at startup and
+   * `resync_wall` sets again after a gap of three minutes or more).
    */
   welcomeBack(force = false): WelcomeBack | null {
     const r = this.game.welcome_back(force)
