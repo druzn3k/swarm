@@ -85,6 +85,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "swarm-engine"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "swarm-data",
+ "swarm-num",
+]
+
+[[package]]
 name = "swarm-num"
 version = "0.1.0"
 dependencies = [
