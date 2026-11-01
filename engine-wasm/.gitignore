@@ -1,0 +1,3 @@
+# wasm-bindgen output (scripts/build-wasm.sh)
+/pkg/
+/node_modules/

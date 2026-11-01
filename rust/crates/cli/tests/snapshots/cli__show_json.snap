@@ -1,0 +1,98 @@
+---
+source: crates/cli/tests/cli.rs
+expression: o.stdout
+---
+{
+  "now_ms": 1700003600000,
+  "now": "2023-11-14T23:13:20.000Z",
+  "started_ms": 1700000000000,
+  "elapsed_ms": 3600000,
+  "achievement_points": 10,
+  "tabs": [
+    {
+      "name": "meat",
+      "visible": true,
+      "units": [
+        {
+          "name": "drone",
+          "label": "drone",
+          "visible": true,
+          "count": "1",
+          "velocity": "0",
+          "cost": {
+            "meat": "10",
+            "larva": "1"
+          },
+          "max_buy": "2",
+          "buyable": true,
+          "twin": "1",
+          "cap": null
+        },
+        {
+          "name": "meat",
+          "label": "meat",
+          "visible": true,
+          "count": "25",
+          "velocity": "1",
+          "cost": {},
+          "max_buy": null,
+          "buyable": false,
+          "twin": "1",
+          "cap": null
+        }
+      ],
+      "upgrades": []
+    },
+    {
+      "name": "larva",
+      "visible": true,
+      "units": [
+        {
+          "name": "larva",
+          "label": "larva",
+          "visible": true,
+          "count": "3609",
+          "velocity": "1",
+          "cost": {
+            "cocoon": "1"
+          },
+          "max_buy": null,
+          "buyable": false,
+          "twin": "1",
+          "cap": null
+        }
+      ],
+      "upgrades": [
+        {
+          "name": "hatchery",
+          "label": "hatchery",
+          "class": "upgrade",
+          "unit": "invisiblehatchery",
+          "visible": true,
+          "level": "0",
+          "maxlevel": null,
+          "cost": {
+            "meat": "300"
+          },
+          "max_buy": "0",
+          "buyable": false
+        },
+        {
+          "name": "expansion",
+          "label": "expansion",
+          "class": "upgrade",
+          "unit": "invisiblehatchery",
+          "visible": true,
+          "level": "0",
+          "maxlevel": null,
+          "cost": {
+            "territory": "10"
+          },
+          "max_buy": "0",
+          "buyable": false
+        }
+      ]
+    }
+  ],
+  "ascension": null
+}

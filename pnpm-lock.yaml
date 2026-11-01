@@ -17,9 +17,9 @@ importers:
 
   app:
     dependencies:
-      '@swarmsim/engine':
+      '@swarmsim/engine-wasm':
         specifier: workspace:*
-        version: link:../engine
+        version: link:../engine-wasm
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -30,6 +30,9 @@ importers:
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
+      '@swarmsim/engine':
+        specifier: workspace:*
+        version: link:../engine
       '@types/react':
         specifier: 18.3.12
         version: 18.3.12
@@ -106,6 +109,18 @@ importers:
       typescript:
         specifier: ~5.6.3
         version: 5.6.3
+
+  engine-wasm:
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ~5.6.3
+        version: 5.6.3
+      vitest:
+        specifier: 2.1.9
+        version: 2.1.9(@types/node@20.19.43)(lightningcss@1.33.0)
 
   swarmsim-ts:
     dependencies:

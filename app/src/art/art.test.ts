@@ -1,16 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { spreadsheet } from "@swarmsim/engine";
+import { GameHandle } from "@swarmsim/engine-wasm";
 import { PAL } from "./pixels";
 import type { Sprite } from "./pixels";
 import { FALLBACK, PROPS, allUnitSprites, framesFor, spriteFor } from "./units";
 import { ICONS, UPGRADE_FALLBACK, iconForUpgrade } from "./icons";
 import { SCENE_TABS, sceneFor } from "./scene";
 
-type Row = { name: string; label?: string; disabled?: boolean; tab?: string; class?: string };
-const data = spreadsheet() as unknown as { unittypes: { elements: Row[] }; upgrades: { elements: Row[] } };
-// the sheets repeat a row per cost/effect; the first row of each name carries the label
-const units = data.unittypes.elements.filter((u) => u.name && u.label && !u.disabled);
-const upgrades = data.upgrades.elements.filter((u) => u.name && u.label && !u.disabled);
+// the game data, as the engine's StaticView lists it
+const statics = GameHandle.newGame(0).staticView();
+const units = (statics.units ?? []).filter((u) => u.name && u.label && !u.disabled);
+const upgrades = (statics.upgrades ?? []).filter((u) => u.name && u.label);
 
 function checkGrid(label: string, s: Sprite) {
   expect(s.rows.length, label).toBe(s.h);
@@ -52,7 +51,7 @@ describe("unit sprites", () => {
 
 describe("upgrade icons", () => {
   it("every upgrade and ability has an icon", () => {
-    expect(upgrades.some((u) => u.class === "ability")).toBe(true);
+    expect(upgrades.some((u) => u.ability)).toBe(true);
     for (const u of upgrades) expect(iconForUpgrade(u.name), u.name).not.toBe(UPGRADE_FALLBACK);
   });
   it("unknown names fall back", () => {
@@ -76,7 +75,7 @@ describe("population log10", () => {
     const { Decimal } = await import("@swarmsim/engine");
     for (const v of ["1", "7", "12345", "9.99e299", "1e300", "3.5e301", "1.23e5000", "9.99999e123456"]) {
       const d = new Decimal(v);
-      expect(Math.abs(fastLog10(d) - d.log(10).toNumber())).toBeLessThan(1e-6);
+      expect(Math.abs(fastLog10(v) - d.log(10).toNumber())).toBeLessThan(1e-6);
     }
   });
 });

@@ -1,23 +1,24 @@
-import type { Tab, Unit } from "@swarmsim/engine";
 import { memo, useRef, useState } from "react";
-import { useGameValue, useGameValueEvery, useStore } from "../game/GameContext";
+import { Num } from "@swarmsim/engine-wasm";
+import { useGameValue, useGameValueEvery, useNeeds } from "../game/GameContext";
+import type { UnitRef } from "../game/view";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
-import { unitLabel, visibleUnits } from "../game/selectors";
+import { visibleUnits } from "../game/selectors";
 import { unitHref } from "../router";
 import { SpriteIcon } from "./Icon";
 import { useInView } from "./useInView";
 import { CardActions, ROW_EVERY } from "./unit/CardActions";
 import { useOptions } from "../game/options";
 
-function rateText(unit: Unit, tab: Tab, fmt: Formatter): string {
-  const v = unit.velocity();
-  if (!v.isZero()) return fmt.rate(v, { unit: unit.name });
-  // territory units: show what they capture (main.html special case)
-  if (tab.name === "territory") {
-    const prod = unit.totalProduction();
+function rateText(unit: UnitRef, tab: string, fmt: Formatter): string {
+  const v = unit.velocity;
+  if (!Num.isZero(v)) return fmt.rate(v, { unit: unit.name });
+  // territory units: show what they capture (main.html special case; the list focuses them)
+  if (tab === "territory") {
+    const prod = unit.totalProduction;
     return Object.keys(prod)
-      .filter((k) => !prod[k].isZero())
+      .filter((k) => !Num.isZero(prod[k]))
       .map((k) => fmt.rate(prod[k], { unit: k }))
       .join(" ");
   }
@@ -43,8 +44,8 @@ const UnitCard = memo(function UnitCard({
   index,
   announce,
 }: {
-  unit: Unit;
-  tab: Tab;
+  unit: string;
+  tab: string;
   advanced: boolean;
   current: boolean;
   phase?: number;
@@ -56,19 +57,22 @@ const UnitCard = memo(function UnitCard({
   // a card far off screen is re-read every few seconds (player actions at once)
   const near = useInView(item);
   const every = !near ? OFFSCREEN_EVERY : phase === undefined ? 1 : 2;
-  const snapshot = useGameValueEvery(() => {
-    const cap = unit.capValue() ? `${fmt.percent(unit.capPercent(), { floor: true })} full` : "";
-    return [fmt.num(unit.count()), rateText(unit, tab, fmt), cap].join(SEP);
+  const snapshot = useGameValueEvery((s) => {
+    const u = s.g.unit(unit);
+    const cap = u.cap ? `${fmt.percent(u.capPercent, { floor: true })} full` : "";
+    return [fmt.num(u.count), rateText(u, tab, fmt), cap, u.suffix].join(SEP);
   }, every, phase);
-  const [count, rate, cap] = snapshot.split(SEP);
+  const [count, rate, cap, suffix] = snapshot.split(SEP);
   // the "new upgrade" marker weighs up every upgrade's cost: it is re-read as
   // often as the buy row (a few times a second), on other ticks than the row
-  const upgradable = useGameValueEvery(() => unit.isNewlyUpgradable(), near ? ROW_EVERY * every : every, index + ROW_EVERY / 2);
-  const name = unitLabel(unit, true);
+  const upgradable = useGameValueEvery((s) => s.g.unit(unit).newlyUpgradable, near ? ROW_EVERY * every : every, index + ROW_EVERY / 2);
+  const ref = useGameValue((s) => s.g.unit(unit).plural);
+  const name = suffix ? `${ref} ${suffix}` : ref;
+  const tabName = useGameValue((s) => s.g.unit(unit).tabName);
   return (
     <li className="card unit-item" ref={item}>
-      <a className="unit-card" href={unitHref(unit.name)} data-unit={unit.name} aria-current={current ? "true" : undefined}>
-        <SpriteIcon name={unit.name} tab={unit.unittype.tab} />
+      <a className="unit-card" href={unitHref(unit)} data-unit={unit} aria-current={current ? "true" : undefined}>
+        <SpriteIcon name={unit} tab={tabName} />
         <span className="unit-names">
           <span className="unit-name">{name}</span>
           <span className="unit-rate num">{rate}</span>
@@ -92,9 +96,15 @@ const UnitCard = memo(function UnitCard({
  * cards update themselves. `selected` (laptop layout)
  * marks the card of the unit shown next to the list.
  */
-export function UnitList({ tab, selected }: { tab: Tab; selected?: string }) {
-  const { game } = useStore();
-  const names = useGameValue(() => visibleUnits(tab).map((u) => u.name).join(","));
+export function UnitList({ tab, selected }: { tab: string; selected?: string }) {
+  const names = useGameValue((s) => {
+    const t = s.g.tab(tab);
+    return t ? visibleUnits(t).map((u) => u.name).join(",") : "";
+  });
+  // the cards' quick "upgrade" buttons read their units' upgrades; the
+  // territory list also shows what each army unit captures (a detail of each)
+  const listed = names.split(",").filter(Boolean);
+  useNeeds(tab === "territory" ? { upgrades: listed, focus: listed } : { upgrades: listed });
   const [{ showAdvancedUnitData }] = useOptions();
   // what the last quick buy did, for screen readers (one status line for the list)
   const [said, announce] = useState("");
@@ -107,7 +117,7 @@ export function UnitList({ tab, selected }: { tab: Tab; selected?: string }) {
           .map((n, i) => (
             <UnitCard
               key={n}
-              unit={game.unit(n)}
+              unit={n}
               tab={tab}
               advanced={showAdvancedUnitData}
               current={n === selected}

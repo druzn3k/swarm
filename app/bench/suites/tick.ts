@@ -1,8 +1,11 @@
-// Per-tick cost: the game's 100 ms tick task, which includes React's render
-// of the tick's changes (useSyncExternalStore updates render synchronously in
-// the same task). The page's setInterval(…, 100) callbacks are marked with
-// console.timeStamp("tick") and a Chrome trace splits the main thread's tasks
-// into tick tasks, animation frames, rendering and the rest.
+// Per-tick cost: the game's 100 ms tick, which includes React's render of the
+// tick's changes (useSyncExternalStore updates render synchronously in the
+// same task). The store runs on animation frames and takes a view from the
+// wasm engine every 100 ms; with `__SWARM_BENCH__` set it marks those frames
+// with console.timeStamp("tick"), and a Chrome trace splits the main thread's
+// tasks into tick tasks, other animation frames, rendering and the rest. (A
+// tick task is the whole animation-frame task, so it also holds the hive's
+// redraw when the two fall in the same frame.)
 import { LONG_TASK_MS, collectGarbage, mainThread, max, mean, metrics, openPage, percentile, sleep, tasksOf, trace } from "../lib";
 import type { TraceEvent } from "../lib";
 import { matrix } from "../types";
@@ -10,16 +13,7 @@ import type { Selection, Suite } from "../types";
 import { SCREENS } from "./screens";
 import type { Screen } from "./screens";
 
-const MARK_TICKS = `{
-  const si = window.setInterval;
-  window.setInterval = function (fn, ms, ...rest) {
-    if (ms === 100 && typeof fn === "function") {
-      const f = fn;
-      fn = function () { console.timeStamp("tick"); return f.apply(this, arguments); };
-    }
-    return si.call(this, fn, ms, ...rest);
-  };
-}`;
+const MARK_TICKS = `globalThis.__SWARM_BENCH__ = true;`;
 
 type Kind = "tick" | "raf" | "render" | "other";
 const RENDERING = new Set(["UpdateLayoutTree", "Layout", "Paint", "PrePaint", "Commit"]);

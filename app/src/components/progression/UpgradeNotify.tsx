@@ -3,17 +3,17 @@
 // is stored in the save like the old game (upgrade.watch()), and drives the
 // "new upgrade" markers on tabs and unit cards (isNewlyUpgradable).
 import { useId } from "react";
-import type { Upgrade } from "@swarmsim/engine";
+import type { UpgradeRef } from "../../game/view";
 import { useStore } from "../../game/GameContext";
 import { UpgradeIcon } from "../Icon";
 import { NOTIFY_OPTIONS } from "../../game/progression";
 import "../../styles/progression.css";
 
-export function UpgradeNotify({ upgrade }: { upgrade: Upgrade }) {
+export function UpgradeNotify({ upgrade }: { upgrade: UpgradeRef }) {
   const store = useStore();
   const id = useId();
-  const value = upgrade.watchedAt();
-  const marked = upgrade.isNewlyUpgradable();
+  const value = upgrade.watched;
+  const marked = upgrade.newlyUpgradable;
   return (
     <div className="notify">
       <label htmlFor={id}>
@@ -25,8 +25,7 @@ export function UpgradeNotify({ upgrade }: { upgrade: Upgrade }) {
         className="notify-select"
         value={NOTIFY_OPTIONS.some((o) => o.value === value) ? value : 1}
         onChange={(e) => {
-          upgrade.watch(Number(e.target.value));
-          store.bump();
+          store.act({ do: "watch", upgrade: upgrade.name, level: Number(e.target.value) });
         }}
       >
         {NOTIFY_OPTIONS.map((o) => (
@@ -40,12 +39,12 @@ export function UpgradeNotify({ upgrade }: { upgrade: Upgrade }) {
 }
 
 /** A hidden upgrade: collapsed to its name and the setting that brings it back. */
-export function HiddenUpgrade({ upgrade }: { upgrade: Upgrade }) {
+export function HiddenUpgrade({ upgrade }: { upgrade: UpgradeRef }) {
   return (
     <li className="upgrade upgrade-hidden" data-upgrade={upgrade.name} data-hidden="true">
       <div className="upgrade-top">
         <UpgradeIcon name={upgrade.name} size={32} />
-        <h3 className="upgrade-name">{upgrade.type.label}</h3>
+        <h3 className="upgrade-name">{upgrade.label}</h3>
         <span className="upgrade-level">Hidden</span>
       </div>
       <UpgradeNotify upgrade={upgrade} />

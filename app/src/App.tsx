@@ -46,7 +46,7 @@ function routeKey(r: Route): string {
 
 export function App() {
   const route = useRoute();
-  const { game } = useStore();
+  const store = useStore();
   const wide = useWide();
   const [moreOpen, setMoreOpen] = useState(false);
   const closeMore = useCallback(() => setMoreOpen(false), []);
@@ -56,17 +56,17 @@ export function App() {
   // The tab whose list goes with this route: the tab itself, or the unit's
   // tab. A unit picked from "all units" keeps that list (laptop layout).
   const lastList = useRef<string>();
-  const unitTab = route.name === "unit" ? findUnit(game, route.unit)?.tab?.name : undefined;
+  const unitTab = route.name === "unit" ? findUnit(store.g, route.unit)?.tabName : undefined;
   const listTab = route.name === "tab" ? route.tab : route.name === "unit" ? (lastList.current === "all" ? "all" : (unitTab ?? "meat")) : undefined;
   lastList.current = listTab ?? lastList.current;
 
   // like the old game's tab.lastselected: a tab remembers the unit last opened on it
   useEffect(() => {
     if (route.name !== "unit" || !listTab) return;
-    const tab = tabByName(game, listTab);
-    const unit = findUnit(game, route.unit);
-    if (tab && unit) tab.lastselected = unit;
-  }, [game, route, listTab]);
+    const tab = tabByName(store.g, listTab);
+    const unit = findUnit(store.g, route.unit);
+    if (tab && unit) store.lastSelected.set(listTab, unit.name);
+  }, [store, route, listTab]);
 
   // switching between phone and laptop layouts moves the More button; close the sheet
   useEffect(() => setMoreOpen(false), [wide]);

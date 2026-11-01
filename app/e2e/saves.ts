@@ -1,11 +1,15 @@
-// Crafted saves for the e2e tests, made with the engine itself so they stay
-// valid as the save format evolves.
+// Crafted saves for the e2e tests, made with the TypeScript engine (a dev
+// dependency: the app runs the Rust engine as wasm). They are format v1, the
+// old game's, which the app migrates to v2 on its first load: every spec
+// that seeds a save also exercises that migration.
 import * as engine from "@swarmsim/engine";
 
 // Playwright loads the engine's TypeScript source as CommonJS; its named exports sit on the default export.
 const { createGame } = ((engine as { default?: typeof engine }).default ?? engine) as typeof engine;
 
+/** where the v1 save is seeded (the app migrates it to V2_SAVE_KEY) */
 export const SAVE_KEY = "swarmhive-v1";
+export const V2_SAVE_KEY = "swarmhive-v2";
 
 export interface CraftOptions {
   /** unit counts */

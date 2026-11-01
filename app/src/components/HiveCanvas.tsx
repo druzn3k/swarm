@@ -76,7 +76,7 @@ export function HiveCanvas({ tab: tabProp }: { tab?: string }) {
       if (!dirty && now - lastAt < POPULATION_MILLIS) return;
       dirty = false;
       lastAt = now;
-      const pop = population(store.game);
+      const pop = population(store.g);
       const key = JSON.stringify(pop);
       if (key === lastPop) return;
       lastPop = key;
@@ -86,10 +86,9 @@ export function HiveCanvas({ tab: tabProp }: { tab?: string }) {
     update();
     const anim = animate(scene, canvas);
     const unsubscribe = store.subscribe(update);
-    const offCommand = store.events.on("command", (cmd) => {
+    const offCommand = store.on("command", (cmd) => {
       dirty = true;
-      if (cmd.unitname) scene.burst(cmd.unitname);
-      else if (cmd.upgrade) scene.burst(cmd.upgrade.unit.name);
+      if (cmd.unit) scene.burst(cmd.unit);
     });
     return () => {
       anim.stop();

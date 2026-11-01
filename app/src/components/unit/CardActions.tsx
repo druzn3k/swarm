@@ -5,10 +5,11 @@
 // screen, so statistics, achievements, undo and the hive's burst behave the
 // same. The card head above stays the link to the unit screen.
 import { useEffect, useRef, useState } from "react";
-import type { Unit, Upgrade } from "@swarmsim/engine";
+import { Dec } from "@swarmsim/engine-wasm";
 import { useGameValueEvery, useStore } from "../../game/GameContext";
+import type { UnitRef, UpgradeRef } from "../../game/view";
 import { useFormat } from "../../format";
-import { isUnitBuyable, unitNoun, visibleUpgrades } from "../../game/selectors";
+import { isUnitBuyable, unitNoun } from "../../game/selectors";
 import { UpgradeIcon } from "../Icon";
 import { QuickBuy } from "./QuickBuy";
 
@@ -16,23 +17,9 @@ const SEP = "\u0001";
 /** ticks between re-reads of a row (phone: 0.4 s) */
 export const ROW_EVERY = 4;
 
-/**
- * Can the player pay for the upgrade's next level? The engine's isCostMet
- * works out how many levels are affordable (logarithms for every cost), which
- * is too slow for every row on every refresh; this compares the next level's
- * cost (the engine's totalCost, cached until a purchase) with the counts. If
- * the two ever disagree at the boundary, the purchase is refused by the
- * engine and nothing happens.
- */
-function canBuyOne(upgrade: Upgrade): boolean {
-  const max = upgrade.type.maxlevel;
-  if (max != null && upgrade.count().greaterThanOrEqualTo(max)) return false;
-  return upgrade.totalCost().every((c) => c.unit.count().greaterThanOrEqualTo(c.val));
-}
-
 /** The first upgrade the "Upgrade" button would buy: shown (not hidden by its notify setting) and affordable, in the unit screen's order. */
-export function quickUpgrade(unit: Unit): Upgrade | undefined {
-  return visibleUpgrades(unit, "upgrade").find((u) => !u.isManuallyHidden() && canBuyOne(u));
+export function quickUpgrade(unit: UnitRef): UpgradeRef | undefined {
+  return unit.upgrades("upgrade").find((u) => !u.manuallyHidden && u.canBuyOne());
 }
 
 /**
@@ -50,7 +37,8 @@ export function CardActions({
   advanced = false,
   announce,
 }: {
-  unit: Unit;
+  /** the unit's name */
+  unit: string;
   every?: number;
   phase?: number;
   advanced?: boolean;
@@ -60,13 +48,14 @@ export function CardActions({
   const store = useStore();
   const fmt = useFormat();
   const snapshot = useGameValueEvery(
-    () => {
-      if (!isUnitBuyable(unit)) return "";
-      const twin = unit.twinMult();
-      const max = unit.maxCostMet();
-      const up = quickUpgrade(unit);
+    (s) => {
+      const u = s.g.unit(unit);
+      if (!isUnitBuyable(u)) return "";
+      const twin = u.twinMult;
+      const max = Dec.from(u.maxCostMet);
+      const up = quickUpgrade(u);
       // (isCostMet is maxCostMet > 0)
-      return [max.greaterThan(0) ? fmt.num(twin) : "", max.greaterThan(1) ? fmt.num(max.times(twin)) : "", up?.name ?? ""].join(SEP);
+      return [max.gt(0) ? fmt.num(twin) : "", max.gt(1) ? fmt.num(max.times(twin)) : "", up?.name ?? "", fmt.num(twin)].join(SEP);
     },
     every,
     phase
@@ -75,10 +64,11 @@ export function CardActions({
   const timer = useRef<number>();
   useEffect(() => () => window.clearTimeout(timer.current), []);
   if (!snapshot) return null;
-  const [one, max, upName] = snapshot.split(SEP);
-  const upgrade = upName ? store.game.upgrade(upName) : undefined;
-  const plural = String(unit.unittype.plural);
-  const verb = String(unit.unittype.verb ?? "buy");
+  const [one, max, upName, twin] = snapshot.split(SEP);
+  const u = store.g.unit(unit);
+  const upgrade = upName ? store.g.upgrade(upName) : undefined;
+  const plural = u.plural;
+  const verb = u.verb;
 
   const feedback = (slot: number, text: string, status: string) => {
     setPop({ text, slot, key: Date.now() });
@@ -87,30 +77,31 @@ export function CardActions({
     timer.current = window.setTimeout(() => setPop(null), 900);
   };
   const buyUnit = (slot: number, how: "one" | "max") => {
-    const before = unit.count();
-    const err = store.act(({ commands }) =>
-      how === "one" ? commands.buyUnit({ unit, num: 1, ui: "button" }) : commands.buyMaxUnit({ unit, percent: 1, ui: "button" }),
+    const { error, outcome } = store.act(
+      how === "one"
+        ? { do: "buy_unit", unit, amount: { num: "1" }, ui: "button" }
+        : { do: "buy_max_unit", unit, percent: 1, ui: "button" }
     );
-    const gained = unit.count().minus(before);
-    if (err || !gained.greaterThan(0)) return;
+    const gained = Dec.from(outcome?.bought?.twinnum ?? "0");
+    if (error || !gained.gt(0)) return;
     const n = fmt.num(gained);
-    feedback(slot, `+${n}`, `+${n} ${unitNoun(unit, gained)}`);
+    feedback(slot, `+${n}`, `+${n} ${unitNoun(store.g.unit(unit), gained)}`);
   };
   const buyUpgrade = () => {
     if (!upgrade) return;
-    const label = String(upgrade.type.label);
-    const err = store.act(({ commands }) => commands.buyUpgrade({ upgrade, num: 1, ui: "button" }));
-    if (!err) feedback(2, "+1", `Bought ${label}`);
+    const label = upgrade.label;
+    const { error } = store.act({ do: "buy_upgrade", upgrade: upgrade.name, amount: { num: "1" }, ui: "button" });
+    if (!error) feedback(2, "+1", `Bought ${label}`);
   };
 
   return (
-    <div className="card-actions" data-actions={unit.name}>
+    <div className="card-actions" data-actions={unit}>
       <div className="card-actions-row" role="group" aria-label={`Quick buy: ${plural}`}>
         <button type="button" className="btn btn-mini" disabled={!one} onClick={() => buyUnit(0, "one")}>
           <span className="btn-verb">{verb}</span>{" "}
           <span className="btn-amount num">
-            +{one || fmt.num(unit.twinMult())}
-            <span className="sr-only"> {one === "1" ? String(unit.unittype.label) : plural}</span>
+            +{one || twin}
+            <span className="sr-only"> {one === "1" ? u.label : plural}</span>
           </span>
         </button>
         <button type="button" className="btn btn-mini" disabled={!max} onClick={() => buyUnit(1, "max")}>
@@ -125,8 +116,8 @@ export function CardActions({
           className="btn btn-mini"
           disabled={!upgrade}
           onClick={buyUpgrade}
-          aria-label={upgrade ? `Upgrade: buy ${upgrade.type.label}` : "Upgrade: none affordable"}
-          title={upgrade ? `Buy ${upgrade.type.label}` : undefined}
+          aria-label={upgrade ? `Upgrade: buy ${upgrade.label}` : "Upgrade: none affordable"}
+          title={upgrade ? `Buy ${upgrade.label}` : undefined}
           data-upgrade-target={upgrade?.name}
         >
           <span className="btn-verb">upgrade</span>{" "}

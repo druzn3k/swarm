@@ -2,8 +2,7 @@
 // queued, shown for a few seconds above the tab bar. Close clears the queue,
 // like the old close button.
 import { useEffect, useRef, useState } from "react";
-import type { Achievement } from "@swarmsim/engine";
-import { useEngineEvent } from "../../game/GameContext";
+import { useStore, useStoreEvent } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { href } from "../../router";
 import "../../styles/meta.css";
@@ -19,18 +18,21 @@ interface Toast {
 }
 
 export function AchievementToast() {
+  const store = useStore();
   const fmt = useFormat();
   const [queue, setQueue] = useState<Toast[]>([]);
   const [paused, setPaused] = useState(false);
   const next = useRef(0);
 
-  useEngineEvent("achieve", (a: Achievement) => {
+  useStoreEvent("achieve", (index) => {
+    const a = store.g.achievement(index);
     const toast: Toast = {
       id: next.current++,
-      label: a.type.label,
-      points: a.pointsEarned(),
+      label: a.label,
+      // just earned: all its points
+      points: a.points,
       description: a.description((n) => fmt.long(n)),
-      longdesc: a.type.longdesc || undefined,
+      longdesc: a.st.longdesc || undefined,
     };
     setQueue((q) => [...q, toast]);
   });

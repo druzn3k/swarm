@@ -1,0 +1,20 @@
+[workspace]
+members = ["crates/*"]
+# Everything but the Tauri shell, which needs GTK/WebKitGTK system libraries:
+# plain `cargo build/test/clippy` here stay buildable without them. Build the
+# shell with `-p swarm-tauri` or `cargo tauri build` (see README.md).
+default-members = [
+    "crates/cli",
+    "crates/data",
+    "crates/engine",
+    "crates/num",
+    "crates/save",
+    "crates/scenario",
+    "crates/tui",
+    "crates/wasm",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "GPL-3.0"

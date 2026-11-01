@@ -1,0 +1,32 @@
+[package]
+name = "swarm-wasm"
+version = "0.1.0"
+description = "Swarm Simulator engine for the browser: a wasm-bindgen boundary over swarm-engine and swarm-save, with JSON strings across it."
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+# cdylib for wasm-bindgen; rlib so `cargo test` and other crates can use the
+# plain-Rust core (`swarm_wasm::core`).
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["legacy-write", "panic-hook"]
+# `Game.export_legacy` and `convert_save(text, "v1")`: v1 saves the TS/Coffee
+# game can import (rollback path during the wasm swap).
+legacy-write = ["swarm-save/legacy-write"]
+# Rust panics show up in the browser console with their message.
+panic-hook = ["dep:console_error_panic_hook"]
+
+[dependencies]
+swarm-engine = { path = "../engine" }
+swarm-save = { path = "../save" }
+swarm-data = { path = "../data" }
+swarm-num = { path = "../num" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+console_error_panic_hook = { version = "0.1", optional = true }

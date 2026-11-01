@@ -113,7 +113,7 @@ describe("Autosave", () => {
 describe("GameStore.start saves", () => {
   function setup() {
     const storage = countingStorage();
-    const store = new GameStore({ storage });
+    const store = new GameStore({ storage, perfNow: () => Date.now() });
     const win = new FakeWindow();
     const stop = store.start(win.asWindow());
     const saves = () => storage.writes.get(SAVE_ID) ?? 0;
@@ -135,7 +135,7 @@ describe("GameStore.start saves", () => {
     const { store, saves, stop } = setup();
     vi.advanceTimersByTime(20000);
     const before = saves();
-    store.act(({ game, commands }) => commands.buyUnit({ unit: game.unit("drone"), num: 1 }));
+    store.act({ do: "buy_unit", unit: "drone", amount: { num: "1" } });
     const engineSaves = saves() - before;
     expect(engineSaves).toBeGreaterThan(0);
     // no extra save from the app, and the 30s count starts again

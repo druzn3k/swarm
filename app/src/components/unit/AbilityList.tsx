@@ -1,10 +1,9 @@
-import type { Unit } from "@swarmsim/engine";
-import { visibleUpgrades } from "../../game/selectors";
+import type { UnitRef } from "../../game/view";
 import { AbilityItem } from "../progression/AbilityItem";
 
 /** A unit's abilities (energy spells); each can be hidden and shown again. */
-export function AbilityList({ unit }: { unit: Unit }) {
-  const abilities = visibleUpgrades(unit, "ability");
+export function AbilityList({ unit }: { unit: UnitRef }) {
+  const abilities = unit.upgrades("ability");
   if (!abilities.length) return null;
   return (
     <section className="section card" aria-labelledby="abilities-title" data-slot="abilities">

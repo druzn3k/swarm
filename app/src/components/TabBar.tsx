@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { RefObject } from "react";
-import type { Game, Unit } from "@swarmsim/engine";
+import type { GameView } from "../game/view";
 import { useGameValueEvery } from "../game/GameContext";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
@@ -17,18 +17,18 @@ interface TabInfo {
 }
 
 /** What each unlocked tab shows. */
-function tabInfos(game: Game, fmt: Formatter): TabInfo[] {
+function tabInfos(g: GameView, fmt: Formatter): TabInfo[] {
   const out: TabInfo[] = [];
   for (const name of TAB_ORDER) {
-    const tab = tabByName(game, name)!;
+    const tab = tabByName(g, name)!;
     // like the old tabs, locked tabs are hidden
-    if (!tab.isVisible()) continue;
-    const lead = tab.leadunit as Unit;
+    if (!tab.visible) continue;
+    const lead = tab.lead;
     let extra = "";
-    if (lead.capValue()) extra = fmt.percent(lead.capPercent(), { floor: true });
+    if (lead.cap) extra = fmt.percent(lead.capPercent, { floor: true });
     // special case from the old tabs: inactive mutagen waiting for ascension
-    if (name === "mutagen") extra = `+${fmt.num(game.unit("premutagen").count())}`;
-    out.push({ name, label: lead.unittype.plural as string, count: fmt.num(lead.count()), extra, upgradable: tab.isNewlyUpgradable() });
+    if (name === "mutagen") extra = `+${fmt.num(g.unit("premutagen").count)}`;
+    out.push({ name, label: lead.plural, count: fmt.num(lead.count), extra, upgradable: tab.newlyUpgradable });
   }
   return out;
 }
@@ -54,7 +54,7 @@ export function TabBar({
   const fmt = useFormat();
   // every other tick (5 a second; the "new upgrade" markers walk every unit of
   // every tab): the tab bar shows totals, not a ticker. Player actions show at once.
-  const snapshot = useGameValueEvery((s) => JSON.stringify(tabInfos(s.game, fmt)), 2);
+  const snapshot = useGameValueEvery((s) => JSON.stringify(tabInfos(s.g, fmt)), 2);
   const tabs = useMemo(() => JSON.parse(snapshot) as TabInfo[], [snapshot]);
   return (
     <nav className={wide ? "tabbar strip" : "tabbar"} aria-label="Swarm tabs">

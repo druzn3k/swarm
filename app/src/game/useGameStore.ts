@@ -1,17 +1,17 @@
-// Creates the app's one GameStore (and starts its tick loop) for the root component.
-import { useEffect, useState } from "react";
-import { GameStore } from "./store";
-import { safeLocalStorage } from "./storage";
+// Creates the app's one GameStore (and starts its frame loop) for the root component.
+import { useEffect } from "react";
+import { GameStore, SAVE_ID } from "./store";
+import { openSaveStorage } from "./storage";
 
-export function createBrowserStore(): GameStore {
+/** Loads the save (from the desktop shell's file when in Tauri, else localStorage) and creates the store. */
+export async function createBrowserStore(): Promise<GameStore> {
   // "?forcewelcome" in the url shows the welcome-back summary (the old game's switch)
   const forceWelcomeBack = /[?&]forcewelcome\b/.test(window.location.hash + window.location.search);
-  return new GameStore({ storage: safeLocalStorage(), forceWelcomeBack });
+  return new GameStore({ storage: await openSaveStorage(SAVE_ID), forceWelcomeBack });
 }
 
-/** Start ticking/autosaving while mounted. */
-export function useRunningStore(factory: () => GameStore = createBrowserStore): GameStore {
-  const [store] = useState(factory);
+/** Start the frame loop and autosaving while mounted. */
+export function useRunningStore(store: GameStore): GameStore {
   useEffect(() => store.start(), [store]);
   return store;
 }

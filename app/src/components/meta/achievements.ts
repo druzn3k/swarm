@@ -1,6 +1,8 @@
 // Achievement list logic from the old AchievementsCtrl: states, filters
-// (stored in the save as `achievementsShown`, like the old game) and order.
-import type { Achievement, Game } from "@swarmsim/engine";
+// (stored in the save, like the old game) and order.
+import type { NumString } from "@swarmsim/engine-wasm";
+import type { AchievementRef, GameView } from "../../game/view";
+import type { GameStore } from "../../game/store";
 
 export type AchievementState = "earned" | "unearned" | "masked" | "hidden";
 
@@ -14,16 +16,25 @@ export interface AchievementsShown {
 
 export const DEFAULT_SHOWN: AchievementsShown = { earned: true, unearned: true, masked: true, order: "default", reverse: false };
 
-export function achievementState(a: Achievement): AchievementState {
-  if (a.isEarned()) return "earned";
-  if (a.isUnmasked()) return "unearned";
+/** The options-bag key the filters are kept under. */
+export const SHOWN_KEY = "achievementsShown";
+
+export function achievementState(a: AchievementRef): AchievementState {
+  if (a.earned) return "earned";
+  if (a.unmasked) return "unearned";
   // masked zero-point vanity achievements aren't masked, but entirely hidden
-  if (a.type.points <= 0) return "hidden";
+  if (a.points <= 0) return "hidden";
   return "masked";
 }
 
-export function readShown(game: Game): AchievementsShown {
-  const s = (game.session.state as { achievementsShown?: Partial<AchievementsShown> }).achievementsShown ?? {};
+/**
+ * The filters. The old game kept them in the save's top-level
+ * `achievementsShown`, which the engine keeps but can't write; this app keeps
+ * them in the options bag (set_option), and reads the old key as a fallback.
+ */
+export function readShown(store: Pick<GameStore, "ui">): AchievementsShown {
+  const raw = store.ui.options[SHOWN_KEY] ?? store.ui.unknown[SHOWN_KEY];
+  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<AchievementsShown>;
   return {
     earned: s.earned ?? true,
     unearned: s.unearned ?? true,
@@ -33,24 +44,35 @@ export function readShown(game: Game): AchievementsShown {
   };
 }
 
-export function writeShown(game: Game, shown: AchievementsShown): void {
-  game.withUnreifiedSave(() => {
-    (game.session.state as { achievementsShown?: AchievementsShown }).achievementsShown = { ...shown };
-  });
+export function writeShown(store: GameStore, shown: AchievementsShown): void {
+  store.setOption(SHOWN_KEY, { ...shown });
 }
 
-function isShown(a: Achievement, shown: AchievementsShown): boolean {
+function isShown(a: AchievementRef, shown: AchievementsShown): boolean {
   const state = achievementState(a);
   if (state === "hidden") return false;
   return shown[state];
 }
 
+/** game.achievementsSorted(): by when they were earned, unearned last (a stable sort). */
+function sortedByEarned(g: GameView): AchievementRef[] {
+  return g
+    .achievements()
+    .map((a, i) => ({ a, i }))
+    .sort((x, y) => {
+      const xe = x.a.earnedAt;
+      const ye = y.a.earnedAt;
+      if (xe === undefined || ye === undefined) return xe === ye ? x.i - y.i : xe === undefined ? 1 : -1;
+      return xe - ye || x.i - y.i;
+    })
+    .map((x) => x.a);
+}
+
 /** The achievements to list, filtered and ordered like the old screen (a stable sort; unknown keys last). */
-export function listAchievements(game: Game, shown: AchievementsShown): Achievement[] {
-  const pred = shown.order === "percentComplete" ? (a: Achievement) => a.progressOrder() : (a: Achievement) => a.earnedAtMillisElapsed();
+export function listAchievements(g: GameView, shown: AchievementsShown): AchievementRef[] {
+  const pred = shown.order === "percentComplete" ? (a: AchievementRef) => a.progressOrder : (a: AchievementRef) => a.earnedAt;
   const sign = shown.reverse ? -1 : 1;
-  return game
-    .achievementsSorted()
+  return sortedByEarned(g)
     .filter((a) => isShown(a, shown))
     .map((a, i) => ({ a, i, k: pred(a) }))
     .sort((x, y) => {
@@ -65,13 +87,25 @@ export function listAchievements(game: Game, shown: AchievementsShown): Achievem
 }
 
 /** When an achievement was earned, as a date. */
-export function earnedDate(game: Game, a: Achievement): Date | undefined {
-  const elapsed = a.earnedAtMillisElapsed();
-  return elapsed == null ? undefined : new Date(game.dateStarted().getTime() + elapsed);
+export function earnedDate(g: GameView, a: AchievementRef): Date | undefined {
+  const elapsed = a.earnedAt;
+  return elapsed == null ? undefined : new Date(g.startedMs + elapsed);
 }
 
-/** The larva-production bonus from achievement points, if the upgrade is owned. */
-export function achievementBonus(game: Game) {
-  const up = game.upgrade("achievementbonus");
-  return up && up.count().greaterThan(0) ? up.calcStats().prod : undefined;
+/**
+ * The larva-production bonus from achievement points (a multiplier), if the
+ * upgrade is owned. Its effect's stats are a detail of the larva unit: ask
+ * for `ACHIEVEMENT_BONUS_NEED`.
+ */
+export function achievementBonus(g: GameView): NumString | undefined {
+  const up = g.upgrade("achievementbonus");
+  if (!up.v || up.count === "0") return undefined;
+  const prod = g.s.statIndex("prod");
+  for (const e of up.effects) {
+    const v = e.v?.stats?.find(([s]) => s === prod)?.[1];
+    if (v !== undefined) return v;
+  }
+  return undefined;
 }
+
+export const ACHIEVEMENT_BONUS_NEED = { focus: ["larva"], sections: ["achievements"] } as const;

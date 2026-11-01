@@ -1,0 +1,26 @@
+[package]
+name = "swarm-tui"
+version = "0.1.0"
+description = "Swarm Simulator in the terminal: the `swarm-tui` binary."
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "swarm-tui"
+path = "src/main.rs"
+
+[dependencies]
+swarm-engine = { path = "../engine" }
+swarm-save = { path = "../save" }
+swarm-data = { path = "../data" }
+swarm-num = { path = "../num" }
+serde_json = "1"
+ratatui = { version = "0.30", default-features = false, features = ["crossterm", "layout-cache"] }
+
+[target.'cfg(unix)'.dependencies]
+signal-hook = "0.3"
+
+[dev-dependencies]
+insta = "1"
+swarm-cli = { path = "../cli", default-features = false }

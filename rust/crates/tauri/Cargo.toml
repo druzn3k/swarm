@@ -1,0 +1,27 @@
+[package]
+name = "swarm-tauri"
+version = "0.1.0"
+description = "Swarm Simulator on the Linux desktop: a Tauri 2 shell around the web app (app/)."
+edition.workspace = true
+license.workspace = true
+publish = false
+# Not a default workspace member: it needs the GTK/WebKitGTK dev packages.
+# Build with `cargo build -p swarm-tauri` or `cargo tauri build` here.
+
+[[bin]]
+name = "swarm-desktop"
+path = "src/main.rs"
+
+[lib]
+name = "swarm_tauri"
+path = "src/lib.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-fs = "2"
+
+[dev-dependencies]
+tempfile = "3"

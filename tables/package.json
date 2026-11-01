@@ -8,6 +8,7 @@
         "build": "mkdir -p dist && ts-node src/index.ts > dist/index.js",
         "gen": "ts-node src/gendata.ts",
         "gen:static": "ts-node src/spreadsheet/gen-static.ts",
+        "gen:json": "ts-node src/json/gen-json.ts",
         "test": "jest"
     },
     "devDependencies": {

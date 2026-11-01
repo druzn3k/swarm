@@ -10,22 +10,22 @@ const plural = (n: number, word: string) => `${n.toLocaleString("en-US")} ${word
 
 export function MoreActions() {
   const store = useStore();
-  const all = useGameValue((s) => buyAllList(s.game).length);
-  const cheapest = useGameValue((s) => buyCheapestList(s.game).length);
-  const undoLeft = useGameValue((s) => undoSecondsLeft(s.game, s.commands));
+  const all = useGameValue((s) => buyAllList(s.g).length);
+  const cheapest = useGameValue((s) => buyCheapestList(s.g).length);
+  const undoLeft = useGameValue((s) => undoSecondsLeft(s.g));
   const [status, setStatus] = useState("");
 
   const buy = (percent: number) => {
-    const upgrades = percent === 1 ? buyAllList(store.game) : buyCheapestList(store.game);
+    const upgrades = percent === 1 ? buyAllList(store.g) : buyCheapestList(store.g);
     // don't buy zero upgrades, it would invalidate undo (old #628)
     if (!upgrades.length) return;
-    const err = store.act(({ commands }) => commands.buyAllUpgrades({ upgrades, percent }));
-    setStatus(err ? "Couldn't buy every upgrade; prices changed. Some were bought." : `Bought ${plural(upgrades.length, "upgrade")}.`);
+    const { error } = store.act({ do: "buy_all_upgrades", percent, which: { explicit: upgrades.map((u) => u.name) } });
+    setStatus(error ? "Couldn't buy every upgrade; prices changed. Some were bought." : `Bought ${plural(upgrades.length, "upgrade")}.`);
   };
   const undo = () => {
-    if (undoSecondsLeft(store.game, store.commands) <= 0) return;
-    const err = store.act(({ commands }) => commands.undo());
-    setStatus(err ? "Nothing to undo." : "Undone.");
+    if (undoSecondsLeft(store.g) <= 0) return;
+    const { error } = store.act({ do: "undo" });
+    setStatus(error ? "Nothing to undo." : "Undone.");
   };
 
   return (

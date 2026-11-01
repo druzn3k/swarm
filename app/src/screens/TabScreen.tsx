@@ -14,9 +14,9 @@ import { AscendSummary } from "../components/progression/AscensionPanel";
  * has the page's h1).
  */
 export function TabScreen({ tab: name, selected, titleId }: { tab: string; selected?: string; titleId?: string }) {
-  const { game } = useStore();
-  const tab = tabByName(game, name);
-  const visible = useGameValue((s) => !!tabByName(s.game, name)?.isVisible());
+  const store = useStore();
+  const tab = tabByName(store.g, name);
+  const visible = useGameValue((s) => !!tabByName(s.g, name)?.visible);
   // like the old game: unknown or still-locked tabs go back to meat
   useEffect(() => {
     if (!visible) window.location.replace(tabHref("meat"));
@@ -33,7 +33,7 @@ export function TabScreen({ tab: name, selected, titleId }: { tab: string; selec
       {name === "larva" && <AchievementPointsRow />}
       {/* (on the laptop layout the full panel is right there when mutagen is shown) */}
       {tab.name === "mutagen" && selected !== "mutagen" && <AscendSummary />}
-      <UnitList tab={tab} selected={selected} />
+      <UnitList tab={tab.name} selected={selected} />
     </>
   );
 }

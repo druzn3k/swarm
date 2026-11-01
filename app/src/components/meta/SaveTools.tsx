@@ -1,19 +1,24 @@
-// Export, import and reset (old options.html): saves stay in the old game's
-// format, so swarmsim.com saves import here and these export back there.
+// Export, import and reset (old options.html). Exports are save format v2
+// by default (the Rust engine's), or the old game's format ("legacy"), which
+// swarmsim.com and the previous version of this app import. Imports take
+// either format (detect_save_format tells them apart).
 import { useEffect, useId, useRef, useState } from "react";
+import { detectSaveFormat } from "@swarmsim/engine-wasm";
+import type { SaveFormat } from "@swarmsim/engine-wasm";
 import { useStore } from "../../game/GameContext";
+import { useWelcomeHold } from "../../game/useWelcomeHold";
 import { navigate } from "../../router";
 import "../../styles/meta.css";
 
-/** Why a save string can't be imported, or undefined if it looks fine. */
-export function validateSave(decode: (s: string) => unknown, text: string): string | undefined {
+/** Why a save string can't be imported, or undefined if it looks fine. `load` throws for saves the engine can't load. */
+export function validateSave(text: string, load: (s: string) => void): string | undefined {
   const s = text.trim();
   if (!s) return "Paste a saved game first.";
   // the old game refused short urls too
   if (/^https?:/i.test(s)) return "That's a link, not a saved game. Paste the exported text itself.";
   try {
-    const state = decode(s) as { unittypes?: unknown; date?: unknown } | null;
-    if (!state || typeof state !== "object" || !state.unittypes || !state.date) throw new Error("not a game");
+    if (!detectSaveFormat(s)) throw new Error("not a game");
+    load(s);
   } catch (e) {
     const detail = e instanceof Error && /version|0\.1|blacklist/i.test(e.message) ? ` (${e.message})` : "";
     return `That isn't a Swarm Simulator save we can read${detail}. Copy the whole exported text and try again.`;
@@ -23,19 +28,25 @@ export function validateSave(decode: (s: string) => unknown, text: string): stri
 
 export function ExportSave() {
   const store = useStore();
-  const [text, setText] = useState(() => store.engine.session.exportSave());
+  const [format, setFormat] = useState<SaveFormat>("v2");
+  const [text, setText] = useState(() => store.exportSave("v2"));
   const [status, setStatus] = useState("");
   const area = useRef<HTMLTextAreaElement>(null);
   const id = useId();
-
+  const legacyId = useId();
   const selectAll = () => {
     area.current?.focus();
     area.current?.select();
   };
+  const pick = (f: SaveFormat) => {
+    setFormat(f);
+    setText(store.exportSave(f));
+    setStatus("");
+  };
   const copy = () => {
     // export what's current, then copy it (inside the click, so the clipboard is allowed)
     store.save();
-    const fresh = store.engine.session.exportSave();
+    const fresh = store.exportSave(format);
     setText(fresh);
     const fallback = () => {
       if (area.current) area.current.value = fresh;
@@ -54,11 +65,15 @@ export function ExportSave() {
       fallback();
     }
   };
-
   return (
     <div className="save-block">
       <label htmlFor={id}>Your saved game</label>
-      <textarea id={id} ref={area} className="save-text" readOnly value={text} rows={4} onFocus={(e) => e.currentTarget.select()} spellCheck={false} />
+      <textarea id={id} ref={area} className="save-text" readOnly value={text} rows={4} onFocus={(e) => e.currentTarget.select()} spellCheck={false} data-format={format} />
+      <label className="choice switch" htmlFor={legacyId}>
+        <input id={legacyId} type="checkbox" checked={format === "v1"} onChange={(e) => pick(e.target.checked ? "v1" : "v2")} />
+        <span className="choice-label">Legacy format</span>
+      </label>
+      <p className="muted small">The legacy format also imports into swarmsim.com and older versions of this app.</p>
       <div className="btn-row two">
         <button type="button" className="btn" onClick={copy}>
           Copy
@@ -84,6 +99,7 @@ export function ImportSave({ onImported }: { onImported?: () => void }) {
   const errId = useId();
   const confirmBox = useRef<HTMLDivElement>(null);
   const importBtn = useRef<HTMLButtonElement>(null);
+  useWelcomeHold(confirming);
   // move focus into the question, and back to the Import button when it closes
   useEffect(() => {
     if (confirming) confirmBox.current?.focus();
@@ -95,24 +111,14 @@ export function ImportSave({ onImported }: { onImported?: () => void }) {
 
   const check = () => {
     setDone(false);
-    const err = validateSave((s) => store.engine.session._loads(s), text);
+    const err = validateSave(text, (s) => store.checkSave(s));
     setError(err);
     setConfirming(!err);
   };
   const doImport = () => {
-    const encoded = text.trim();
-    const err = store.act(({ game, backfill, events }) => {
-      try {
-        game.importSave(encoded, false);
-        backfill.run(game);
-      } catch (e) {
-        events.emit("import", { source: "options", success: false });
-        throw e;
-      }
-      events.emit("import", { source: "options", success: true });
-    });
+    const { error } = store.importSave(text);
     setConfirming(false);
-    if (err) {
+    if (error) {
       setError("Importing failed. Your current game is unchanged.");
       return;
     }
@@ -178,6 +184,7 @@ export function ResetGame() {
   const store = useStore();
   const [step, setStep] = useState(0);
   const wipeBtn = useRef<HTMLButtonElement>(null);
+  useWelcomeHold(step > 0);
   const cancel = () => {
     setStep(0);
     setTimeout(() => wipeBtn.current?.focus(), 0);
@@ -198,11 +205,8 @@ export function ResetGame() {
               type="button"
               className="btn btn-danger"
               onClick={() => {
-                store.act(({ game, session }) => {
-                  // delete the stored save, as advertised, then start fresh
-                  session.storage.removeItem?.(session.id);
-                  game.reset(true);
-                });
+                // delete the stored save, as advertised, then start fresh
+                store.reset();
                 setStep(0);
                 navigate({ name: "tab", tab: "meat" });
               }}

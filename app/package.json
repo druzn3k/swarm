@@ -3,25 +3,27 @@
   "private": true,
   "version": "0.1.0",
   "license": "GPL-3.0",
-  "description": "Phone-first, pixel-art Swarm Simulator on @swarmsim/engine",
+  "description": "Phone-first, pixel-art Swarm Simulator on the Rust engine (@swarmsim/engine-wasm)",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "sh scripts/build-wasm.sh && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "tsc --noEmit && vitest run",
     "e2e": "playwright test",
     "bench": "tsx bench/run.ts",
-    "icons": "tsx scripts/make-icons.ts"
+    "icons": "tsx scripts/make-icons.ts",
+    "wasm": "sh scripts/build-wasm.sh"
   },
   "dependencies": {
-    "@swarmsim/engine": "workspace:*",
+    "@swarmsim/engine-wasm": "workspace:*",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
+    "@swarmsim/engine": "workspace:*",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.7.0",
