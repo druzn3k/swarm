@@ -1,0 +1,45 @@
+---
+source: crates/cli/tests/cli.rs
+expression: "sb.ok(&[\"--help\"]).stdout"
+---
+Swarm Simulator, on the command line.
+
+The save lives in $XDG_DATA_HOME/swarm/save.txt (default ~/.local/share/swarm/save.txt); override it with --save or $SWARM_SAVE. Each command that changes the game rewrites the save (v2) and keeps the previous one as save.prev.txt.
+
+Exit codes: 0 ok, 1 refused by a game rule, 2 usage error, 3 I/O error.
+
+Usage: swarm [OPTIONS] <COMMAND>
+
+Commands:
+  new           Start a new game
+  show          Show units, upgrades and tabs
+  buy           Buy units
+  buy-max       Buy as many units as you can afford
+  upgrade       Buy upgrade or ability levels
+  upgrade-max   Buy as many levels of an upgrade as you can afford
+  upgrade-all   Buy every affordable, watched upgrade (the game's "buy all upgrades")
+  ascend        Ascend: trade energy for mutagen and start over
+  respec        Respec mutations: uses a free respec if you have one, else energy
+  undo          Undo the last command; run again to redo
+  advance       Let game time pass: 90s, 3h, 2d, 1h30m
+  export        Print the save
+  import        Replace the game with a save from a file (v1 or v2; `-` is stdin)
+  convert       Convert a save file between formats without touching your game
+  scenario      Run and compare parity scenarios (swarm-scenario)
+  bench         Time engine operations
+  stats         Show statistics: time played, purchases
+  achievements  Show achievements
+  help          Print this message or the help of the given subcommand(s)
+
+Options:
+      --save <PATH>
+          The save file
+
+      --long
+          Long number names ("1.23456 million") instead of short ("1.23M")
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version

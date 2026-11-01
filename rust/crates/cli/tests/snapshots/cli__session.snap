@@ -1,0 +1,145 @@
+---
+source: crates/cli/tests/cli.rs
+expression: t.0
+---
+$ swarm new  # exit 0
+New game saved to <dir>/swarm/save.txt
+
+$ swarm show  # exit 0
+Played 0s (game clock 2023-11-14T22:13:20.000Z), 0 achievement points
+
+== meat ==
+  unit                    count    per sec  cost each                      can buy
+* drone                       0          0  10 meat, 1 larva                     3
+  meat                       35          0  -                                    -
+
+== larva ==
+  unit                    count    per sec  cost each                      can buy
+  larva                      10          1  1 cocoon                             -
+  upgrade                 level next cost                      can buy
+  hatchery                    0 300 meat                             0
+  expansion                   0 10 territory                         0
+
+$ swarm buy drone 3  # exit 0
+Bought 3 drone; you have 3.
+
+$ swarm advance 1h  # exit 0
+Advanced 1h.
+  meat             8 -> 10,808
+  larva            8 -> 3,608
+
+$ swarm show  # exit 0
+Played 1h 1s (game clock 2023-11-14T23:13:21.000Z), 10 achievement points
+
+== meat ==
+  unit                    count    per sec  cost each                      can buy
+* drone                       3          0  10 meat, 1 larva                 1,080
+  meat                   10,808          3  -                                    -
+
+== larva ==
+  unit                    count    per sec  cost each                      can buy
+  larva                   3,608          1  1 cocoon                             -
+  upgrade                 level next cost                      can buy
+* hatchery                    0 300 meat                             2
+  expansion                   0 10 territory                         0
+
+$ swarm buy drone 50%  # exit 0
+Bought 540 drone; you have 543.
+
+$ swarm buy drone @200  # exit 0
+Bought 1 drone; you have 544.
+
+$ swarm upgrade-all  # exit 0
+Bought 2 level(s) of hatchery (now level 2).
+Bought 1 level(s) of droneprod (now level 1).
+
+$ swarm show --long  # exit 0
+Played 1h 1s (game clock 2023-11-14T23:13:21.000Z), 30 achievement points
+
+== meat ==
+  unit                    count    per sec  cost each                      can buy
+* queen                       0          0  810 meat, 100 drone, 1 larva         2
+* drone                     478          0  10 meat, 1 larva                   209
+  meat                    2,098        956  -                                    -
+  upgrade                 level next cost                      can buy
+  droneprod                   1 43,956 drone                         0
+
+== larva ==
+  unit                    count    per sec  cost each                      can buy
+  larva                   3,067          3  1 cocoon                             -
+  upgrade                 level next cost                      can buy
+  hatchery                    2 30,000 meat                          0
+  expansion                   0 10 territory                         0
+
+$ swarm export  # exit 0
+SW2|N4IgZg9gTgtghgFxALgEwBoQHM4wKYD6AbnlAM4CWEAdiiAAwB0AjI/SJgCaJwFkDGACzzwUzLojxkUoMgjhQEeTmIDs9DZq31MUKfMXK12k7rwUwFI8mbrNAZgBs9Zpsxk4JFTbsanLtxAAGwg4TmtqAFcgoMx+ELJrWy1/Vw1MCARhKBkAX1z3AGsKAAcS5QIYaWQdEEjqCgRq0DgBPGpKGjp2TAAjRG6OEH52hFLlPEG4iH4ILuQGIf4oAE85OCCpkHCiCEi9HIWe7agaSYWAFlUADiGREr0yasXMdtIsFa2wPTwAJSlyvw6BchlgKHBqE0ShRwocXtgIJxwk8tlg5rQjqC9JIoABHSJ4dpbQQUEjE0l4fGEjHwijUIgUSi9IJ4QSIISkT4LZhDIIKIhwOj2eiOVS8maRORbfADBaoegATlumBgEDI+MaEGlmUE0oQAA8AKLUd5c+EwSLyLBEzEqy0QgwwM3HC3ySH9JC2kCuh3xM7S+2QvBwIQBt0Ib6UsMOtkIDmraOQmWe82BhAm/WSxMIKCS3Ven2QsgAdwUMFLUBKWxNUq9GazdYoWEECF6kSwWwgJFgdO88K7pBgvdQne7Q+onHso8HvZBXoHPYnAFZp4vOI4tiUY3h5vCt5DhDQR1791kd9QpyftzQ53vr9QVye9D7rTTjg8ICVhCnjlSbfDHkBY1TS2U4Q3zeEyGhWEtjkOlrThY4SzLIJ4K2JQoCgTUEy9UsoMGAo6hKLAoDCKQZBOM4Pz7HlMFjeMzRHQjwKsEh8CLCjOFOE0eRqLhuLwY9Uk0QjSzjYRvGAQixnwcg8nceQxjg/hmmGVD+EKapHD6FYAFUGk9UAuP9ZBQHiCgNOqexMCiGA6CXC4QUwBBizpWz7Mcu4+RKRJOAAMQochPXofIdN04jSPCTiBOoijzMssQbMiOzuS8uAfOUAKgpQYSNEI+jsi5Mz1M0xKQHcuU0oy/zAtrXKQtCkBPzGGhmkI7tOgxWQDCUGiWBYMV3E8awQFYMaxUIsA+SwNrciAA=
+
+$ swarm new --force  # exit 0
+New game saved to <dir>/swarm/save.txt
+
+$ swarm import <dir>/exported.txt  # exit 0
+Imported a v2 save into <dir>/swarm/save.txt
+
+$ swarm show  # exit 0
+Played 1h 1s (game clock 2023-11-14T23:13:21.000Z), 30 achievement points
+
+== meat ==
+  unit                    count    per sec  cost each                      can buy
+* queen                       0          0  810 meat, 100 drone, 1 larva         2
+* drone                     478          0  10 meat, 1 larva                   209
+  meat                    2,098        956  -                                    -
+  upgrade                 level next cost                      can buy
+  droneprod                   1 43,956 drone                         0
+
+== larva ==
+  unit                    count    per sec  cost each                      can buy
+  larva                   3,067          3  1 cocoon                             -
+  upgrade                 level next cost                      can buy
+  hatchery                    2 30,000 meat                          0
+  expansion                   0 10 territory                         0
+
+$ swarm stats  # exit 0
+Started:     2023-11-14T22:13:20.000Z
+Played:      1h 1s
+Skipped:     0s
+Ascensions:  0
+Purchases:   6
+Achievements: 30 / 2410 points
+
+  unit                  buys     bought   received  first bought after
+  drone                    3        544        544  0s
+
+  upgrade               buys     levels  first bought after
+  droneprod                1          1  1h 1s
+  hatchery                 1          2  1h 1s
+
+$ swarm achievements  # exit 0
+Achievements: 30 / 2410 points (1.2%)
+[x] a good start                  10 pts  earned after 0s
+      Hatch your first drone (drone1)
+[x] supply limit exceeded         20 pts  earned after 1h 1s
+      Hatch 201 drones (drone2)
+[ ] "exponential" growth          30 pts  544 / 10,000
+      Hatch 10,000 drones (drone3)
+[ ] tutorial complete             50 pts  0 / 5
+      Finish the tutorial (tutorial)
+[ ] queen me                      10 pts  0 / 1
+      Hatch your first queen (queen1)
+[ ] is this the real life?        20 pts  0 / 1,000
+      Hatch 1,000 queens (queen2)
+[ ] don't stop me now             30 pts  0 / 1M
+      Hatch 1M queens (queen3)
+[ ] rush                          10 pts  0 / 6
+      Hatch 6 swarmlings (swarmling1)
+[ ] metabolic boost               10 pts  0 / 1M
+      Hatch 1M swarmlings (swarmling2)
+[ ] adrenal glands                10 pts  0 / 1Qa
+      Hatch 1Qa swarmlings (swarmling3)
+[ ] beekeeper                     10 pts  0 / 100
+      Hatch 100 stingers (stinger1)
+[ ] to bee or not to bee          10 pts  0 / 1M
+      Hatch 1M stingers (stinger2)
+[ ] waxing poetic                 10 pts  0 / 1Qa
+      Hatch 1Qa stingers (stinger3)
+[ ] patchy knowledge              10 pts  
+      Find the Patch Notes (changelog)

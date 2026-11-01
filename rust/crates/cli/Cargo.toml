@@ -1,0 +1,30 @@
+[package]
+name = "swarm-cli"
+version = "0.1.0"
+description = "Swarm Simulator on the command line: the `swarm` binary."
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "swarm"
+path = "src/main.rs"
+
+[features]
+default = ["scenario"]
+# `swarm scenario ...`: delegates to swarm-scenario, which turns on the
+# engine's `parity` feature. Build with `--no-default-features` for a binary
+# without the parity hooks.
+scenario = ["dep:swarm-scenario"]
+
+[dependencies]
+swarm-engine = { path = "../engine" }
+swarm-save = { path = "../save", features = ["legacy-write"] }
+swarm-data = { path = "../data" }
+swarm-num = { path = "../num" }
+swarm-scenario = { path = "../scenario", optional = true }
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+insta = "1"
