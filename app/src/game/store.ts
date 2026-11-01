@@ -84,6 +84,8 @@ export interface ActResult {
   outcome?: CommandOutcome;
 }
 
+const welcomeKey = (wb: WelcomeBack) => `${wb.closed_ms}:${wb.away_ms}:${wb.gains.length}`;
+
 /** The bits of `window` start() uses (FakeWindow in tests). */
 type Host = Window & { requestAnimationFrame?: Window["requestAnimationFrame"] };
 
@@ -102,6 +104,12 @@ export class GameStore {
   private eventListeners: Partial<Record<keyof StoreEvents, Set<Listener<never>>>> = {};
   /** offline gains since the game was last closed; null when there's nothing to show or it was dismissed */
   welcomeBack: WelcomeBack | null = null;
+  /** a report that arrived while a modal was open; shown when the last one closes */
+  private pendingWelcome: WelcomeBack | null = null;
+  /** reports already shown (or dismissed), so one is never shown twice */
+  private seenWelcome = new Set<string>();
+  /** open modals (import/ascension confirms) that hold the welcome back back */
+  private welcomeHolds = new Set<object>();
   /** the options bag and other UI state kept in the save */
   ui: UiState;
   /** the unit last opened on each tab (the old tab.lastselected) */
@@ -138,7 +146,42 @@ export class GameStore {
     this.take({ detail_all: false });
     this.statics.learn(this.view);
     // computed at load, before the first heartbeat, which would make it look like we never left
-    this.welcomeBack = opts.forceWelcomeBack ? this.handle.welcomeBack(true) : (this.view.welcome_back ?? null);
+    const first = opts.forceWelcomeBack ? this.handle.welcomeBack(true) : (this.view.welcome_back ?? null);
+    this.welcomeBack = first;
+    if (first) this.seenWelcome.add(welcomeKey(first));
+    // the engine keeps the startup report in every view until dismissed
+    if (this.view.welcome_back) this.seenWelcome.add(welcomeKey(this.view.welcome_back));
+  }
+
+  /**
+   * Keep the welcome back from appearing while a modal (a confirm dialog) is
+   * open; a report that arrives meanwhile shows when the last hold is released.
+   */
+  holdWelcome(key: object): () => void {
+    this.welcomeHolds.add(key);
+    return () => {
+      if (!this.welcomeHolds.delete(key) || this.welcomeHolds.size > 0) return;
+      const p = this.pendingWelcome;
+      this.pendingWelcome = null;
+      if (p && !this.welcomeBack) {
+        this.welcomeBack = p;
+        this.bump();
+      }
+    };
+  }
+
+  /** A report carried by a view: show it once, unless a modal is open or another is showing. */
+  private offerWelcome(wb: WelcomeBack | undefined): void {
+    if (!wb) return;
+    const key = welcomeKey(wb);
+    if (this.seenWelcome.has(key)) return;
+    if (this.welcomeBack) return; // the one showing stays; this one is shown after its dismissal's view
+    if (this.welcomeHolds.size > 0) {
+      this.pendingWelcome = wb;
+      return;
+    }
+    this.seenWelcome.add(key);
+    this.welcomeBack = wb;
   }
 
   /** The engine. Replaced by an import: don't keep it. */
@@ -239,6 +282,7 @@ export class GameStore {
       if (i !== undefined) hidden.set(i, this.handle.unitStats(name));
     }
     this.g = new GameView(this.statics, view, hidden);
+    this.offerWelcome(view.welcome_back);
     const warp = this.g.upgrade("swarmwarp").effects[0]?.v?.output;
     if (warp !== undefined) this.warpSecs = Number(warp) || 1;
     // one save for however many the commands asked for
@@ -346,7 +390,9 @@ export class GameStore {
   }
 
   dismissWelcomeBack(): void {
+    if (this.welcomeBack) this.seenWelcome.add(welcomeKey(this.welcomeBack));
     this.welcomeBack = null;
+    this.pendingWelcome = null;
     this.act({ do: "dismiss_welcome_back" });
   }
 
@@ -375,6 +421,8 @@ export class GameStore {
     this.ui = next.uiState();
     this.lastSelected.clear();
     this.welcomeBack = next.welcomeBack(true);
+    this.pendingWelcome = null;
+    if (this.welcomeBack) this.seenWelcome.add(welcomeKey(this.welcomeBack));
     const result = this.act({ do: "ui_event", name: "import", params: { source: "options", success: true } });
     this.save();
     return result;
@@ -384,6 +432,7 @@ export class GameStore {
   reset(): void {
     this.storage.removeItem?.(this.saveId);
     this.welcomeBack = null;
+    this.pendingWelcome = null;
     this.lastSelected.clear();
     this.act({ do: "reset" });
     this.save();

@@ -248,3 +248,51 @@ describe("GameStore upgrade scope", () => {
     expect(store.g.upgrade("hatchery").v).toBeDefined();
   });
 });
+
+describe("GameStore welcome back after resync", () => {
+  const report = { away_ms: 600_000, closed_ms: T0, gains: [] };
+  // a real engine whose resyncWall reports a gap and whose views carry the report until dismissed
+  const stubbed = () => {
+    const { store } = storeWith({ units: { drone: 3 } });
+    let carried = false;
+    const h = store.handle;
+    const view = h.view.bind(h);
+    const apply = h.apply.bind(h);
+    vi.spyOn(h, "resyncWall").mockImplementation(() => {
+      carried = true;
+      return {} as never;
+    });
+    vi.spyOn(h, "view").mockImplementation((req) => ({ ...view(req), ...(carried ? { welcome_back: report } : {}) }));
+    vi.spyOn(h, "apply").mockImplementation((cmd) => {
+      if (cmd.do === "dismiss_welcome_back") carried = false;
+      return apply(cmd);
+    });
+    return store;
+  };
+
+  it("shows a report that arrives with a resync once, and clears on dismiss", () => {
+    const store = stubbed();
+    expect(store.welcomeBack).toBeNull();
+    expect(store.resync()).toBe(true);
+    store.refresh();
+    expect(store.welcomeBack).toEqual(report);
+    store.refresh(); // the same report in the next view: no change
+    expect(store.welcomeBack).toEqual(report);
+    store.dismissWelcomeBack();
+    expect(store.welcomeBack).toBeNull();
+    store.refresh();
+    store.resync();
+    store.refresh();
+    expect(store.welcomeBack).toBeNull(); // not re-shown for the same report
+  });
+
+  it("waits while a modal is open", () => {
+    const store = stubbed();
+    const release = store.holdWelcome({});
+    store.resync();
+    store.refresh();
+    expect(store.welcomeBack).toBeNull();
+    release();
+    expect(store.welcomeBack).toEqual(report);
+  });
+});

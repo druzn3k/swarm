@@ -2,6 +2,7 @@
 // window.confirm): the first tap opens a warning with Confirm and Cancel.
 import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useWelcomeHold } from "../../game/useWelcomeHold";
 import "../../styles/progression.css";
 
 export function ConfirmButton({
@@ -24,6 +25,7 @@ export function ConfirmButton({
   const box = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const isOpen = open && !disabled;
+  useWelcomeHold(isOpen);
 
   useEffect(() => {
     if (isOpen) box.current?.focus();

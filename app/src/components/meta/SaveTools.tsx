@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { detectSaveFormat } from "@swarmsim/engine-wasm";
 import type { SaveFormat } from "@swarmsim/engine-wasm";
 import { useStore } from "../../game/GameContext";
+import { useWelcomeHold } from "../../game/useWelcomeHold";
 import { navigate } from "../../router";
 import "../../styles/meta.css";
 
@@ -98,6 +99,7 @@ export function ImportSave({ onImported }: { onImported?: () => void }) {
   const errId = useId();
   const confirmBox = useRef<HTMLDivElement>(null);
   const importBtn = useRef<HTMLButtonElement>(null);
+  useWelcomeHold(confirming);
   // move focus into the question, and back to the Import button when it closes
   useEffect(() => {
     if (confirming) confirmBox.current?.focus();
@@ -182,6 +184,7 @@ export function ResetGame() {
   const store = useStore();
   const [step, setStep] = useState(0);
   const wipeBtn = useRef<HTMLButtonElement>(null);
+  useWelcomeHold(step > 0);
   const cancel = () => {
     setStep(0);
     setTimeout(() => wipeBtn.current?.focus(), 0);
