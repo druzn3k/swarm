@@ -5,7 +5,8 @@
 //! [`effects`](crate::effects), [`achievement`](crate::achievement),
 //! [`statistics`](crate::statistics), [`progression`](crate::progression),
 //! [`backfill`](crate::backfill), [`estimate`](crate::estimate),
-//! [`command`](crate::command) and [`view`](crate::view).
+//! [`command`](crate::command), [`welcomeback`](crate::welcomeback),
+//! [`tutorial`](crate::tutorial) and [`view`](crate::view).
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -52,6 +53,9 @@ pub(crate) struct Runtime {
     pub exported: Option<Box<State>>,
     pub events: Vec<Event>,
     pub offline: Option<OfflineReport>,
+    /// The welcome-back report computed at load, shown while `offline` is
+    /// set ([`Engine::welcome_back`]).
+    pub welcome_back: Option<crate::welcomeback::WelcomeBack>,
     /// TS `cache.firstSpawn`: tutorial flags, cleared on reload. Unit ->
     /// `now` of the first spawn.
     pub first_spawn: BTreeMap<UnitId, i64>,
@@ -149,6 +153,12 @@ impl Engine {
             resumed_ms: wall_now_ms,
         });
         engine.rt.offline = offline;
+        // cache-neutral: memoised stats would otherwise capture load-time
+        // counts (PARITY(cache)) that later queries would not
+        let caches = engine.cache.borrow().clone();
+        engine.rt.welcome_back =
+            offline.and_then(|o| engine.compute_welcome_back(o.closed_ms, false));
+        *engine.cache.get_mut() = caches;
         Ok(LoadOutcome {
             engine,
             offline,
@@ -196,6 +206,7 @@ impl Engine {
                 exported: None,
                 events: Vec::new(),
                 offline: None,
+                welcome_back: None,
                 first_spawn: BTreeMap::new(),
                 view_seq: 0,
             },

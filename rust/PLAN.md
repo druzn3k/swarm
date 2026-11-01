@@ -342,8 +342,36 @@ As built (M2 engine core, `swarm-engine`), with these deviations:
 - `watch(level)` stores the default level as absent (TS stores a numeric 1).
 - The unit suffix is computed from the level (`Engine::suffix`), not as a
   stats side effect, so it never lags.
-- `view()` is minimal (`ViewRequest { focus }`; units, upgrades,
-  achievements, events); `OfflineReport` is `{closed_ms, resumed_ms}`.
+- `OfflineReport` is `{closed_ms, resumed_ms}`.
+- **View (as built, `swarm-engine::view`).** `view(&ViewRequest) -> View` is
+  read-only (fills memo caches like the TS UI's per-tick reads, never clears
+  one; the corpus never calls it). `View`: clock fields (`now_ms`,
+  `started_ms`, `restarted_ms`, `reified_ms`, `skipped_ms`,
+  `total_skipped_ms`, `elapsed_ms`, `periodic_ms`), `units: Vec<UnitView>`
+  (count, velocity, visible, suffix, buyable, cost_met, `max_cost_met` 100% /
+  25% / `max_cost_met_at[percents]`, twin_mult, each_cost, cap,
+  cap_percent, newly_upgradable, `detail`: stats, each/total production,
+  spent, max_cost_met_of_velocity, eta to afford one, cap_eta, unit effect
+  views), `upgrades: Vec<UpgradeView>` (count, visible, buyable,
+  upgradable, newly_upgradable, watched, max_cost_met ×3, cost_met_percent,
+  total_cost, `sum_costs[sum_amounts]`, `detail`: `UpgradeEta` and
+  `EffectView`s = output, rand/rand_next, bank, cap, calcStats, timer),
+  `buy_all`/`buy_cheapest`, `tabs` (visible, newly_upgradable, units in
+  `sortUnits` order, visible only) + `all_tab`, `achievements` (points,
+  percent, earned, per-achievement progress), `ascension` (cost, base_cost,
+  percent, cap_diff, eta, respec cost/spent/can, free respecs),
+  `statistics`, `undo: UndoView` (30 s window, `secs_left`, redo),
+  `tutorial_step`, `first_spawn`, `offline`, `welcome_back` (gains computed
+  once at load, cache-neutrally), `events: Vec<ViewEvent>` (drained, ids as
+  `u16`). `ViewRequest { focus, detail_all, only_units, sections,
+  percents, sum_amounts }` (`for_tab` helper; serde-defaults to everything,
+  no detail). `StaticView`: units/upgrades/achievements/effects (texts,
+  costs, prods, effect params), stat names, tabs, constants. Everything is
+  `u16`-indexed, `Num` as its string, no pre-formatted text; absent JSON
+  fields mean `None`/empty/`false`. Mid-game fixture: 36 KB default, 56 KB
+  with every detail. New methods: `welcome_back`, `compute_welcome_back`,
+  `interesting_units`, `tutorial_step`, `undo_window`, `is_undoable`,
+  `effect_view`, `effect_stats`, `sort_tab_units`, `sorted_tab_units`.
 
 ## 5. Save format v2
 

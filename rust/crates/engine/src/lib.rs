@@ -38,9 +38,11 @@ pub mod seedrand;
 pub mod state;
 pub mod statistics;
 pub mod time;
+pub mod tutorial;
 pub mod unit;
 pub mod upgrade;
 pub mod view;
+pub mod welcomeback;
 
 #[cfg(test)]
 mod tests;
@@ -59,4 +61,9 @@ pub use state::State;
 pub use time::TimeError;
 pub use unit::Bought;
 pub use upgrade::{UpgradeCostVal, UpgradeEstimate};
-pub use view::{StaticView, View, ViewRequest};
+pub use view::{
+    AchievementView, AchievementsView, AscensionView, EffectView, Sections, StaticView, TabView,
+    UndoView, UnitDetail, UnitView, UpgradeDetail, UpgradeEta, UpgradeView, View, ViewEvent,
+    ViewRequest,
+};
+pub use welcomeback::{OfflineGain, WelcomeBack};
