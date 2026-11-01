@@ -230,3 +230,111 @@ fn numbers() {
     assert_eq!(core::format_short_str("1.5e+400").unwrap(), "1.5e400");
     assert!(core::format_short_str("x").is_err());
 }
+
+#[test]
+fn ui_state_and_forced_welcome_back() {
+    let mut g = GameCore::new_game(T0).unwrap();
+    assert_eq!(parse(&g.ui_state()), json!({"options": {}, "unknown": {}}));
+    g.apply(r#"{"do":"set_option","key":"notation","value":"hybrid"}"#)
+        .unwrap();
+    assert_eq!(
+        parse(&g.ui_state())["options"],
+        json!({"notation": "hybrid"})
+    );
+    // a new game was never away: nothing unless forced
+    assert_eq!(g.welcome_back(false), None);
+    let forced = parse(&g.welcome_back(true).unwrap());
+    assert_eq!(forced["away_ms"], 0);
+    assert!(forced["gains"].as_array().is_some());
+
+    // a save closed an hour ago: the report covers the hour, forced or not
+    let save = g.export_v2(T0).unwrap();
+    let later = GameCore::load(&save, T0 + 3_600_000.0, None).unwrap();
+    let wb = parse(&later.welcome_back(false).unwrap());
+    assert_eq!(wb["away_ms"], 3_600_000);
+    assert_eq!(wb["closed_ms"], T0 as i64);
+    assert_eq!(parse(&later.ui_state())["options"]["notation"], "hybrid");
+}
+
+#[test]
+fn unit_stats_reach_hidden_units() {
+    let g = GameCore::new_game(T0).unwrap();
+    let statics = parse(&g.static_view());
+    let stats = parse(&g.unit_stats("invisiblehatchery").unwrap());
+    // the hatchery's mutagen roll reads these stats of the hidden unit
+    let names: Vec<&str> = stats["stats"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| {
+            statics["stats"][p[0].as_u64().unwrap() as usize]
+                .as_str()
+                .unwrap()
+        })
+        .collect();
+    assert!(names.contains(&"random.freq"), "{names:?}");
+    let larva = unit_index(&statics, "larva");
+    assert_eq!(stats["total_production"][0][0], larva);
+    assert!(g.unit_stats("nope").unwrap_err().contains("no such unit"));
+}
+
+#[test]
+fn upgrades_of_scopes_the_upgrades_only() {
+    let mut g = GameCore::new_game(T0).unwrap();
+    let statics = parse(&g.static_view());
+    let drone = unit_index(&statics, "drone");
+    let larva = unit_index(&statics, "larva");
+    let full = parse(&g.view("").unwrap());
+    let req = format!(r#"{{"upgrades_of":[{drone}],"focus":[{larva}]}}"#);
+    let scoped = parse(&g.view(&req).unwrap());
+    // every unit, as without the scope (plus the focused one's detail)
+    let counts = |v: &Value| -> Vec<Value> {
+        v["units"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|u| u["count"].clone())
+            .collect()
+    };
+    assert_eq!(counts(&scoped), counts(&full));
+    assert!(scoped["units"][larva].get("detail").is_some());
+    assert_eq!(scoped["tabs"], full["tabs"]);
+    // only the upgrades listed with drones and the focused larvae
+    let listed: Vec<u64> = [drone, larva]
+        .iter()
+        .flat_map(|&u| statics["units"][u]["upgrades"].as_array().unwrap().clone())
+        .map(|v| v.as_u64().unwrap())
+        .collect();
+    let ids: Vec<u64> = scoped["upgrades"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|u| u["id"].as_u64().unwrap())
+        .collect();
+    assert!(!ids.is_empty());
+    assert!(
+        ids.iter().all(|i| listed.contains(i)),
+        "{ids:?} vs {listed:?}"
+    );
+    assert!(ids.len() < full["upgrades"].as_array().unwrap().len());
+    // the focused unit's upgrades have their details
+    let hatchery = statics["upgrades"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|u| u["name"] == "hatchery")
+        .unwrap();
+    let h = scoped["upgrades"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|u| u["id"] == hatchery)
+        .unwrap();
+    assert!(h.get("detail").is_some());
+    // events are drained once
+    g.apply(r#"{"do":"buy_unit","unit":"drone","amount":{"num":"1"}}"#)
+        .unwrap();
+    let v = parse(&g.view(&req).unwrap());
+    assert!(!v["events"].as_array().unwrap().is_empty());
+    assert!(parse(&g.view(&req).unwrap()).get("events").is_none());
+}

@@ -3,7 +3,8 @@
 Swarm Simulator's Rust engine (`rust/crates/wasm`, crate `swarm-wasm`) built
 for the web with `wasm-bindgen --target web`, plus a typed TypeScript wrapper.
 This is the wasm boundary of milestone M5 in `rust/PLAN.md`; the React app
-(`app/`) still uses `@swarmsim/engine` until the swap.
+(`app/`) runs on it (`app/src/game/store.ts`). The TypeScript engine
+(`@swarmsim/engine`) stays as the parity oracle and a test dependency.
 
 ## Build and test
 
@@ -57,11 +58,21 @@ JSON string (serde_json on the Rust side, `JSON.parse` in `src/index.ts`).
 
 * **Numbers.** Every `Num` is its canonical string (`NumString`: `"0"`,
   `"123"`, `"1.5e300"`; decimal.js `"1.5e+21"` is also accepted as input).
-  `src/num.ts` parses, compares and converts them without wasm;
+  `src/num.ts` parses, compares and converts them without wasm; `src/dec.ts`
+  (`Dec`) adds the little arithmetic a UI needs (plus, times, div, floor,
+  compare) on the same model, 15 significant digits, no float noise;
   `formatShort`/`formatLong` format them (in wasm, the app's `format.ts`
-  rules). `Num.MAX` (exponent 9e15) stands for the TS `Infinity`.
+  standard-notation rules; the app formats in TS with `Dec` and the
+  `NUMBER_SUFFIXES_*` tables of `src/suffixes.ts`, for its other
+  notations). `Num.MAX` (exponent 9e15) stands for the TS `Infinity`.
 * **Indices.** Views refer to units, upgrades, achievements, effects, stats
   and tabs by `u16` index into the `StaticView` lists. Commands take names.
+* **Scoped upgrades.** The request may carry `upgrades_of: [unit, ...]`
+  besides the engine's `ViewRequest` fields: the view then lists only the
+  upgrades of those units (and the focused ones) while `units` stays
+  complete, which the engine's `only_units` can't do. Upgrades are about
+  three quarters of a full view's cost; the app asks for the units on
+  screen.
 * **Absent = default.** `None`, empty lists and `false` are omitted.
 * **Times.** Epoch ms for wall clocks, ms deltas for `advance`; the engine
   keeps whole ms and the wrapper carries sub-ms remainders. `NaN`/`Infinity`
@@ -77,7 +88,7 @@ JSON string (serde_json on the Rust side, `JSON.parse` in `src/index.ts`).
 | `Game.load(text, wall_now_ms, heartbeat_ms?)` | `GameHandle.load(text, now?, heartbeatMs?)` | v1 or v2 save in |
 | `load_report()` | `loadReport()` | `{format: "v1"\|"v2"\|"new", warnings, offline}` |
 | `static_view()` | `staticView()` (cached) | `StaticView` |
-| `view(request_json)` | `view(req?)` | `ViewRequest` in (`""`/`{}`: default), `View` out; drains events |
+| `view(request_json)` | `view(req?)` | `ViewRequest` in (`""`/`{}`: default; plus `upgrades_of`, below), `View` out; drains events |
 | `apply(command_json)` | `apply(cmd)` | `{"do":"buy_unit",...}` in, `CommandOutcome` out |
 | `advance_ms(dt_ms)` | `advance(dtMs)` | |
 | `resync_wall(wall_now_ms)` | `resyncWall(now?)` | `OfflineReport` or `undefined`/`null` |
@@ -85,6 +96,9 @@ JSON string (serde_json on the Rust side, `JSON.parse` in `src/index.ts`).
 | `export_v2(wall_now_ms)` | `exportV2(now?)` | `SW2\|...` |
 | `export_legacy(wall_now_ms)` | `exportLegacy(now?)` | v1 text the TS/Coffee game imports |
 | `parse_number(input, unit_name?)` | `parseNumber(input, unit?)` | `NumString` or `null` |
+| `ui_state()` | `uiState()` | `{options, unknown}`: the options bag `set_option` writes, and the save's unknown top-level keys |
+| `welcome_back(force)` | `welcomeBack(force?)` | `WelcomeBack` or `null`, computed now for the load's offline time (`force`: even under 3 minutes); not stored |
+| `unit_stats(unit_name)` | `unitStats(name)` | `{stats, each_production, total_production}` of any unit, visible or not (the view's `detail` covers visible focused units only) |
 | `format_short(num)` / `format_long(num)` | `formatShort` / `formatLong` | |
 | `detect_save_format(text)` | `detectSaveFormat(text)` | `"v1"`, `"v2"` or `null` |
 | `convert_save(text, to)` | `convertSave(text, to)` | state unchanged: no backfill, no new dates |

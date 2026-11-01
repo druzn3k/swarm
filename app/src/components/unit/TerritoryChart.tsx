@@ -2,28 +2,30 @@
 // views/desc/unit/territory.html): each military unit's share of territory
 // captured, as pixel bars instead of a pie. Slices under 1% are grouped as
 // "Other", like the old chart. Show/hide is the old `showCharts` option.
-import type { Decimal, Unit } from "@swarmsim/engine";
-import { useGame } from "../../game/GameContext";
+import { Dec } from "@swarmsim/engine-wasm";
+import { useGame, useNeeds } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { useOptions } from "../../game/options";
-import { tabByName, unitLabel } from "../../game/selectors";
+import { unitLabel } from "../../game/selectors";
 
 const THRESHOLD = 0.01;
 
 export function TerritoryChart() {
-  const { game } = useGame();
+  const { g } = useGame();
   const fmt = useFormat();
   const [{ showCharts }, setOption] = useOptions();
-  const total = game.unit("territory").velocity();
+  // the army's production is a detail of each unit: focus them all (table order)
+  const tab = g.tab("territory");
+  const units = (tab?.st?.units ?? []).map((i) => g.unit(i)).filter((u) => u.visible && u.name !== "territory");
+  useNeeds({ focus: units.map((u) => u.name) });
+  const total = Dec.from(g.unit("territory").velocity);
   if (total.isZero()) return null;
 
   const rows: { label: string; share: number }[] = [];
   let other = 0;
-  const units = [...((tabByName(game, "territory")?.sortedUnits ?? []) as Unit[])].reverse();
   for (const unit of units) {
-    if (!unit.isVisible() || unit.name === "territory") continue;
-    const prod = unit.totalProduction().territory as Decimal | undefined;
-    const share = prod ? prod.dividedBy(total).toNumber() : 0;
+    const prod = unit.totalProduction.territory;
+    const share = prod ? Dec.from(prod).div(total).toNumber() : 0;
     if (share < THRESHOLD) other += share;
     else rows.push({ label: unitLabel(unit, true), share });
   }

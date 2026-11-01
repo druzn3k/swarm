@@ -3,13 +3,13 @@
 // Options live in the save (game/options.ts), so they travel with exports.
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
-import { useGameValueEvery, useStore } from "../game/GameContext";
+import { useGameValueEvery, useNeeds } from "../game/GameContext";
 import { useFormat, createFormatter } from "../format";
 import type { DurationFormat, Notation } from "../format";
 import { useOptions, VELOCITY_UNITS, velocityUnitFor } from "../game/options";
 import { ExportSave, ImportSave, ResetGame } from "../components/meta/SaveTools";
 import { fromNow } from "../components/meta/time";
-import { numberSuffixesLong, numberSuffixesShort } from "@swarmsim/engine";
+import { NUMBER_SUFFIXES_LONG, NUMBER_SUFFIXES_SHORT } from "@swarmsim/engine-wasm";
 import "../styles/meta.css";
 
 const NOTATION_LABELS: { value: Notation; label: string }[] = [
@@ -54,12 +54,12 @@ function OptionGroup({ title, children, example }: { title: string; children: Re
 
 /** The old #/decimallegend page: every standard-decimal suffix (short ones stop after "NOg"; long ones earlier). */
 function SuffixLegend() {
-  const rows = numberSuffixesShort.map((short, i) => {
+  const rows = NUMBER_SUFFIXES_SHORT.map((short, i) => {
     let value = `1e${i * 3}`;
     if (i === 0) value += " (1)";
     if (i === 1) value += " (1,000)";
     if (i === 2) value += " (1,000,000)";
-    return { value, short, long: (numberSuffixesLong[i] ?? "").trim() };
+    return { value, short, long: (NUMBER_SUFFIXES_LONG[i] ?? "").trim() };
   });
   return (
     <details className="section card legend">
@@ -94,16 +94,16 @@ const SEP = "\u0001";
  * after player actions and about once a second.
  */
 export function OptionsScreen() {
-  const store = useStore();
   const fmt = useFormat();
   const [options, setOption] = useOptions();
+  // the Swarmwarp example needs swarmwarp's length, a detail of the energy unit
+  useNeeds({ focus: ["energy"] });
   const [exportKey, setExportKey] = useState(0);
   const nameNotation = useId();
   const nameVelocity = useId();
   const nameDuration = useId();
   const advId = useId();
-  const { game } = store;
-  const live = useGameValueEvery(({ game }) => [velocityUnitFor(game, "warp").mult, fromNow(game.dateStarted(), game.now)].join(SEP), 10);
+  const live = useGameValueEvery((s) => [s.warpSecs, fromNow(new Date(s.g.startedMs), new Date(s.g.nowMs))].join(SEP), 10);
   const [warpMult, startedAgo] = live.split(SEP);
   const durationChoices = DURATION_LABELS.some((d) => d.value === options.durationFormat)
     ? DURATION_LABELS
@@ -151,7 +151,7 @@ export function OptionsScreen() {
             label={v.plural}
             checked={options.velocityUnit === v.name}
             onChange={() => setOption("velocityUnit", v.name)}
-            example={`${fmt.long((v.name === "warp" ? +warpMult : velocityUnitFor(game, v.name).mult) * 10)}/${v.name}`}
+            example={`${fmt.long(velocityUnitFor(() => +warpMult, v.name).mult * 10)}/${v.name}`}
           />
         ))}
       </OptionGroup>

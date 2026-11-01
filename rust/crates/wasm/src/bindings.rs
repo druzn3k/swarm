@@ -91,6 +91,24 @@ impl Game {
         self.inner.export_legacy(wall_now_ms).map_err(js_err)
     }
 
+    /// `{"options": {...}, "unknown": {...}}`: the UI's options bag and the
+    /// save's unknown top-level keys.
+    pub fn ui_state(&self) -> String {
+        self.inner.ui_state()
+    }
+
+    /// `{"stats", "each_production", "total_production"}` of a unit, visible
+    /// or not. Throws for unknown names.
+    pub fn unit_stats(&self, unit_name: &str) -> Result<String, JsError> {
+        self.inner.unit_stats(unit_name).map_err(js_err)
+    }
+
+    /// A welcome-back report computed now (`force`: even after a short
+    /// absence), or `undefined`. Not stored in the game.
+    pub fn welcome_back(&self, force: bool) -> Option<String> {
+        self.inner.welcome_back(force)
+    }
+
     /// Player number input as a `Num` string, or `undefined`.
     pub fn parse_number(
         &self,

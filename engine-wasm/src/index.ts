@@ -19,13 +19,19 @@ import type {
   OfflineReport,
   SaveFormat,
   StaticView,
+  UiState,
+  UnitStats,
   View,
   ViewRequest,
+  WelcomeBack,
 } from './types'
 
 export * from './types'
 export { Num, EXP_MAX, compareNum, numIsInfinite, numToNumber, parseNum } from './num'
 export type { ParsedNum } from './num'
+export { Dec } from './dec'
+export { NUMBER_SUFFIXES_LONG, NUMBER_SUFFIXES_SHORT } from './suffixes'
+export type { DecLike } from './dec'
 
 /** The wasm-bindgen class (pkg/swarm_wasm.d.ts), restated so this package
  * type-checks before pkg/ is built. */
@@ -41,6 +47,9 @@ interface WasmGame {
   export_v2(wall_now_ms: number): string
   export_legacy?(wall_now_ms: number): string
   parse_number(input: string, unit_name?: string | null): string | undefined
+  ui_state(): string
+  welcome_back(force: boolean): string | undefined
+  unit_stats(unit_name: string): string
 }
 
 interface WasmModule {
@@ -165,6 +174,29 @@ export class GameHandle {
   /** Player number input (`"1.5k"`, `"50%"`, `"=10"`, `"@100"`); null if unparseable. The `%`/`=`/`@` forms need a unit name. */
   parseNumber(input: string, unitName?: string): NumString | null {
     return this.game.parse_number(input, unitName ?? null) ?? null
+  }
+
+  /** The UI's part of the save: the options bag (`set_option` writes it) and the save's unknown top-level keys. */
+  uiState(): UiState {
+    return JSON.parse(this.game.ui_state()) as UiState
+  }
+
+  /**
+   * A welcome-back report computed now for the time since the loaded save
+   * was closed; `force`: even after a short absence. Not stored in the
+   * game (unlike `view().welcome_back`, which `load` computes once).
+   */
+  welcomeBack(force = false): WelcomeBack | null {
+    const r = this.game.welcome_back(force)
+    return r === undefined ? null : (JSON.parse(r) as WelcomeBack)
+  }
+
+  /**
+   * A unit's stats and production, visible or not (the view's `detail` has
+   * them for visible focused units only). Throws for unknown names.
+   */
+  unitStats(unitName: string): UnitStats {
+    return JSON.parse(this.game.unit_stats(unitName)) as UnitStats
   }
 
   /** Releases the wasm memory. The handle is unusable afterwards. */

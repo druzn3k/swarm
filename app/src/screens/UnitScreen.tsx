@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useGameValueEvery, useStore } from "../game/GameContext";
+import { useGameValueEvery, useNeeds, useStore } from "../game/GameContext";
 import { useWide } from "../layout";
 import { useFormat } from "../format";
 import { findUnit, isUnitBuyable, tabByName, unitLabel, unitNeighbours } from "../game/selectors";
 import { parseQuery, tabHref, useHash } from "../router";
-import { UnitDescription } from "../content/LiveDescription";
+import { UnitDescription, descriptionNeed } from "../content/LiveDescription";
 import { SpriteIcon } from "../components/Icon";
 import { UnitNav } from "../components/unit/UnitNav";
 import { CapInfo, OwnedLine, ProductionLines } from "../components/unit/UnitInfo";
@@ -22,29 +22,33 @@ import { useSwipe } from "../components/unit/useSwipe";
  */
 export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: string }) {
   const store = useStore();
-  const { game } = store;
   // re-render on every tick; next to the list (laptop layout) on every other
   // tick, the ones the list's cards skip half of, so the two columns together
   // stay within the tick budget. Player actions show at once.
   useGameValueEvery((s) => s.getVersion(), useWide() ? 2 : 1, 1);
   const fmt = useFormat();
   const hash = useHash();
-  const unit = findUnit(game, key);
-  const valid = !!unit && !!unit.tab && unit.isVisible();
+  const g = store.g;
+  const unit = findUnit(g, key);
+  // this unit's details (production, stats, upgrade estimates), and what its description reads
+  useNeeds(descriptionNeed(g, unit?.name));
+  const valid = !!unit && !!unit.tab && unit.visible;
+  const backTo = unit?.tabName ?? "meat";
   // like the old game: unknown or not-yet-visible units go back to their tab
   useEffect(() => {
-    if (!valid) window.location.replace(tabHref(unit?.tab?.name ?? "meat"));
-  }, [valid, unit]);
+    if (!valid) window.location.replace(tabHref(backTo));
+  }, [valid, backTo]);
 
   // the cards above and below in the list shown with the unit (they change
   // when a unit is unlocked: re-read once a second, and after player actions)
-  const near = useGameValueEvery(() => {
-    if (!unit || !valid) return ",";
-    const list = listTab ? tabByName(game, listTab) : undefined;
-    const n = unitNeighbours(list && list.indexByUnitName[unit.name] !== undefined ? list : unit.tab!, unit);
+  const near = useGameValueEvery((s) => {
+    const u = s.g.findUnit(key);
+    if (!u || !u.visible || !u.tab) return ",";
+    const list = listTab ? tabByName(s.g, listTab) : undefined;
+    const n = unitNeighbours(list && list.has(u.name) ? list : u.tab, u);
     return `${n.above?.name ?? ""},${n.below?.name ?? ""}`;
   }, 10);
-  const [above, below] = near.split(",").map((n) => (n ? game.unit(n) : undefined));
+  const [above, below] = near.split(",").map((n) => (n ? g.unit(n) : undefined));
   const surface = useRef<HTMLDivElement>(null);
   useSwipe(surface, (dir) => {
     const to = dir === "next" ? below : above;
@@ -56,16 +60,16 @@ export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: str
   useEffect(clearSlide, []);
 
   if (!unit || !valid) return null;
-  const t = unit.unittype;
+  const t = unit.st;
   const initial = parseQuery(hash).get("num") ?? "";
   return (
     <div ref={surface} className={"unit-screen" + (slide ? ` slide-${slide}` : "")} data-unit-screen={unit.name}>
       <UnitNav unit={unit} above={above} below={below} />
       <div className="unit-hero card">
-        <SpriteIcon name={unit.name} tab={t.tab} size={72} />
+        <SpriteIcon name={unit.name} tab={unit.tabName} size={72} />
         <div>
           <h1>{unitLabel(unit)}</h1>
-          <p className="owned num">{fmt.long(unit.count())}</p>
+          <p className="owned num">{fmt.long(unit.count)}</p>
         </div>
       </div>
       <section className="section card" aria-label="About this unit">
@@ -77,9 +81,9 @@ export function UnitScreen({ unit: key, listTab }: { unit: string; listTab?: str
       <CapInfo unit={unit} />
       {unit.name === "mutagen" && <AscensionPanel />}
       {unit.name === "territory" && <TerritoryChart />}
-      {isUnitBuyable(unit) && <BuyUnit key={unit.name + "?" + initial} unit={unit} initial={initial} />}
+      {isUnitBuyable(unit) && <BuyUnit key={unit.name + "?" + initial} unit={unit.name} initial={initial} />}
       {/* the old crystal page converted crystals to energy here */}
-      {unit.name === "crystal" && <BuyUnit key={"energy?" + initial} unit={game.unit("energy")} initial={initial} />}
+      {unit.name === "crystal" && <BuyUnit key={"energy?" + initial} unit="energy" initial={initial} />}
       <UpgradeList unit={unit} />
       <AbilityList unit={unit} />
     </div>

@@ -5,60 +5,62 @@
 // buy 1 / 25% / max of each visible upgrade. Its contents only render while
 // it is open.
 import { useState } from "react";
-import type { Unit, Upgrade } from "@swarmsim/engine";
+import { Dec } from "@swarmsim/engine-wasm";
 import { useGame, useStore } from "../../game/GameContext";
 import { useFormat } from "../../format";
+import type { UnitRef, UpgradeRef } from "../../game/view";
 import { StackButton } from "./BuyUnit";
 
 /** Buy 25%: the one unit choice of the old dropdown that the card's row doesn't have. */
-function QuarterButton({ unit }: { unit: Unit }) {
+function QuarterButton({ unit }: { unit: UnitRef }) {
   const store = useStore();
   const fmt = useFormat();
-  const verb = String(unit.unittype.verb ?? "buy");
-  const max = unit.maxCostMet();
-  const quarter = unit.maxCostMet(0.25);
-  const is25 = max.greaterThan(quarter) && quarter.greaterThan(1);
-  const buy = () => store.act(({ commands }) => commands.buyMaxUnit({ unit, percent: 0.25, ui: "button" }));
+  const max = Dec.from(unit.maxCostMet);
+  const quarter = Dec.from(unit.maxCostMetQuarter);
+  const is25 = max.gt(quarter) && quarter.gt(1);
+  const buy = () => store.act({ do: "buy_max_unit", unit: unit.name, percent: 0.25, ui: "button" });
   return (
     <div className="quickbuy-upgrade">
-      <p className="quickbuy-title">{String(unit.unittype.plural)}</p>
+      <p className="quickbuy-title">{unit.plural}</p>
       <div className="btn-row one">
-        <StackButton verb={`${verb} 25%`} amount={is25 ? fmt.num(quarter.times(unit.twinMult())) : "–"} onClick={is25 ? buy : undefined} />
+        <StackButton verb={`${unit.verb} 25%`} amount={is25 ? fmt.num(quarter.times(unit.twinMult)) : "–"} onClick={is25 ? buy : undefined} />
       </div>
     </div>
   );
 }
 
-function UpgradeButtons({ upgrade }: { upgrade: Upgrade }) {
+export function UpgradeButtons({ upgrade, verb = "buy" }: { upgrade: UpgradeRef; verb?: string }) {
   const store = useStore();
   const fmt = useFormat();
-  const max = upgrade.maxCostMet();
-  const quarter = upgrade.maxCostMet(0.25);
-  const is25 = max.greaterThan(quarter) && quarter.greaterThan(1);
-  const buy = () => store.act(({ commands }) => commands.buyUpgrade({ upgrade, num: 1, ui: "button" }));
-  const buyMax = (percent: number) => store.act(({ commands }) => commands.buyMaxUpgrade({ upgrade, percent, ui: "button" }));
+  const max = Dec.from(upgrade.maxCostMet);
+  const quarter = Dec.from(upgrade.maxCostMetQuarter);
+  const is25 = max.gt(quarter) && quarter.gt(1);
+  const buy = () => store.act({ do: "buy_upgrade", upgrade: upgrade.name, amount: { num: "1" }, ui: "button" });
+  const buyMax = (percent: number) => store.act({ do: "buy_max_upgrade", upgrade: upgrade.name, percent, ui: "button" });
   return (
     <div className="quickbuy-upgrade">
-      <p className="quickbuy-title">{upgrade.type.label}</p>
+      <p className="quickbuy-title">{upgrade.label}</p>
       <div className="btn-row">
-        {upgrade.isCostMet() ? <StackButton verb="buy" amount="1" onClick={buy} /> : <StackButton verb="can't" amount="buy" />}
-        <StackButton verb="buy" amount={is25 ? fmt.num(quarter) : "25%"} onClick={is25 ? () => buyMax(0.25) : undefined} />
-        <StackButton verb="buy" amount={max.greaterThan(1) ? fmt.num(max) : "max"} onClick={max.greaterThan(1) ? () => buyMax(1) : undefined} />
+        {upgrade.costMet ? <StackButton verb={verb} amount="1" onClick={buy} /> : <StackButton verb="can't" amount={verb} />}
+        <StackButton verb={verb} amount={is25 ? fmt.num(quarter) : "25%"} onClick={is25 ? () => buyMax(0.25) : undefined} />
+        <StackButton verb={verb} amount={max.gt(1) ? fmt.num(max) : "max"} onClick={max.gt(1) ? () => buyMax(1) : undefined} />
       </div>
     </div>
   );
 }
 
 /** The open dropdown: re-renders every tick. */
-function QuickBuyBody({ unit }: { unit: Unit }) {
-  useGame();
+function QuickBuyBody({ unit }: { unit: string }) {
+  const { g } = useGame();
+  const u = g.unit(unit);
   return (
     <div className="quickbuy-body">
-      <QuarterButton unit={unit} />
-      {unit.upgrades.list
-        .filter((u) => u.isVisible())
-        .map((u) => (
-          <UpgradeButtons key={u.name} upgrade={u} />
+      <QuarterButton unit={u} />
+      {g.s.upgradesOf(u.id, "upgrade").concat(g.s.upgradesOf(u.id, "ability")).sort((a, b) => a - b)
+        .map((i) => g.upgrade(i))
+        .filter((up) => up.visible)
+        .map((up) => (
+          <UpgradeButtons key={up.name} upgrade={up} />
         ))}
     </div>
   );
@@ -69,12 +71,14 @@ function QuickBuyBody({ unit }: { unit: Unit }) {
  * choices that the card's row (+1, max, upgrade) doesn't offer: 25% of the
  * unit, and buy 1 / 25% / max of each visible upgrade.
  */
-export function QuickBuy({ unit }: { unit: Unit }) {
+export function QuickBuy({ unit }: { unit: string }) {
   const [open, setOpen] = useState(false);
+  const store = useStore();
+  const plural = store.g.unit(unit).plural;
   return (
-    <details className="quickbuy" open={open} onToggle={(e) => setOpen(e.currentTarget.open)} data-quickbuy={unit.name}>
+    <details className="quickbuy" open={open} onToggle={(e) => setOpen(e.currentTarget.open)} data-quickbuy={unit}>
       <summary>
-        More: 25%, each upgrade<span className="sr-only"> ({String(unit.unittype.plural)})</span>
+        More: 25%, each upgrade<span className="sr-only"> ({plural})</span>
       </summary>
       {open && <QuickBuyBody unit={unit} />}
     </details>

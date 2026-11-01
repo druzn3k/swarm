@@ -1,13 +1,11 @@
 // #/art: every unit sprite, every upgrade and ability icon, and each tab's
 // scene, for reviewing the art. Not linked from the game's menus.
-import { spreadsheet } from "@swarmsim/engine";
+import { useStore } from "../game/GameContext";
 import { SpriteIcon } from "../components/Icon";
 import { SceneView } from "../components/HiveCanvas";
 import { ICONS, framesFor, iconNameForUpgrade, spriteDataUrl } from "../art/sprites";
 import type { Population } from "../art/scene";
 
-type Row = { name: string; label?: string; tab?: string; class?: string; disabled?: boolean; unittype?: string };
-const data = spreadsheet() as unknown as { unittypes: { elements: Row[] }; upgrades: { elements: Row[] } };
 const TABS = ["meat", "larva", "territory", "energy", "mutagen"];
 
 const all = (names: string[], log: number): Population => Object.fromEntries(names.map((n, i) => [n, log - i * 0.3]));
@@ -50,8 +48,12 @@ function Frames({ name }: { name: string }) {
 }
 
 export function ArtGalleryScreen() {
-  const units = data.unittypes.elements.filter((u) => u.name && u.label && !u.disabled);
-  const upgrades = data.upgrades.elements.filter((u) => u.name && u.label && !u.disabled);
+  // every unit and upgrade of the game data (StaticView), shown or not
+  const { statics } = useStore();
+  const units = statics.units
+    .filter((u) => u.name && u.label && !u.disabled)
+    .map((u) => ({ name: u.name, label: u.label, tab: u.tab === undefined ? undefined : statics.tabs[u.tab]?.name }));
+  const upgrades = statics.upgrades.filter((u) => u.name && u.label).map((u) => ({ name: u.name, label: u.label, class: u.ability ? "ability" : "upgrade" }));
   return (
     <section className="page art-page" aria-labelledby="page-title">
       <style>{CSS}</style>

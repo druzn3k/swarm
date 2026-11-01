@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Decimal } from "@swarmsim/engine";
+import { Dec } from "@swarmsim/engine-wasm";
 import { createFormatter, trimZeros } from "./format";
 import type { Notation } from "./format";
 
@@ -110,7 +110,7 @@ const OLD: [Notation, string, string, string, string, string][] =
 describe("numbers match the old game's filters, minus trailing zeros", () => {
   it.each(OLD)("%s %s", (notation, value, num, long, num2, long2) => {
     const f = createFormatter({ notation });
-    const v = new Decimal(value);
+    const v = Dec.from(value);
     expect(f.num(v)).toBe(trimZeros(num));
     expect(f.long(v)).toBe(trimZeros(long));
     expect(f.num(v, 2)).toBe(trimZeros(num2));

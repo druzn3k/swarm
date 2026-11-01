@@ -2,43 +2,41 @@
 // Shown on the mutagen unit screen; the mutagen tab gets a short summary that
 // links there.
 import { useState } from "react";
-import type { Decimal, Engine, Game } from "@swarmsim/engine";
-import { useGame } from "../../game/GameContext";
+import { Dec } from "@swarmsim/engine-wasm";
+import type { AscensionView, Command } from "@swarmsim/engine-wasm";
+import { useGame, useNeeds } from "../../game/GameContext";
 import { useFormat } from "../../format";
 import { unitHref } from "../../router";
 import { ProgressBar } from "../ProgressBar";
 import { ConfirmButton } from "./Confirm";
 import { useOptions } from "../../game/options";
+import { defaultWatch } from "../../game/progression";
+import { estimateSecs } from "../../game/view";
+import type { GameView } from "../../game/view";
 import "../../styles/progression.css";
 
 /** Seconds until energy covers the ascension cost; undefined when unknown, capped or already affordable. */
-export function ascendEtaSecs(game: Game, cost: Decimal = game.ascendCost()): number | undefined {
-  if (game.ascendCostCapDiff(cost).greaterThan(0) || game.ascendCostPercent(cost).greaterThanOrEqualTo(1)) return undefined;
-  try {
-    return game.ascendCostDurationSecs(cost);
-  } catch {
-    // the engine keeps an old-engine quirk: it throws once energy covers the cost
-    return undefined;
-  }
+export function ascendEtaSecs(a: AscensionView): number | undefined {
+  if (Dec.from(a.cap_diff).gt(0) || Dec.from(a.cost_percent).gte(1)) return undefined;
+  return estimateSecs(a.eta);
 }
 
-// game.ascendCost() is costly (it adds up the energy spent this ascension): work it out once per render and pass it on
-function AscendProgress({ game, cost }: { game: Game; cost: Decimal }) {
+function AscendProgress({ g, a }: { g: GameView; a: AscensionView }) {
   const fmt = useFormat();
-  const energy = game.unit("energy").count();
-  const pct = game.ascendCostPercent(cost);
-  const capDiff = game.ascendCostCapDiff(cost);
-  const eta = fmt.duration(ascendEtaSecs(game, cost));
+  const energy = g.unit("energy").count;
+  const pct = Dec.from(a.cost_percent);
+  const capDiff = Dec.from(a.cap_diff);
+  const eta = fmt.duration(ascendEtaSecs(a));
   return (
     <>
-      <ProgressBar value={pct.toNumber()} ready={pct.greaterThanOrEqualTo(1)} label="Energy toward ascension" />
+      <ProgressBar value={pct.toNumber()} ready={pct.gte(1)} label="Energy toward ascension" />
       <p className="bar-label num">
         <span>
           {fmt.long(energy)} energy, {fmt.percent(pct, { floor: true })}
         </span>
         <span>{eta ? `ready in ${eta}` : ""}</span>
       </p>
-      {capDiff.greaterThan(0) && (
+      {capDiff.gt(0) && (
         <p className="alert cap-note" role="note">
           <span>
             <b className="num">{fmt.long(capDiff)}</b> more than your max energy! Spend energy on abilities to lower the cost, or raise your max energy (more nightbugs).
@@ -49,23 +47,36 @@ function AscendProgress({ game, cost }: { game: Game; cost: Decimal }) {
   );
 }
 
+/** What resetting the upgrade notifiers does: every notify level back to its default. */
+function resetWatchCommands(g: GameView): Command[] {
+  return g
+    .upgrades()
+    .filter((u) => u.v && u.watched !== defaultWatch(u))
+    .map((u) => ({ do: "watch", upgrade: u.name, level: defaultWatch(u) }));
+}
+
 export function AscensionPanel() {
   const store = useGame();
-  const { game } = store;
+  useNeeds({ sections: ["ascension"] });
+  const { g } = store;
   const fmt = useFormat();
   const [status, setStatus] = useState("");
   const [{ showAdvancedUnitData }] = useOptions();
-  const premutagen = game.unit("premutagen").count();
-  const cost = game.ascendCost();
-  const energy = game.unit("energy").count();
-  const canAscend = !cost.greaterThan(energy);
-  const respecSpent = game.respecSpent();
-  const freeRespecs = game.unit("freeRespec").count();
-  const respecCost = game.respecCost();
+  const a = g.v.ascension;
+  if (!a) return null;
+  const premutagen = a.premutagen;
+  const cost = Dec.from(a.cost);
+  const energy = g.unit("energy").count;
+  const canAscend = !cost.gt(energy);
+  const respecSpent = Dec.from(a.respec_spent);
+  const freeRespecs = Dec.from(a.free_respecs);
+  const respecCost = a.respec_cost;
+  // the old respecRate(): all of it
+  const refund = respecSpent;
 
-  const run = (fn: (engine: Engine) => void, done: string) => {
-    const err = store.act(fn);
-    setStatus(err ? `That didn't work: ${(err as Error).message ?? err}` : done);
+  const run = (cmds: Command | Command[], done: string) => {
+    const { error } = store.act(cmds);
+    setStatus(error ? `That didn't work: ${error.message}` : done);
   };
 
   return (
@@ -77,13 +88,13 @@ export function AscensionPanel() {
       </p>
       <p>
         Ascending will activate <b className="num">{fmt.long(premutagen)}</b> new mutagen. Your swarm has infested{" "}
-        <b className="num">{fmt.long(game.unit("ascension").count())}</b> new worlds so far.
+        <b className="num">{fmt.long(g.unit("ascension").count)}</b> new worlds so far.
       </p>
       <p>
         Ascending now will cost <b className="num">{fmt.long(cost)}</b> energy. Spend energy elsewhere to reduce this cost; you've spent{" "}
-        <span className="num">{fmt.long(game.ascendEnergySpent())}</span> energy.
+        <span className="num">{fmt.long(a.energy_spent)}</span> energy.
       </p>
-      <AscendProgress game={game} cost={cost} />
+      <AscendProgress g={g} a={a} />
       <ConfirmButton
         label="Ascend - activate mutagen and restart"
         confirmLabel="Ascend"
@@ -94,46 +105,46 @@ export function AscensionPanel() {
             <b className="num">{fmt.long(premutagen)}</b> mutagen.
           </>
         }
-        onConfirm={() => run(({ commands }) => commands.ascend({ game }), "Your swarm has ascended to a new world.")}
+        onConfirm={() => run({ do: "ascend" }, "Your swarm has ascended to a new world.")}
       />
 
       <h3 className="ascend-sub">Respec</h3>
       <p>
-        Respeccing refunds all <b className="num">{fmt.long(respecSpent.times(game.respecRate()))}</b> mutagen you've spent, but resets all mutagen units and
-        upgrades to 0, and resets your next ascension's energy cost to <span className="num">{fmt.long(game.ascendCost({ spent: 0 }))}</span>.
+        Respeccing refunds all <b className="num">{fmt.long(refund)}</b> mutagen you've spent, but resets all mutagen units and
+        upgrades to 0, and resets your next ascension's energy cost to <span className="num">{fmt.long(a.base_cost)}</span>.
       </p>
       <p>
-        Respeccing now will cost <b className="num">{fmt.long(respecCost)}</b> energy ({fmt.percent(game.respecCostRate)} of your next ascension's cost).
+        Respeccing now will cost <b className="num">{fmt.long(respecCost)}</b> energy ({fmt.percent(g.s.sv.respec_cost_rate)} of your next ascension's cost).
       </p>
       <ConfirmButton
         quiet
         label="Respec - refund mutagen, but reset ascension cost"
         confirmLabel="Respec"
-        disabled={respecSpent.isZero() || !game.isRespecCostMet()}
+        disabled={respecSpent.isZero() || !a.can_respec}
         warning={
           <>
             Respec for <b className="num">{fmt.long(respecCost)}</b> energy? All mutagen units and upgrades go back to 0 and you get{" "}
-            <b className="num">{fmt.long(respecSpent.times(game.respecRate()))}</b> mutagen back.
+            <b className="num">{fmt.long(refund)}</b> mutagen back.
           </>
         }
-        onConfirm={() => run(({ commands }) => commands.respec({ game }), "Respecced: your mutagen is refunded.")}
+        onConfirm={() => run({ do: "respec" }, "Respecced: your mutagen is refunded.")}
       />
       <p>
         One free respec is available every three ascensions. You have <b className="num">{fmt.long(freeRespecs)}</b> free respec
-        {freeRespecs.equals(1) ? "" : "s"} remaining.
+        {freeRespecs.eq(1) ? "" : "s"} remaining.
       </p>
       <ConfirmButton
         quiet
         label="Respec (free)"
         confirmLabel="Use free respec"
-        disabled={respecSpent.isZero() || freeRespecs.lessThanOrEqualTo(0)}
+        disabled={respecSpent.isZero() || freeRespecs.lte(0)}
         warning={
           <>
             Use one of your <span className="num">{fmt.long(freeRespecs)}</span> free respecs? All mutagen units and upgrades go back to 0 and you get{" "}
-            <b className="num">{fmt.long(respecSpent.times(game.respecRate()))}</b> mutagen back.
+            <b className="num">{fmt.long(refund)}</b> mutagen back.
           </>
         }
-        onConfirm={() => run(({ commands }) => commands.respecFree({ game }), "Respecced for free: your mutagen is refunded.")}
+        onConfirm={() => run({ do: "respec_free" }, "Respecced for free: your mutagen is refunded.")}
       />
 
       {/* like the old page, only with advanced unit data */}
@@ -145,12 +156,14 @@ export function AscensionPanel() {
         label="Reset upgrade notifiers"
         confirmLabel="Reset"
         warning="Set every upgrade's notify setting back to its default? Hidden upgrades and abilities come back."
-        onConfirm={() =>
-          run(() => {
-            game.session.state.watched = {};
-            game.session.save();
-          }, "Upgrade notifiers are back to their defaults.")
-        }
+        onConfirm={() => {
+          // every upgrade's notify level, not just the ones on screen
+          const release = store.need({}, { upgrades: "all" });
+          store.refresh();
+          const cmds = resetWatchCommands(store.g);
+          release();
+          run(cmds, "Upgrade notifiers are back to their defaults.");
+        }}
       />
         </>
       )}
@@ -163,13 +176,15 @@ export function AscensionPanel() {
 
 /** The mutagen tab's pointer to the ascension panel: progress and a link. */
 export function AscendSummary() {
-  const { game } = useGame();
+  const { g } = useGame();
+  useNeeds({ sections: ["ascension"] });
   const fmt = useFormat();
-  if (!game.unit("mutagen").isVisible()) return null;
-  const cost = game.ascendCost();
-  const pct = game.ascendCostPercent(cost);
-  const pre = game.unit("premutagen").count();
-  const eta = fmt.duration(ascendEtaSecs(game, cost));
+  const a = g.v.ascension;
+  if (!g.unit("mutagen").visible || !a) return null;
+  const cost = a.cost;
+  const pct = Dec.from(a.cost_percent);
+  const pre = a.premutagen;
+  const eta = fmt.duration(ascendEtaSecs(a));
   return (
     <a className="card ascend-summary" href={unitHref("mutagen")} data-slot="ascend-summary">
       <span className="ascend-summary-title">Ascend</span>
@@ -177,7 +192,7 @@ export function AscendSummary() {
         +{fmt.num(pre)} mutagen · {fmt.percent(pct, { floor: true })} of {fmt.num(cost)} energy
         {eta ? ` · ${eta}` : ""}
       </span>
-      <ProgressBar value={pct.toNumber()} ready={pct.greaterThanOrEqualTo(1)} label="Energy toward ascension" />
+      <ProgressBar value={pct.toNumber()} ready={pct.gte(1)} label="Energy toward ascension" />
     </a>
   );
 }

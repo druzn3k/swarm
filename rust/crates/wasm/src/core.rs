@@ -5,9 +5,11 @@
 
 use core::time::Duration;
 
-use serde::Serialize;
-use swarm_data::GameData;
-use swarm_engine::{Command, CommandEvent, CommandOutcome, Engine, OfflineReport, ViewRequest};
+use serde::{Deserialize, Serialize};
+use swarm_data::{GameData, UnitId};
+use swarm_engine::{
+    Command, CommandEvent, CommandOutcome, Engine, OfflineReport, Sections, ViewRequest,
+};
 use swarm_num::format::{format_long, format_short};
 use swarm_num::Num;
 use swarm_save::Format;
@@ -42,6 +44,25 @@ pub fn format_name(f: Format) -> &'static str {
         Format::V1 => "v1",
         Format::V2 => "v2",
     }
+}
+
+/// The view request at the boundary: the engine's [`ViewRequest`] plus
+/// `upgrades_of`, which scopes [`swarm_engine::View::upgrades`] separately
+/// from the units. The engine's `only_units` scopes both, but a frontend
+/// usually needs every unit's count and only the upgrades of the units on
+/// screen, and the upgrades are most of a view's cost (each one's
+/// affordability at 100% and 25%, its progress and cost). With
+/// `upgrades_of`, `upgrades` lists the upgrades listed with those units
+/// and the focused ones; `buy_all` and `buy_cheapest` still cover every
+/// upgrade.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct WasmViewRequest {
+    /// The engine's request.
+    #[serde(flatten)]
+    pub view: ViewRequest,
+    /// Units (indices) whose upgrades to list; absent: as `view` says.
+    #[serde(default)]
+    pub upgrades_of: Option<Vec<u16>>,
 }
 
 /// What [`GameCore::load`] reports besides the game: `load_report()` in JS.
@@ -179,15 +200,39 @@ impl GameCore {
         to_json(&self.engine.static_view())
     }
 
-    /// `View` JSON for a `ViewRequest` JSON (`""` or `"{}"`: the default
-    /// request).
+    /// `View` JSON for a [`WasmViewRequest`] JSON (`""` or `"{}"`: the
+    /// default request).
     pub fn view(&mut self, request_json: &str) -> Result<String, Error> {
-        let req: ViewRequest = if request_json.trim().is_empty() {
-            ViewRequest::default()
+        let req: WasmViewRequest = if request_json.trim().is_empty() {
+            WasmViewRequest::default()
         } else {
             serde_json::from_str(request_json).map_err(|e| format!("bad view request: {e}"))?
         };
-        Ok(to_json(&self.engine.view(&req)))
+        let Some(scope) = req.upgrades_of.filter(|_| req.view.sections.upgrades) else {
+            return Ok(to_json(&self.engine.view(&req.view)));
+        };
+        // units (and the rest) first, then the scoped upgrades: the order
+        // one engine view queries them in, so sticky visibility is the same
+        let mut first = req.view.clone();
+        first.sections.upgrades = false;
+        let mut view = self.engine.view(&first);
+        let mut units: Vec<UnitId> = scope.into_iter().map(UnitId).collect();
+        units.extend(req.view.focus.iter().copied());
+        units.sort_unstable();
+        units.dedup();
+        let upgrades = self.engine.view(&ViewRequest {
+            only_units: Some(units),
+            sections: Sections {
+                upgrades: true,
+                ..Sections::NONE
+            },
+            ..req.view
+        });
+        view.upgrades = upgrades.upgrades;
+        view.buy_all = upgrades.buy_all;
+        view.buy_cheapest = upgrades.buy_cheapest;
+        view.events.extend(upgrades.events);
+        Ok(to_json(&view))
     }
 
     /// Runs a `Command` JSON (`{"do":"buy_unit",...}`); the outcome JSON, or
@@ -242,6 +287,56 @@ impl GameCore {
         let mut state = self.engine.state().clone();
         swarm_save::prepare_save(&mut state, now);
         Ok(swarm_save::legacy::encode(&state))
+    }
+
+    /// The UI's part of the saved state, which the engine keeps but never
+    /// reads: `{"options": {...}, "unknown": {...}}`, the options bag
+    /// ([`Command::SetOption`] writes it) and the save's unknown top-level
+    /// keys (e.g. an older app's `achievementsShown`).
+    pub fn ui_state(&self) -> String {
+        let state = self.engine.state();
+        to_json(&serde_json::json!({
+            "options": state.options,
+            "unknown": state.unknown,
+        }))
+    }
+
+    /// A unit's stats and production, `{"stats": [[stat, num], ...],
+    /// "each_production": [[unit, num], ...], "total_production": [...]}`,
+    /// whether or not the unit is visible. The view's `UnitDetail` has the
+    /// same fields, but only for visible focused units; this reaches the
+    /// hidden ones the descriptions read (`invisiblehatchery`, which owns
+    /// the hatchery and expansion upgrades and their mutagen stats).
+    pub fn unit_stats(&self, unit_name: &str) -> Result<String, Error> {
+        let id = data()
+            .unit_id(unit_name)
+            .ok_or_else(|| format!("no such unit: {unit_name}"))?;
+        let e = &self.engine;
+        let stats: Vec<(u16, Num)> = e.stats(id).into_iter().map(|(s, v)| (s.0, v)).collect();
+        let ids = |v: Vec<(swarm_data::UnitId, Num)>| -> Vec<(u16, Num)> {
+            v.into_iter().map(|(u, n)| (u.0, n)).collect()
+        };
+        Ok(to_json(&serde_json::json!({
+            "stats": stats,
+            "each_production": ids(e.each_production(id)),
+            "total_production": ids(e.total_production(id)),
+        })))
+    }
+
+    /// A welcome-back report computed now, for a game closed when the load
+    /// report's offline time began (or now, if it has none). With `force`
+    /// it is given even after a short absence (the app's `?forcewelcome`
+    /// and imports); without, `None` under the engine's minimum. Unlike
+    /// [`swarm_engine::View::welcome_back`] it is not stored: the caller
+    /// keeps it.
+    pub fn welcome_back(&self, force: bool) -> Option<String> {
+        let closed = self
+            .report
+            .offline
+            .map_or_else(|| self.engine.now_ms(), |o| o.closed_ms);
+        self.engine
+            .compute_welcome_back(closed, force)
+            .map(|w| to_json(&w))
     }
 
     /// Player number input (`"1.5k"`, `"50%"`, `"=10"`, `"@100"`) as a `Num`

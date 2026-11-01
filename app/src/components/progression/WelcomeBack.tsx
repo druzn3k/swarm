@@ -11,7 +11,7 @@ export function WelcomeBack() {
   const store = useStore();
   const fmt = useFormat();
   // re-render when it's dismissed or replaced (after an import)
-  useGameValue((s) => (s.welcomeBack ? `${s.welcomeBack.millis}:${s.welcomeBack.gains.length}` : ""));
+  useGameValue((s) => (s.welcomeBack ? `${s.welcomeBack.away_ms}:${s.welcomeBack.closed_ms}:${s.welcomeBack.gains.length}` : ""));
   const wb = store.welcomeBack;
   if (!wb) return null;
   const close = () => store.dismissWelcomeBack();
@@ -24,21 +24,24 @@ export function WelcomeBack() {
         </button>
       </div>
       <p title="Please don't go. The drones need you. They look up to you.">
-        While you were away for {formatDuration(wb.millis / 1000, { format: "human" }) || "a few seconds"}, your swarm produced
+        While you were away for {formatDuration(wb.away_ms / 1000, { format: "human" }) || "a few seconds"}, your swarm produced
         {wb.gains.length ? ":" : " nothing new."}
       </p>
       {wb.gains.length > 0 && (
         <ul className="gains">
-          {wb.gains.map((g) => (
-            <li key={g.unit.name}>
-              <a href={unitHref(g.unit.name)} onClick={close}>
-                <SpriteIcon name={g.unit.name} tab={g.unit.unittype.tab} size={24} />
-                <span className="gain-text">
-                  <b className="num">{fmt.long(g.val)}</b> <span className="gain-name">{unitLabel(g.unit, true)}</span>
-                </span>
-              </a>
-            </li>
-          ))}
+          {wb.gains.map((gain) => {
+            const unit = store.g.unit(gain.unit);
+            return (
+              <li key={unit.name}>
+                <a href={unitHref(unit.name)} onClick={close}>
+                  <SpriteIcon name={unit.name} tab={unit.tabName} size={24} />
+                  <span className="gain-text">
+                    <b className="num">{fmt.long(gain.val)}</b> <span className="gain-name">{unitLabel(unit, true)}</span>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

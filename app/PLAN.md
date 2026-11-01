@@ -1,7 +1,9 @@
 # Swarm Hive app plan
 
-Goal: a complete, phone-first, pixel-art Swarm Simulator built on
-`@swarmsim/engine`, with everything the old game offers to a player, in the
+Goal: a complete, phone-first, pixel-art Swarm Simulator built on the
+Swarm Simulator engine (first `@swarmsim/engine`, the TypeScript port; since
+milestone M5 of `rust/PLAN.md`, the Rust engine as WebAssembly,
+`@swarmsim/engine-wasm`), with everything the old game offers to a player, in the
 style of the first pixel mock-up (retired; see git history). It is deployed
 to GitHub Pages from master by `.github/workflows/ci.yml`, once the packages
 job (tests and e2e) has passed.
@@ -9,7 +11,14 @@ job (tests and e2e) has passed.
 ## Decisions
 
 - **Stack:** React 18 + TypeScript, built with Vite, in the pnpm workspace as
-  `app/` (`@swarmsim/app`). Depends on `@swarmsim/engine` by name.
+  `app/` (`@swarmsim/app`). Depends on `@swarmsim/engine-wasm` by name: the
+  store (`src/game/store.ts`) owns a `GameHandle`, advances it on animation
+  frames, takes one `View` per tick for what the mounted components asked
+  for (`useNeeds`), and components read it through the facade in
+  `src/game/view.ts`. Saves are format v2 under `swarmhive-v2`; an old
+  `swarmhive-v1` save is converted once and kept (`src/game/saves.ts`).
+  `@swarmsim/engine` is a dev dependency only (test oracle, e2e and bench
+  saves).
 - **Look:** the mock-up's direction. Dark burrow palette, amber actions,
   chitin purple, Silkscreen + Pixelify Sans, hard pixel frames, sprites drawn
   in code. Single dark theme by design.

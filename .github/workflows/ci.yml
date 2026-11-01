@@ -17,9 +17,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  # tables, swarmsim-ts, engine and app: a pnpm workspace on current Node
+  # tables, swarmsim-ts, engine, engine-wasm and app: a pnpm workspace on
+  # current Node. The app runs the Rust engine as WebAssembly, so this job
+  # also needs Rust, the wasm32 target and wasm-bindgen-cli (the version of
+  # the wasm-bindgen crate in rust/Cargo.lock); SWARM_WASM_REQUIRED makes a
+  # missing toolchain fail the build instead of skipping the wasm.
   packages:
     runs-on: ubuntu-latest
+    env:
+      SWARM_WASM_REQUIRED: "1"
     steps:
     - uses: actions/checkout@v7
     - uses: pnpm/action-setup@v6 # version comes from package.json "packageManager"
@@ -27,8 +33,23 @@ jobs:
       with:
         node-version: "22.x"
         cache: pnpm
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: rust
+    # prebuilt binaries, cached by the action; must match wasm-bindgen in rust/Cargo.lock
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: wasm-bindgen-cli@0.2.130
+    # wasm-opt -Oz halves the engine's download (engine-wasm/scripts/build-wasm.sh uses it when it's on the PATH)
+    - run: npm install --global binaryen@132.0.0
     - run: pnpm install --frozen-lockfile
     - run: pnpm test:packages
+    # the wasm boundary, natively
+    - run: cargo test -p swarm-wasm
+      working-directory: rust
     # app smoke test in a phone-sized Chromium, against the production build from test:packages
     - run: pnpm --filter @swarmsim/app exec playwright install --with-deps chromium
     - run: pnpm --filter @swarmsim/app e2e

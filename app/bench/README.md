@@ -4,7 +4,8 @@ A benchmark suite for the app: how much main-thread time the game tick takes,
 how many React components re-render, how fast a buy button responds, how fast
 the app starts, whether memory grows, and whether the hive canvas sleeps when
 nobody can see it. It runs the production build in Playwright's Chromium with
-saves made by the engine at run time.
+saves made by the TypeScript engine (a dev dependency) at run time, in the old
+format, which the app migrates on load.
 
 It is not part of `pnpm test` or CI: browser timings on a shared machine move
 by a millisecond or two between runs, too much for a pass/fail gate. Use it to
@@ -115,8 +116,11 @@ so those rows show what that save sees there.
 ### tick
 
 The cost of the game's 100 ms tick, which is where an idle game spends its
-time. The page's `setInterval(…, 100)` callbacks are marked with
-`console.timeStamp("tick")`; after the page settles (and a forced GC) a
+time. The store runs on animation frames and takes a view from the wasm
+engine every 100 ms; the bench sets `__SWARM_BENCH__`, which makes the store
+mark those frames with `console.timeStamp("tick")` (a tick task is the whole
+animation-frame task, the hive's redraw included when it falls in the same
+frame). After the page settles (and a forced GC) a
 Chrome trace of `--duration` seconds is taken under the CPU throttle and each
 top-level task on the main thread is sorted into tick, animation frame,
 rendering or other.

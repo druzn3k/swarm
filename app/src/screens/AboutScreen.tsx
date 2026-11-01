@@ -37,9 +37,9 @@ export function AboutScreen() {
       <section className="section card" aria-labelledby="about-fork">
         <h2 id="about-fork">This fork</h2>
         <p>
-          Swarm Hive keeps the original game's engine, ported to TypeScript and checked against the original number for number, and puts a new
-          interface on top: one column, big touch targets, pixel art drawn in code. Saves use the original format, so you can bring a
-          swarmsim.com save over (Options, Import) and take it back.
+          Swarm Hive keeps the original game's engine, ported to Rust (running here as WebAssembly) and checked against the original number for
+          number, and puts a new interface on top: one column, big touch targets, pixel art drawn in code. It reads the original save format, so
+          you can bring a swarmsim.com save over (Options, Import), and exports it again on request (Legacy format) to take it back.
         </p>
         <p>
           Source code: <a href={SOURCE_URL}>{SOURCE_URL}</a>

@@ -1,11 +1,12 @@
 // The achievements screen (old views/achievements.html): points and percent,
 // filters and order (kept in the save, like the old game), and the list.
 import { memo, useId, useRef, useState } from "react";
-import { useGameValue, useGameValueEvery, useStore } from "../game/GameContext";
+import { useGameValue, useGameValueEvery, useNeeds, useStore } from "../game/GameContext";
+import { Dec } from "@swarmsim/engine-wasm";
 import { useInView } from "../components/useInView";
 import { useFormat } from "../format";
 import { ProgressBar } from "../components/ProgressBar";
-import { achievementBonus, achievementState, earnedDate, listAchievements, readShown, writeShown } from "../components/meta/achievements";
+import { ACHIEVEMENT_BONUS_NEED, achievementBonus, achievementState, earnedDate, listAchievements, readShown, writeShown } from "../components/meta/achievements";
 import type { AchievementsShown } from "../components/meta/achievements";
 import { dateTime, fromNow } from "../components/meta/time";
 import "../styles/meta.css";
@@ -24,20 +25,19 @@ const LIST_EVERY = 10;
  */
 const AchievementCard = memo(function AchievementCard({ name, index }: { name: string; index: number }) {
   const store = useStore();
-  // looked up by name: an import or undo replaces the game's achievement objects
-  const a = store.game.achievement(name);
+  const a = store.g.achievement(name);
   const fmt = useFormat();
   const item = useRef<HTMLLIElement>(null);
   const near = useInView(item);
   const snapshot = useGameValueEvery(
-    ({ game }) => {
-      const a = game.achievement(name);
+    ({ g }) => {
+      const a = g.achievement(name);
       const state = achievementState(a);
-      if (state === "earned") return [state, earnedDate(game, a)?.getTime() ?? ""].join(SEP);
-      const max = state === "unearned" && a.hasProgress() ? a.progressMax() : undefined;
-      const val = max ? a.progressVal() : undefined;
-      if (!max || !val || !max.greaterThan(0)) return state;
-      const pct = a.progressPercent().toNumber();
+      if (state === "earned") return [state, earnedDate(g, a)?.getTime() ?? ""].join(SEP);
+      const max = state === "unearned" ? a.progressMax : undefined;
+      const val = max ? a.progressVal : undefined;
+      if (!max || !val || !Dec.from(max).gt(0)) return state;
+      const pct = Dec.from(val).div(max).toNumber();
       return [state, "", pct, fmt.percent(Math.min(1, pct), { floor: true }), `${fmt.num(val)} of ${fmt.num(max)}`].join(SEP);
     },
     near ? CARD_EVERY : OFFSCREEN_EVERY,
@@ -45,11 +45,11 @@ const AchievementCard = memo(function AchievementCard({ name, index }: { name: s
   );
   const [state, earnedAt, pct, pctText, ofText] = snapshot.split(SEP);
   // "3 minutes ago", re-read about once a second; worked out at once for a newly earned card
-  const agoSnap = useGameValueEvery(({ game }) => (earnedAt ? earnedAt + SEP + fromNow(new Date(+earnedAt), game.now) : ""), LIST_EVERY, index);
-  const ago = !earnedAt ? "" : agoSnap.startsWith(earnedAt + SEP) ? agoSnap.slice(earnedAt.length + 1) : fromNow(new Date(+earnedAt), store.game.now);
+  const agoSnap = useGameValueEvery(({ g }) => (earnedAt ? earnedAt + SEP + fromNow(new Date(+earnedAt), new Date(g.nowMs)) : ""), LIST_EVERY, index);
+  const ago = !earnedAt ? "" : agoSnap.startsWith(earnedAt + SEP) ? agoSnap.slice(earnedAt.length + 1) : fromNow(new Date(+earnedAt), new Date(store.g.nowMs));
   // the old game emitted 'achieveclick' on every click; one secret achievement listens for it
-  const onClick = () => store.act(({ events }) => events.emit("achieveclick", a));
-  const points = a.type.points as number;
+  const onClick = () => store.act({ do: "ui_event", name: "achieveclick", params: { name: a.name } });
+  const points = a.points;
   if (state === "masked") {
     return (
       <li ref={item}>
@@ -74,9 +74,9 @@ const AchievementCard = memo(function AchievementCard({ name, index }: { name: s
           {earned ? "✓" : "★"}
         </span>
         <span className="ach-main">
-          <span className="ach-title">{a.type.label}</span>
+          <span className="ach-title">{a.label}</span>
           <span className="ach-desc">{a.description((n) => fmt.long(n))}</span>
-          {a.type.longdesc && <span className="ach-long">{a.type.longdesc}</span>}
+          {a.st.longdesc && <span className="ach-long">{a.st.longdesc}</span>}
           {earnedAt && (
             <span className="ach-date">
               Earned {ago} · {dateTime(new Date(+earnedAt))}
@@ -84,7 +84,7 @@ const AchievementCard = memo(function AchievementCard({ name, index }: { name: s
           )}
           {!earned && pctText !== undefined && (
             <span className="ach-progress">
-              <ProgressBar value={+pct} label={`${a.type.label} progress`} />
+              <ProgressBar value={+pct} label={`${a.label} progress`} />
               <span className="bar-label num">
                 <span>{pctText}</span>
                 <span>{ofText}</span>
@@ -114,29 +114,25 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
  */
 export function AchievementsScreen() {
   const store = useStore();
+  useNeeds(ACHIEVEMENT_BONUS_NEED);
   const fmt = useFormat();
-  const { game } = store;
-  const [shown, setShownState] = useState<AchievementsShown>(() => readShown(game));
+  const [shown, setShownState] = useState<AchievementsShown>(() => readShown(store));
   const orderName = useId();
   const setShown = (patch: Partial<AchievementsShown>) => {
     const next = { ...shown, ...patch };
     setShownState(next);
-    store.act(({ game }) => writeShown(game, next));
+    writeShown(store, next);
   };
 
-  const summary = useGameValue(({ game }) => {
-    const bonus = achievementBonus(game);
-    return [
-      fmt.long(game.achievementPoints()),
-      game.achievementPercent(),
-      game.achievementlist().filter((a) => a.isEarned()).length,
-      bonus ? fmt.percent(bonus, { plusOne: true }) : "",
-    ].join(SEP);
+  const summary = useGameValue(({ g }) => {
+    const bonus = achievementBonus(g);
+    const a = g.v.achievements;
+    return [fmt.long(a?.points ?? 0), a?.percent ?? 0, a?.earned ?? 0, bonus ? fmt.percent(bonus, { plusOne: true }) : ""].join(SEP);
   });
   const [points, percentText, earnedCount, bonus] = summary.split(SEP);
   const percent = +percentText;
   // `shown` changes through store.act, so the list is re-read at once then
-  const names = useGameValueEvery(({ game }) => listAchievements(game, shown).map((a) => a.name).join(","), LIST_EVERY);
+  const names = useGameValueEvery(({ g }) => listAchievements(g, shown).map((a) => a.name).join(","), LIST_EVERY);
   const list = names ? names.split(",") : [];
 
   return (
@@ -150,7 +146,7 @@ export function AchievementsScreen() {
         <p className="bar-label num">
           <span>{fmt.percent(percent, { floor: true })} complete</span>
           <span>
-            {earnedCount} of {game.achievementlist().length} earned
+            {earnedCount} of {store.statics.achievements.length} earned
           </span>
         </p>
         {bonus && (

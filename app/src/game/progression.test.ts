@@ -1,238 +1,158 @@
 import { describe, expect, it } from "vitest";
-import { createGame } from "@swarmsim/engine";
-import type { Game, SaveStorage } from "@swarmsim/engine";
-import { buyAllList, buyCheapestList, gainsSince, isUndoable, previewCast, snapshotCounts, undoSecondsLeft } from "./progression";
-import { computeWelcomeBack, interestingUnits } from "./welcomeback";
-import { tutorialStep } from "./tutorial";
+import { Dec } from "@swarmsim/engine-wasm";
+import { buyAllList, buyCheapestList, gainsSince, previewCast, snapshotCounts, undoSecondsLeft } from "./progression";
 import { GameStore } from "./store";
+import { SAVE_ID, heartbeatKey } from "./saves";
+import { memoryStorage } from "./storage";
+import { T0, craftV1, storeWith, testClock } from "../test/saves";
+import type { CraftOptions } from "../test/saves";
 
-function memoryStorage(): SaveStorage {
-  const data = new Map<string, string>();
-  return {
-    getItem: (k) => data.get(k) ?? null,
-    setItem: (k, v) => void data.set(k, v),
-    removeItem: (k) => void data.delete(k),
-  };
-}
-
-function clock(start = Date.UTC(2024, 0, 1)) {
-  let t = start;
-  const now = () => new Date(t);
-  return { now, advance: (secs: number) => (t += secs * 1000) };
+/** move the game's clock and take a view */
+function wait(s: { store: GameStore; clock: ReturnType<typeof testClock> }, ms: number) {
+  s.clock.advance(ms);
+  s.store.advance(ms);
+  s.store.refresh();
 }
 
 describe("undo countdown", () => {
   it("allows undo for 30 seconds after an action, and not as a redo", () => {
-    const c = clock();
-    const { game, commands } = createGame({ now: c.now });
-    expect(isUndoable(game, commands)).toBe(false);
-    expect(undoSecondsLeft(game, commands)).toBe(0);
-    commands.buyUnit({ unit: game.unit("drone"), num: 1 });
-    expect(undoSecondsLeft(game, commands)).toBe(30);
-    c.advance(10.4);
-    game.tick();
-    expect(undoSecondsLeft(game, commands)).toBe(20);
-    commands.undo();
-    expect(game.unit("drone").count().toNumber()).toBe(0);
+    const s = storeWith();
+    const { store } = s;
+    expect(undoSecondsLeft(store.g)).toBe(0);
+    store.act({ do: "buy_unit", unit: "drone", amount: { num: "1" } });
+    expect(undoSecondsLeft(store.g)).toBe(30);
+    wait(s, 10_400);
+    expect(undoSecondsLeft(store.g)).toBe(20);
+    store.act({ do: "undo" });
+    expect(store.g.unit("drone").count).toBe("0");
     // undoing again would redo: the old UI didn't offer it
-    expect(isUndoable(game, commands)).toBe(false);
-    commands.buyUnit({ unit: game.unit("drone"), num: 1 });
-    c.advance(30);
-    game.tick();
-    expect(isUndoable(game, commands)).toBe(false);
+    expect(undoSecondsLeft(store.g)).toBe(0);
+    store.act({ do: "buy_unit", unit: "drone", amount: { num: "1" } });
+    wait(s, 30_000);
+    expect(undoSecondsLeft(store.g)).toBe(0);
   });
 });
 
 describe("buy all / cheapest upgrades", () => {
   it("lists autobuyable upgrades, at 100% and 25% of resources, following notify settings", () => {
-    const { game, commands } = createGame();
-    expect(buyAllList(game)).toEqual([]);
-    game.unit("meat")._setCount(1e6);
-    game.cache.onUpdate();
-    expect(buyAllList(game).map((u) => u.name)).toContain("hatchery");
-    expect(buyCheapestList(game).map((u) => u.name)).toContain("hatchery");
-    // "never notify" also leaves it out of buy-all, like the old game
-    game.upgrade("hatchery").watch(0);
-    game.cache.onUpdate();
-    expect(buyAllList(game).map((u) => u.name)).not.toContain("hatchery");
-    expect(game.upgrade("hatchery").isNewlyUpgradable()).toBe(false);
-    game.upgrade("hatchery").watch(-1);
-    expect(game.upgrade("hatchery").isManuallyHidden()).toBe(true);
-    // back to the default; the setting lives in the save
-    game.upgrade("hatchery").watch(true);
-    expect(game.session.state.watched?.hatchery).toBeUndefined();
-    game.cache.onUpdate();
-    commands.buyAllUpgrades({ upgrades: buyAllList(game), percent: 1 });
-    expect(game.upgrade("hatchery").count().toNumber()).toBeGreaterThan(0);
+    expect(buyAllList(storeWith().store.g)).toEqual([]);
+    const s = storeWith({ units: { meat: 1e6 } });
+    const { store } = s;
+    // the larva screen's upgrades in the view (buy-all's lists cover every upgrade anyway)
+    store.need({}, { upgrades: ["larva"] });
+    expect(buyAllList(store.g).map((u) => u.name)).toContain("hatchery");
+    expect(buyCheapestList(store.g).map((u) => u.name)).toContain("hatchery");
+    // "never notify" also leaves it out of buy-all, like the old game (after the 3 s cache)
+    store.act({ do: "watch", upgrade: "hatchery", level: 0 });
+    wait(s, 3100);
+    expect(buyAllList(store.g).map((u) => u.name)).not.toContain("hatchery");
+    expect(store.g.upgrade("hatchery").newlyUpgradable).toBe(false);
+    store.act({ do: "watch", upgrade: "hatchery", level: -1 });
+    expect(store.g.upgrade("hatchery").manuallyHidden).toBe(true);
+    // back to the default
+    store.act({ do: "watch", upgrade: "hatchery", level: 1 });
+    wait(s, 3100);
+    const list = buyAllList(store.g);
+    store.act({ do: "buy_all_upgrades", percent: 1, which: { explicit: list.map((u) => u.name) } });
+    expect(Dec.from(store.g.upgrade("hatchery").count).gt(0)).toBe(true);
   });
 
   it("notifies at 2x only when twice the cost is affordable", () => {
-    const { game } = createGame();
-    const hatchery = game.upgrade("hatchery");
-    const cost = hatchery.totalCost()[0].val.toNumber();
-    hatchery.watch(2);
-    game.unit("meat")._setCount(cost * 1.5);
-    game.cache.onUpdate();
-    expect(hatchery.isNewlyUpgradable()).toBe(false);
-    game.unit("meat")._setCount(cost * 2);
-    game.cache.onUpdate();
-    expect(hatchery.isNewlyUpgradable()).toBe(true);
+    const cost = Number(storeWith().store.g.upgrade("hatchery").totalCost[0].val);
+    const at = (meat: number) => {
+      const { store } = storeWith({ units: { meat }, watched: { hatchery: 2 } });
+      store.need({}, { upgrades: ["larva"] });
+      store.refresh();
+      return store.g.upgrade("hatchery").newlyUpgradable;
+    };
+    expect(at(cost * 1.5)).toBe(false);
+    expect(at(cost * 2)).toBe(true);
   });
 });
 
 describe("ability casts", () => {
-  it("previews what a cast raises and reports the gains", () => {
-    const { game, commands } = createGame();
-    const warp = game.upgrade("swarmwarp");
+  it("previews what a cast raises and reports the gains", async () => {
+    const { store } = storeWith({ units: { drone: 100, nexus: 5, energy: 10000 } });
+    // effect outputs are details of the abilities' unit
+    store.need({}, { focus: ["energy"] });
+    await Promise.resolve();
+    const warp = store.g.upgrade("swarmwarp");
     const preview = previewCast(warp);
     expect(preview.skipSecs).toBeGreaterThan(0);
     expect(preview.units).toContain("meat");
     expect(preview.units).not.toContain("energy");
-    const rush = previewCast(game.upgrade("meatrush"));
+    const rush = previewCast(store.g.upgrade("meatrush"));
     expect(rush.units).toEqual(["meat"]);
     expect(rush.skipSecs).toBe(0);
 
-    game.unit("drone")._setCount(100);
-    game.unit("nexus")._setCount(5);
-    game.unit("energy")._setCount(10000);
-    game.cache.onUpdate();
-    const before = snapshotCounts(game, preview.units);
-    commands.buyUpgrade({ upgrade: warp, num: 1 });
-    const gains = gainsSince(game, before);
+    const before = snapshotCounts(store.g, preview.units);
+    expect(store.act({ do: "buy_upgrade", upgrade: "swarmwarp", amount: { num: "1" } }).error).toBeUndefined();
+    const gains = gainsSince(store.g, before);
     expect(gains.map((g) => g.unit.name)).toContain("meat");
-    expect(gains.every((g) => g.val.greaterThan(0))).toBe(true);
+    expect(gains.every((g) => Dec.from(g.val).gt(0))).toBe(true);
   });
 });
 
 describe("welcome back", () => {
-  function closeAndReopen(awaySecs: number, heartbeatSecsBeforeReopen?: number) {
-    const c = clock();
+  function closeAndReopen(awaySecs: number, heartbeatSecsBeforeReopen?: number, force = false) {
     const storage = memoryStorage();
-    const first = createGame({ now: c.now, storage });
-    first.game.unit("drone")._setCount(10);
-    first.game.save();
-    c.advance(awaySecs);
-    if (heartbeatSecsBeforeReopen != null) {
-      storage.setItem(first.session.heartbeatId, new Date(c.now().getTime() - heartbeatSecsBeforeReopen * 1000).toISOString());
-    }
-    return createGame({ now: c.now, storage });
+    storage.setItem(SAVE_ID, new GameStore({ save: craftV1({ units: { drone: 10 } }), now: () => T0 }).exportSave());
+    const reopen = T0 + awaySecs * 1000;
+    if (heartbeatSecsBeforeReopen != null) storage.setItem(heartbeatKey(SAVE_ID), String(reopen - heartbeatSecsBeforeReopen * 1000));
+    return new GameStore({ storage, now: () => reopen, forceWelcomeBack: force });
   }
 
   it("lists the meat producers and tab leaders that grew while away", () => {
-    const { game, session } = closeAndReopen(3600);
-    const wb = computeWelcomeBack(game, session)!;
+    const store = closeAndReopen(3600);
+    const wb = store.welcomeBack!;
     expect(wb).not.toBeNull();
-    expect(Math.round(wb.millis / 1000)).toBe(3600);
-    const meat = wb.gains.find((g) => g.unit.name === "meat")!;
+    expect(Math.round(wb.away_ms / 1000)).toBe(3600);
+    const name = (i: number) => store.statics.units[i].name;
+    const meat = wb.gains.find((g) => name(g.unit) === "meat")!;
     // 10 drones at 1 meat/sec for an hour
-    expect(meat.val.toNumber()).toBeCloseTo(36000, 0);
-    expect(wb.gains.map((g) => g.unit.name)).toContain("larva");
-    expect(wb.gains.every((g) => g.val.greaterThan(0))).toBe(true);
+    expect(Number(meat.val)).toBeCloseTo(36000, 0);
+    expect(wb.gains.map((g) => name(g.unit))).toContain("larva");
+    expect(wb.gains.every((g) => Dec.from(g.val).gt(0))).toBe(true);
   });
 
-  it("stays quiet after less than 3 minutes, unless forced", () => {
-    const { game, session } = closeAndReopen(120);
-    expect(computeWelcomeBack(game, session)).toBeNull();
-    expect(computeWelcomeBack(game, session, { force: true })).not.toBeNull();
+  it("stays quiet after less than 3 minutes, unless forced (?forcewelcome)", () => {
+    expect(closeAndReopen(120).welcomeBack).toBeNull();
+    expect(closeAndReopen(120, undefined, true).welcomeBack).not.toBeNull();
   });
 
   it("uses the heartbeat: a game that was open until recently isn't welcomed back", () => {
-    const { game, session } = closeAndReopen(3600, 30);
-    expect(computeWelcomeBack(game, session)).toBeNull();
-    expect(computeWelcomeBack(game, session, { ignoreHeartbeat: true })).not.toBeNull();
+    expect(closeAndReopen(3600, 30).welcomeBack).toBeNull();
   });
 
-  it("picks the three highest meat generations that produce, then each tab's lead unit, once each", () => {
-    const { game } = createGame();
-    // the units being produced: queens (by the nest), drones (by queens), meat (by drones)
-    game.unit("nest")._setCount(1);
-    game.unit("queen")._setCount(1);
-    game.unit("drone")._setCount(1);
-    game.cache.onUpdate();
-    const names = interestingUnits(game).map((u) => u.name);
-    expect(names.slice(0, 3)).toEqual(["queen", "drone", "meat"]);
-    expect(names).toContain("meat");
-    expect(names).toContain("larva");
-    expect(new Set(names).size).toBe(names.length);
-  });
-
-  it("is computed by the store on load, and can be dismissed", () => {
-    const c = clock();
-    const storage = memoryStorage();
-    const a = new GameStore({ storage, now: c.now });
-    a.game.unit("drone")._setCount(5);
-    a.save();
-    c.advance(600);
-    const b = new GameStore({ storage, now: c.now });
-    expect(b.welcomeBack).not.toBeNull();
-    b.dismissWelcomeBack();
-    expect(b.welcomeBack).toBeNull();
+  it("is dismissed for good", () => {
+    const store = closeAndReopen(600);
+    expect(store.welcomeBack).not.toBeNull();
+    store.dismissWelcomeBack();
+    expect(store.welcomeBack).toBeNull();
+    expect(store.view.welcome_back).toBeUndefined();
   });
 });
 
-describe("tutorial steps", () => {
-  const step = (setup: (g: Game) => void) => {
-    const { game } = createGame();
-    setup(game);
-    game.cache.onTick();
-    return tutorialStep(game);
-  };
+describe("tutorial steps (view.tutorial_step)", () => {
+  const step = (craft: CraftOptions) => storeWith(craft).store.view.tutorial_step;
   it("follows the old game's conditions", () => {
-    expect(step(() => {})).toBe(1);
-    expect(step((g) => g.unit("drone")._setCount(1))).toBe(2);
-    expect(step((g) => g.unit("drone")._setCount(10))).toBe(3);
-    expect(
-      step((g) => {
-        g.unit("drone")._setCount(10);
-        g.unit("meat")._setCount(300);
-      })
-    ).toBe(11);
-    expect(
-      step((g) => {
-        g.unit("drone")._setCount(10);
-        g.upgrade("hatchery")._setCount(1);
-      })
-    ).toBe(4);
-    expect(
-      step((g) => {
-        g.upgrade("hatchery")._setCount(1);
-        g.unit("queen")._setCount(1);
-      })
-    ).toBe(5);
-    expect(
-      step((g) => {
-        g.upgrade("hatchery")._setCount(1);
-        g.unit("queen")._setCount(5);
-      })
-    ).toBe(6);
-    expect(
-      step((g) => {
-        g.upgrade("hatchery")._setCount(1);
-        g.unit("queen")._setCount(5);
-        g.unit("territory")._setCount(1);
-      })
-    ).toBe(7);
-    expect(
-      step((g) => {
-        g.upgrade("hatchery")._setCount(1);
-        g.unit("queen")._setCount(5);
-        g.unit("territory")._setCount(6);
-      })
-    ).toBe(8);
-    expect(step((g) => g.upgrade("expansion")._setCount(1))).toBe(9);
-    expect(step((g) => g.upgrade("expansion")._setCount(5))).toBe(0);
-    expect(
-      step((g) => {
-        g.upgrade("expansion")._setCount(5);
-        g.cache.firstSpawn.premutagen = new Date();
-      })
-    ).toBe(10);
-    expect(step((g) => g.unit("ascension")._setCount(1))).toBe(0);
+    expect(step({})).toBe(1);
+    expect(step({ units: { drone: 1 } })).toBe(2);
+    expect(step({ units: { drone: 10 } })).toBe(3);
+    expect(step({ units: { drone: 10, meat: 300 } })).toBe(11);
+    expect(step({ units: { drone: 10 }, upgrades: { hatchery: 1 } })).toBe(4);
+    expect(step({ units: { queen: 1 }, upgrades: { hatchery: 1 } })).toBe(5);
+    expect(step({ units: { queen: 5 }, upgrades: { hatchery: 1 } })).toBe(6);
+    expect(step({ units: { queen: 5, territory: 1 }, upgrades: { hatchery: 1 } })).toBe(7);
+    expect(step({ units: { queen: 5, territory: 6 }, upgrades: { hatchery: 1 } })).toBe(8);
+    expect(step({ upgrades: { expansion: 1 } })).toBe(9);
+    expect(step({ upgrades: { expansion: 5 } })).toBe(0);
+    expect(step({ units: { ascension: 1 } })).toBe(0);
   });
 
   it("congratulates after the first ascension, this session only", () => {
-    const { game } = createGame();
-    game.ascend(true);
-    expect(tutorialStep(game)).toBe(100);
+    const { store } = storeWith({ units: { energy: 1e8, mtxEnergy: 1e8, nexus: 5, premutagen: 100 }, upgrades: { nexus1: 1, nexus2: 1, nexus3: 1, nexus4: 1, nexus5: 1 } });
+    expect(store.act({ do: "ascend" }).error).toBeUndefined();
+    expect(store.view.tutorial_step).toBe(100);
   });
 });

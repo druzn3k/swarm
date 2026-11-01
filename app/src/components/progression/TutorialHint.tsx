@@ -4,7 +4,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { useGameValue } from "../../game/GameContext";
-import { tutorialStep } from "../../game/tutorial";
 import { unitHref } from "../../router";
 import "../../styles/progression.css";
 
@@ -108,7 +107,7 @@ export function tutorialText(step: number): ReactNode {
 }
 
 export function TutorialHint() {
-  const step = useGameValue((s) => tutorialStep(s.game));
+  const step = useGameValue((s) => s.g.v.tutorial_step);
   const [dismissed, setDismissed] = useState(loadDismissed);
   const text = tutorialText(step);
   if (!step || !text || dismissed.includes(step)) return null;

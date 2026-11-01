@@ -1,19 +1,15 @@
 // The statistics screen (old views/statistics.html): what you bought and
 // when, per unit and upgrade, and totals for the whole game.
-import type { Unit, Upgrade } from "@swarmsim/engine";
 import { memo } from "react";
-import { useGameValue, useGameValueEvery, useStore } from "../game/GameContext";
+import type { ItemStatistics } from "@swarmsim/engine-wasm";
+import { useGameValue, useGameValueEvery, useNeeds, useStore } from "../game/GameContext";
+import type { UnitRef, UpgradeRef } from "../game/view";
 import { useFormat } from "../format";
 import type { Formatter } from "../format";
 import { dateTime, fromNow, utcdoy } from "../components/meta/time";
 import "../styles/meta.css";
 
-interface UnitStats {
-  clicks: number;
-  num: unknown;
-  twinnum?: unknown;
-  elapsedFirst: number;
-}
+type UnitStats = ItemStatistics;
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -28,38 +24,39 @@ function Stat({ label, value }: { label: string; value: string }) {
 const EVERY = 10;
 
 // Rows re-render after player actions only (`actions`, the store's action
-// counter): the engine updates the statistics objects in place, after a
-// purchase, so their identity says nothing.
-const UnitRow = memo(function UnitRow({ unit, stats, fmt }: { unit: Unit; stats?: UnitStats; fmt: Formatter; actions: number }) {
+// counter): every view brings new objects, so their identity says nothing.
+const sameRow = (a: { actions: number; fmt?: Formatter; unit?: UnitRef; upgrade?: UpgradeRef }, b: typeof a) =>
+  a.actions === b.actions && a.fmt === b.fmt && a.unit?.id === b.unit?.id && a.upgrade?.id === b.upgrade?.id;
+const UnitRow = memo(function UnitRow({ unit, stats, fmt }: { unit: UnitRef; stats?: UnitStats; fmt: Formatter; actions: number }) {
   return (
     <li className="stat-row">
-      <h3>{unit.unittype.label}</h3>
+      <h3>{unit.label}</h3>
       {stats ? (
         <dl className="stat-grid">
-          <Stat label="First bought" value={utcdoy(stats.elapsedFirst)} />
+          <Stat label="First bought" value={utcdoy(stats.elapsed_first)} />
           <Stat label="Clicks" value={fmt.num(stats.clicks)} />
-          <Stat label="Bought manually" value={fmt.num(stats.num as number)} />
-          <Stat label="Twins" value={fmt.num(stats.twinnum as number)} />
+          <Stat label="Bought manually" value={fmt.num(stats.num)} />
+          <Stat label="Twins" value={fmt.num(stats.twinnum)} />
         </dl>
       ) : (
         <p className="muted">Never bought: produced by other units.</p>
       )}
     </li>
   );
-});
+}, sameRow);
 
-const UpgradeRow = memo(function UpgradeRow({ upgrade, stats }: { upgrade: Upgrade; stats: UnitStats; actions: number }) {
+const UpgradeRow = memo(function UpgradeRow({ upgrade, stats }: { upgrade: UpgradeRef; stats: UnitStats; actions: number }) {
   return (
     <li className="stat-row">
-      <h3>{upgrade.type.label}</h3>
+      <h3>{upgrade.label}</h3>
       <dl className="stat-grid">
-        <Stat label="First bought" value={utcdoy(stats.elapsedFirst)} />
+        <Stat label="First bought" value={utcdoy(stats.elapsed_first)} />
         <Stat label="Clicks" value={stats.clicks.toLocaleString("en-US")} />
         <Stat label="Total bought" value={Number(stats.num).toLocaleString("en-US")} />
       </dl>
     </li>
   );
-});
+}, sameRow);
 
 interface Totals {
   played: string;
@@ -80,47 +77,42 @@ interface Totals {
  */
 export function StatisticsScreen() {
   const store = useStore();
+  useNeeds({ sections: ["statistics"] });
   const fmt = useFormat();
-  const { game, engine } = store;
-  const statistics = (engine.session.state.statistics ?? {}) as {
-    byUnit?: Record<string, UnitStats>;
-    byUpgrade?: Record<string, UnitStats>;
-    clicks?: number;
-  };
-  const byUnit = statistics.byUnit ?? {};
-  const byUpgrade = statistics.byUpgrade ?? {};
+  const { g } = store;
+  const statistics = g.v.statistics;
+  const byUnit = new Map((statistics?.units ?? []).map((s) => [s.id, s]));
+  const byUpgrade = new Map((statistics?.upgrades ?? []).map((s) => [s.id, s]));
   const actions = useGameValue((s) => s.actions);
-  const lists = useGameValueEvery(({ game, engine }) => {
-    const statistics = (engine.session.state.statistics ?? {}) as { byUnit?: Record<string, UnitStats>; byUpgrade?: Record<string, UnitStats> };
-    const byUnit = statistics.byUnit ?? {};
-    const byUpgrade = statistics.byUpgrade ?? {};
-    const has = (dict: Record<string, UnitStats>, name: string) => Object.prototype.hasOwnProperty.call(dict, name);
+  const lists = useGameValueEvery(({ g }) => {
+    const statistics = g.v.statistics;
+    const bought = new Set((statistics?.units ?? []).map((s) => s.id));
     // like the old screen: units you bought, plus visible units you can't buy (meat, larvae, ...)
-    const units = game.unitlist().filter((u) => has(byUnit, u.name) || (!u.isBuyable() && u.isVisible()));
-    const upgrades = game.upgradelist().filter((u) => has(byUpgrade, u.name));
-    return units.map((u) => u.name).join(",") + "|" + upgrades.map((u) => u.name).join(",");
+    const units = g.units().filter((u) => bought.has(u.id) || (!u.buyable && u.visible));
+    const upgrades = (statistics?.upgrades ?? []).map((s) => s.id);
+    return units.map((u) => u.id).join(",") + "|" + upgrades.join(",");
   }, EVERY);
-  const [unitNames, upgradeNames] = lists.split("|");
-  const units = unitNames ? unitNames.split(",").map((n) => game.unit(n)) : [];
-  const upgrades = upgradeNames ? upgradeNames.split(",").map((n) => game.upgrade(n)) : [];
+  const [unitIds, upgradeIds] = lists.split("|");
+  const units = unitIds ? unitIds.split(",").map((i) => g.unit(+i)) : [];
+  const upgrades = upgradeIds ? upgradeIds.split(",").map((i) => g.upgrade(+i)) : [];
 
-  const totalsJson = useGameValueEvery(({ game, engine }) => {
-    const statistics = (engine.session.state.statistics ?? {}) as { clicks?: number };
-    const started = game.dateStarted();
-    const now = game.now;
-    const ascended = !game.unit("ascension").count().isZero();
-    const restarted = engine.session.state.date.restarted;
+  const totalsJson = useGameValueEvery((s) => {
+    const { g } = s;
+    const started = new Date(g.startedMs);
+    const now = new Date(g.nowMs);
+    const ascended = g.unit("ascension").count !== "0";
+    const restarted = g.v.restarted_ms;
     const totals: Totals = {
-      played: fmt.duration(game.elapsedStartMillis() / 1000) || "just started",
-      skipped: fmt.duration(game.totalSkippedMillis() / 1000) || "none",
-      clicks: fmt.num(statistics.clicks ?? 0),
-      points: fmt.num(game.achievementPoints()),
-      ascensions: fmt.num(game.unit("ascension").count()),
-      saveSize: `${engine.session.exportSave().length.toLocaleString("en-US")} chars`,
+      played: fmt.duration(g.v.elapsed_ms / 1000) || "just started",
+      skipped: fmt.duration(g.v.total_skipped_ms / 1000) || "none",
+      clicks: fmt.num(g.v.statistics?.clicks ?? 0),
+      points: fmt.num(g.v.achievements?.points ?? 0),
+      ascensions: fmt.num(g.unit("ascension").count),
+      saveSize: `${s.exportSave().length.toLocaleString("en-US")} chars`,
       started: fromNow(started, now),
       startedAt: dateTime(started),
-      ascendedAgo: ascended && restarted ? fromNow(restarted, now) : "",
-      ascendedAt: ascended && restarted ? dateTime(restarted) : "",
+      ascendedAgo: ascended && restarted ? fromNow(new Date(restarted), now) : "",
+      ascendedAt: ascended && restarted ? dateTime(new Date(restarted)) : "",
     };
     return JSON.stringify(totals);
   }, EVERY);
@@ -162,7 +154,7 @@ export function StatisticsScreen() {
         ) : (
           <ul className="stat-list">
             {units.map((u) => (
-              <UnitRow key={u.name} unit={u} stats={byUnit[u.name]} fmt={fmt} actions={actions} />
+              <UnitRow key={u.name} unit={u} stats={byUnit.get(u.id)} fmt={fmt} actions={actions} />
             ))}
           </ul>
         )}
@@ -175,7 +167,7 @@ export function StatisticsScreen() {
         ) : (
           <ul className="stat-list">
             {upgrades.map((u) => (
-              <UpgradeRow key={u.name} upgrade={u} stats={byUpgrade[u.name]} actions={actions} />
+              <UpgradeRow key={u.name} upgrade={u} stats={byUpgrade.get(u.id)!} actions={actions} />
             ))}
           </ul>
         )}

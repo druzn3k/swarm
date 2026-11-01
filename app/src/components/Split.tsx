@@ -12,11 +12,11 @@ import { WelcomeBack } from "./progression/WelcomeBack";
 import { TutorialHint } from "./progression/TutorialHint";
 
 export function Split({ listTab, unit }: { listTab: string; unit?: string }) {
-  const { game } = useStore();
-  const tabVisible = useGameValue((s) => !!tabByName(s.game, listTab)?.isVisible());
-  const fallback = useGameValue((s) => (unit === undefined ? defaultUnit(s.game, listTab) : ""));
+  const store = useStore();
+  const tabVisible = useGameValue((s) => !!tabByName(s.g, listTab)?.visible);
+  const fallback = useGameValue((s) => (unit === undefined ? defaultUnit(s.g, listTab, s.lastSelected.get(listTab)) : ""));
   const shown = unit ?? fallback;
-  const selected = unit === undefined ? fallback : (findUnit(game, unit)?.name ?? unit);
+  const selected = unit === undefined ? fallback : (findUnit(store.g, unit)?.name ?? unit);
 
   // A new unit on the right: if the control that did it went away with the old
   // unit (prev/next), focus the new unit; if it stayed (a card in the list, a
@@ -31,10 +31,10 @@ export function Split({ listTab, unit }: { listTab: string; unit?: string }) {
       document.getElementById("main")?.focus({ preventScroll: true });
       setSaid("");
     } else {
-      const u = findUnit(game, selected);
+      const u = findUnit(store.g, selected);
       setSaid(u ? `Showing ${unitLabel(u, true)}` : "");
     }
-  }, [game, selected]);
+  }, [store, selected]);
 
   return (
     <div className="split">

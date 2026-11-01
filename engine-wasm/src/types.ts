@@ -45,6 +45,13 @@ export interface ViewRequest {
   percents?: number[]
   /** Extra amounts for upgrades' `sum_costs`. */
   sum_amounts?: NumString[]
+  /**
+   * swarm-wasm only: list the upgrades of just these units (and the focused
+   * ones), while `units` stays complete. Upgrades are most of a view's cost;
+   * `only_units` would scope the units too. `buy_all`/`buy_cheapest` still
+   * cover every upgrade.
+   */
+  upgrades_of?: Index[]
 }
 
 // ------------------------------------------------------------------ view
@@ -390,6 +397,23 @@ export interface CommandOutcome {
   levels?: NumString
   /** Upgrades `buy_all_upgrades` tried, in order. */
   upgrades?: Index[]
+}
+
+// ------------------------------------------------------------------ ui state
+
+/** `GameHandle.uiState()`: what the engine keeps for the UI without reading it. */
+export interface UiState {
+  /** The options bag (`set_option`). */
+  options: Record<string, unknown>
+  /** Unknown top-level keys of the save (e.g. an older app's `achievementsShown`). */
+  unknown: Record<string, unknown>
+}
+
+/** `GameHandle.unitStats(name)`: a unit's stats and production, visible or not. */
+export interface UnitStats {
+  stats: Amounts
+  each_production: Amounts
+  total_production: Amounts
 }
 
 // ------------------------------------------------------------------ saves

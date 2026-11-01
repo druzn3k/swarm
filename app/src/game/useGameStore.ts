@@ -1,4 +1,4 @@
-// Creates the app's one GameStore (and starts its tick loop) for the root component.
+// Creates the app's one GameStore (and starts its frame loop) for the root component.
 import { useEffect, useState } from "react";
 import { GameStore } from "./store";
 import { safeLocalStorage } from "./storage";
@@ -9,7 +9,7 @@ export function createBrowserStore(): GameStore {
   return new GameStore({ storage: safeLocalStorage(), forceWelcomeBack });
 }
 
-/** Start ticking/autosaving while mounted. */
+/** Start the frame loop and autosaving while mounted. The engine must be initialised (initEngine). */
 export function useRunningStore(factory: () => GameStore = createBrowserStore): GameStore {
   const [store] = useState(factory);
   useEffect(() => store.start(), [store]);

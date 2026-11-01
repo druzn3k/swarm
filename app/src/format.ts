@@ -5,11 +5,17 @@
 //   <FormatContext.Provider value={createFormatter({ notation: "scientific-e" })}>
 //
 // Components call useFormat(). The number algorithm is a port of
-// swarm-numberformat 0.2.0 (what the old game used) on the decimal.js
-// backend, rounding down, with the same "bignum" (short) and "longnum"
-// (full) flavors.
+// swarm-numberformat 0.2.0 (what the old game used), rounding down, with the
+// same "bignum" (short) and "longnum" (full) flavors. It works on the
+// engine's number strings (`NumString`, see @swarmsim/engine-wasm) through
+// the small `Dec` helper: digits are cut from the number's own digits, so
+// rounding down is exact, as it was on decimal.js.
 import { createContext, useContext } from "react";
-import { Decimal, numberSuffixesLong, numberSuffixesShort } from "@swarmsim/engine";
+import { Dec, NUMBER_SUFFIXES_LONG, NUMBER_SUFFIXES_SHORT } from "@swarmsim/engine-wasm";
+import type { DecLike } from "@swarmsim/engine-wasm";
+
+/** What the formatter takes: a Num string, a JS number or a Dec. */
+export type NumLike = DecLike;
 
 export type Notation = "standard-decimal" | "scientific-e" | "hybrid" | "engineering";
 export type DurationFormat = "abbreviated" | "full" | "human";
@@ -51,8 +57,6 @@ export interface NumberOptions {
   maxSmall?: number;
 }
 
-const DecFloor = Decimal.clone({ rounding: Decimal.ROUND_FLOOR });
-
 // toLocaleString() with options builds a new Intl.NumberFormat per call; these run for every number, every tick
 const numberFormats = new Map<number, Intl.NumberFormat>();
 function grouped(n: number, places = 0): string {
@@ -73,43 +77,100 @@ function suffixFor(notation: Notation, flavor: Flavor, index: number): string | 
       return undefined;
     case "hybrid":
     case "standard-decimal": {
-      const list = flavor === "full" ? numberSuffixesLong : numberSuffixesShort;
+      const list = flavor === "full" ? NUMBER_SUFFIXES_LONG : NUMBER_SUFFIXES_SHORT;
       const limit = notation === "hybrid" ? 12 : list.length;
       return index < limit ? list[index] || "" : undefined;
     }
   }
 }
 
-export function formatNumber(value: Decimal.Value | null | undefined, opts: NumberOptions = {}): string {
+/** "1234" + 1 = "1235", carrying ("999" + 1 = "1000"). */
+function incrementDigits(digits: string): string {
+  const a = digits.split("");
+  for (let i = a.length - 1; i >= 0; i--) {
+    if (a[i] === "9") a[i] = "0";
+    else {
+      a[i] = String(Number(a[i]) + 1);
+      return a.join("");
+    }
+  }
+  return "1" + a.join("");
+}
+
+/**
+ * The first `sig` significant digits of `v`, rounded toward -Infinity like
+ * decimal.js's ROUND_FLOOR: positive numbers are cut, negative ones round
+ * away from zero. `exp` is the power of ten of the first digit.
+ */
+function floorDigits(v: Dec, sig: number): { neg: boolean; digits: string; exp: number } {
+  const all = v.digits();
+  let digits = all.slice(0, sig).padEnd(sig, "0");
+  let exp = v.exponent;
+  if (v.isNegative() && /[1-9]/.test(all.slice(sig))) {
+    digits = incrementDigits(digits);
+    if (digits.length > sig) {
+      digits = digits.slice(0, sig);
+      exp += 1;
+    }
+  }
+  return { neg: v.isNegative(), digits, exp };
+}
+
+/** decimal.js `toExponential(sig - 1, ROUND_FLOOR)`, with "e" for "e+". */
+function toExponentialFloor(v: Dec, sig: number): string {
+  const { neg, digits, exp } = floorDigits(v, sig);
+  return `${neg ? "-" : ""}${digits[0]}${digits.length > 1 ? "." + digits.slice(1) : ""}e${exp}`;
+}
+
+/** decimal.js `toPrecision(sig, ROUND_FLOOR)`: fixed, or exponential when the exponent is too big or small. */
+function toPrecisionFloor(v: Dec, sig: number): string {
+  if (v.isZero()) return sig > 1 ? "0." + "0".repeat(sig - 1) : "0";
+  const { neg, digits, exp } = floorDigits(v, sig);
+  if (exp < -7 || exp >= sig) return toExponentialFloor(v, sig).replace(/e(\d)/, "e+$1");
+  let text: string;
+  if (exp >= 0) {
+    const int = digits.slice(0, exp + 1);
+    const frac = digits.slice(exp + 1);
+    text = frac ? `${int}.${frac}` : int;
+  } else {
+    text = "0." + "0".repeat(-exp - 1) + digits;
+  }
+  return (neg ? "-" : "") + text;
+}
+
+function toDec(value: NumLike): Dec | undefined {
+  if (typeof value === "number" && Number.isNaN(value)) return undefined;
+  try {
+    return Dec.from(value);
+  } catch {
+    return undefined;
+  }
+}
+
+export function formatNumber(value: NumLike | null | undefined, opts: NumberOptions = {}): string {
   if (value == null) return "";
   const flavor = opts.flavor ?? "short";
   const notation = opts.notation ?? "standard-decimal";
   const sigfigs = opts.sigfigs ?? (flavor === "full" ? 5 : 3);
   const minSuffix = opts.minSuffix ?? 1e5;
   const maxSmall = opts.maxSmall ?? 0;
-  let val: Decimal;
-  try {
-    val = new DecFloor(value as Decimal.Value);
-  } catch {
-    return "?";
-  }
-  if (val.isNaN()) return "?";
-  if (!val.isFinite()) return val.isNegative() ? "-∞" : "∞";
+  const val = toDec(value);
+  if (!val) return "?";
+  if (val.isInfinite()) return val.isNegative() ? "-∞" : "∞";
   const abs = val.abs();
-  if (abs.lessThan(maxSmall)) {
-    return trimZeros(val.toPrecision(sigfigs, Decimal.ROUND_FLOOR));
+  if (abs.lt(maxSmall)) {
+    return trimZeros(toPrecisionFloor(val, sigfigs));
   }
-  if (abs.lessThan(minSuffix)) {
+  if (abs.lt(minSuffix)) {
     return grouped(Math.floor(val.toNumber()));
   }
-  const index = Math.floor(val.e / 3);
+  const index = Math.floor(val.exponent / 3);
   const suffix = suffixFor(notation, flavor, index);
   if (suffix == null) {
-    return trimZeros(val.toExponential(sigfigs - 1, Decimal.ROUND_FLOOR).replace("e+", "e"));
+    return trimZeros(toExponentialFloor(val, sigfigs));
   }
-  // 1000^index, built from its exponent: Decimal#pow is slow and this runs for every number on screen, every tick
-  const prefix = val.dividedBy(new DecFloor(`1e${index * 3}`)).toPrecision(sigfigs, Decimal.ROUND_FLOOR);
-  return trimZeros(prefix) + suffix;
+  const prefix = val.div(`1e${index * 3}`);
+  return trimZeros(toPrecisionFloor(prefix, sigfigs)) + suffix;
 }
 
 /**
@@ -128,10 +189,11 @@ export interface PercentOptions {
   plusOne?: boolean;
 }
 
-export function formatPercent(value: Decimal.Value | null | undefined, opts: PercentOptions = {}): string {
+export function formatPercent(value: NumLike | null | undefined, opts: PercentOptions = {}): string {
   if (value == null) return "";
-  let d = new Decimal(value + "");
-  if (d.isNaN()) return "?";
+  let d = toDec(value);
+  if (!d) return "?";
+  if (d.isInfinite()) return d.isNegative() ? "?" : "∞%";
   if (opts.plusOne) d = d.minus(1);
   d = d.times(100);
   if (opts.floor) d = d.floor();
@@ -185,9 +247,9 @@ export interface DurationOptions {
  * Seconds as a duration, like the old `duration` filter: "" for zero,
  * Infinity and NaN (unknown or never).
  */
-export function formatDuration(value: number | Decimal | null | undefined, opts: DurationOptions = {}): string {
+export function formatDuration(value: number | Dec | null | undefined, opts: DurationOptions = {}): string {
   if (value == null) return "";
-  const secs = typeof value === "number" ? value : value.toNumber();
+  const secs = typeof value === "number" ? value : value.isInfinite() ? Infinity : value.toNumber();
   if (!secs || !isFinite(secs) || secs < 0) return "";
   const format = opts.format ?? "abbreviated";
   if (format === "human") return (opts.nonexact ? "or less " : "") + humanize(secs);
@@ -220,15 +282,15 @@ export function formatDuration(value: number | Decimal | null | undefined, opts:
 export interface Formatter {
   settings: FormatSettings;
   /** short number, like the old `bignum` filter: "1.23M" */
-  num(value: Decimal.Value | null | undefined, maxSmall?: number): string;
+  num(value: NumLike | null | undefined, maxSmall?: number): string;
   /** long number, like the old `longnum` filter: "123.456 thousand", "8.00000 million" */
-  long(value: Decimal.Value | null | undefined, maxSmall?: number): string;
-  percent(value: Decimal.Value | null | undefined, opts?: PercentOptions): string;
-  duration(secs: number | Decimal | null | undefined, opts?: Omit<DurationOptions, "format">): string;
+  long(value: NumLike | null | undefined, maxSmall?: number): string;
+  percent(value: NumLike | null | undefined, opts?: PercentOptions): string;
+  duration(secs: number | Dec | null | undefined, opts?: Omit<DurationOptions, "format">): string;
   /** the unit of time rates are shown in. `about` is the unit or producer (some units can't use every velocity unit) */
   velocityUnit(about?: { unit?: string; prod?: string }): VelocityUnit;
   /** a per-second rate in the velocity unit, short: "+1.5/sec" */
-  rate(perSecond: Decimal, about?: { unit?: string; prod?: string }): string;
+  rate(perSecond: NumLike, about?: { unit?: string; prod?: string }): string;
 }
 
 export function createFormatter(overrides: Partial<FormatSettings> = {}): Formatter {
@@ -243,7 +305,7 @@ export function createFormatter(overrides: Partial<FormatSettings> = {}): Format
     velocityUnit: (about) => settings.resolveVelocityUnit?.(about) ?? settings.velocityUnit,
     rate: (perSecond, about) => {
       const vu = f.velocityUnit(about);
-      return `+${f.num(perSecond.times(vu.mult), 2)}/${vu.name}`;
+      return `+${f.num(Dec.from(perSecond).times(vu.mult), 2)}/${vu.name}`;
     },
   };
   return f;

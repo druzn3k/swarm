@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Decimal } from "@swarmsim/engine";
+import { Dec } from "@swarmsim/engine-wasm";
 import { createFormatter, formatDuration, formatNumber, formatPercent } from "./format";
 
 describe("formatNumber", () => {
@@ -11,11 +11,11 @@ describe("formatNumber", () => {
   it("uses short suffixes from 1e5, three sigfigs, rounding down", () => {
     expect(formatNumber(1e5)).toBe("100K");
     expect(formatNumber(123456789)).toBe("123M");
-    expect(formatNumber(new Decimal("1.999e9"))).toBe("1.99B");
-    expect(formatNumber(new Decimal("1e300"))).toMatch(/^1\w+$/);
+    expect(formatNumber(Dec.from("1.999e9"))).toBe("1.99B");
+    expect(formatNumber(Dec.from("1e300"))).toMatch(/^1\w+$/);
   });
   it("falls back to exponents past the last suffix", () => {
-    expect(formatNumber(new Decimal("1.5e10000"))).toBe("1.5e10000");
+    expect(formatNumber(Dec.from("1.5e10000"))).toBe("1.5e10000");
   });
   it("supports the other notations", () => {
     expect(formatNumber(1.5e9, { notation: "scientific-e" })).toBe("1.5e9");
@@ -31,8 +31,9 @@ describe("formatNumber", () => {
   });
   it("handles odd input", () => {
     expect(formatNumber(undefined)).toBe("");
-    expect(formatNumber(new Decimal(Infinity))).toBe("∞");
-    expect(formatNumber(new Decimal(NaN))).toBe("?");
+    expect(formatNumber(Dec.from(Infinity))).toBe("∞");
+    expect(formatNumber(NaN)).toBe("?");
+    expect(formatNumber("1.5e9000000000000000")).toBe("∞");
   });
 });
 
@@ -66,8 +67,18 @@ describe("formatDuration", () => {
 describe("createFormatter", () => {
   it("formats rates in the velocity unit", () => {
     const f = createFormatter();
-    expect(f.rate(new Decimal(1.5))).toBe("+1.5/sec");
+    expect(f.rate(Dec.from(1.5))).toBe("+1.5/sec");
     const perMin = createFormatter({ velocityUnit: { name: "min", label: "minute", plural: "minutes", mult: 60 } });
-    expect(perMin.rate(new Decimal(2))).toBe("+120/min");
+    expect(perMin.rate(Dec.from(2))).toBe("+120/min");
+  });
+});
+
+describe("formatNumber on Num strings", () => {
+  it("reads the engine's strings", () => {
+    expect(formatNumber("123456789")).toBe("123M");
+    expect(formatNumber("1.23456789e38", { flavor: "full", sigfigs: 6 })).toBe("123.456 undecillion");
+    expect(formatNumber("2.9999999999999e5")).toBe("299K");
+    expect(formatNumber("-1.2345e-3", { maxSmall: 2, sigfigs: 3 })).toBe("-0.00124");
+    expect(formatPercent("0.256", { floor: true })).toBe("25%");
   });
 });

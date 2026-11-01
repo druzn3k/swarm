@@ -1,11 +1,11 @@
-import type { Unit } from "@swarmsim/engine";
+import type { UnitRef } from "../../game/view";
 import { useFormat } from "../../format";
 import { tabHref, unitHref } from "../../router";
 import { unitLabel } from "../../game/selectors";
 import { SpriteIcon } from "../Icon";
 import { stepToUnit } from "./stepUnit";
 
-function Step({ unit, dir }: { unit?: Unit; dir: "prev" | "next" }) {
+function Step({ unit, dir }: { unit?: UnitRef; dir: "prev" | "next" }) {
   const fmt = useFormat();
   if (!unit) return <span className="icon-btn step" aria-disabled="true" />;
   const name = unitLabel(unit, true);
@@ -24,10 +24,10 @@ function Step({ unit, dir }: { unit?: Unit; dir: "prev" | "next" }) {
       }}
     >
       {dir === "prev" && <span aria-hidden="true">‹</span>}
-      <SpriteIcon name={unit.name} tab={unit.unittype.tab} size={24} />
+      <SpriteIcon name={unit.name} tab={unit.tabName} size={24} />
       <span className="step-text">
         <span className="step-name">{name}</span>
-        <span className="num step-count">{fmt.num(unit.count())}</span>
+        <span className="num step-count">{fmt.num(unit.count)}</span>
       </span>
       {dir === "next" && <span aria-hidden="true">›</span>}
     </a>
@@ -40,11 +40,11 @@ function Step({ unit, dir }: { unit?: Unit; dir: "prev" | "next" }) {
  * right) is the card below, the cheaper one (UnitScreen works them out).
  * Stepping replaces the history entry, so Back goes to the list.
  */
-export function UnitNav({ unit, above, below }: { unit: Unit; above?: Unit; below?: Unit }) {
+export function UnitNav({ unit, above, below }: { unit: UnitRef; above?: UnitRef; below?: UnitRef }) {
   const tab = unit.tab!;
   return (
     <nav className="unit-nav" aria-label="Units">
-      <a className="icon-btn back" href={tabHref(tab.name)} aria-label={`Back to ${tab.leadunit.unittype.plural}`}>
+      <a className="icon-btn back" href={tabHref(tab.name)} aria-label={`Back to ${tab.lead.plural}`}>
         ←
       </a>
       <Step unit={above} dir="prev" />

@@ -1,21 +1,20 @@
-// Small read-only helpers over the engine that several screens share. Game
+// Small read-only helpers over the view that several screens share. Game
 // rules stay in the engine; these only pick and order things for display.
-import type { Decimal, Game, Tab, Unit, Upgrade } from "@swarmsim/engine";
+import { Dec } from "@swarmsim/engine-wasm";
+import type { NumString } from "@swarmsim/engine-wasm";
+import type { GameView, TabRef, UnitRef } from "./view";
 
 /** the bottom-bar tabs, in order */
 export const TAB_ORDER = ["meat", "larva", "territory", "energy", "mutagen"] as const;
 
-const own = <T>(dict: { [key: string]: T }, key: string): T | undefined =>
-  Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : undefined;
-
 /** a tab by name, including the engine's hidden "all" tab */
-export function tabByName(game: Game, name: string): Tab | undefined {
-  return own(game.tabs.byName, name);
+export function tabByName(g: GameView, name: string): TabRef | undefined {
+  return g.tab(name);
 }
 
 /** a unit by name ("greaterqueen") or by the old game's url slug ("greater queen") */
-export function findUnit(game: Game, key: string): Unit | undefined {
-  return own(game._units.byName, key) ?? own(game._units.bySlug, key);
+export function findUnit(g: GameView, key: string): UnitRef | undefined {
+  return g.findUnit(key);
 }
 
 /**
@@ -24,14 +23,14 @@ export function findUnit(game: Game, key: string): Unit | undefined {
  * cheapest at the bottom (meat last on the meat tab). "All units" keeps the
  * spreadsheet order, cheapest first, like the old game.
  */
-export function visibleUnits(tab: Tab): Unit[] {
-  return (tab.sortUnits() as Unit[]).filter((u) => u.isVisible());
+export function visibleUnits(tab: TabRef): UnitRef[] {
+  return tab.units;
 }
 
 /** Visible units of a tab, cheapest first (the reverse of the list, except on "all units"). */
-export function cheapestFirst(tab: Tab): Unit[] {
+export function cheapestFirst(tab: TabRef): UnitRef[] {
   const list = visibleUnits(tab);
-  return tab.name === "all" ? list : list.reverse();
+  return tab.name === "all" ? list : list.slice().reverse();
 }
 
 /**
@@ -39,15 +38,11 @@ export function cheapestFirst(tab: Tab): Unit[] {
  * the card above it (prev/next controls: previous, on the left), `below` the
  * card under it (next, on the right).
  */
-export function unitNeighbours(tab: Tab, unit: Unit): { above?: Unit; below?: Unit } {
+export function unitNeighbours(tab: TabRef, unit: UnitRef): { above?: UnitRef; below?: UnitRef } {
   const list = visibleUnits(tab);
-  const i = list.indexOf(unit);
+  const i = list.findIndex((u) => u.id === unit.id);
   if (i < 0) return {};
   return { above: list[i - 1], below: list[i + 1] };
-}
-
-export function visibleUpgrades(unit: Unit, klass: "upgrade" | "ability" = "upgrade"): Upgrade[] {
-  return (unit.upgrades.byClass[klass] ?? []).filter((u) => u.isVisible());
 }
 
 /**
@@ -56,44 +51,43 @@ export function visibleUpgrades(unit: Unit, klass: "upgrade" | "ability" = "upgr
  * the tab's lead unit if its screen has something to buy or cast, else the
  * cheapest unit that does (the list's bottom-most).
  */
-export function defaultUnit(game: Game, tabName: string): string {
-  const tab = tabByName(game, tabName);
+export function defaultUnit(g: GameView, tabName: string, lastSelected?: string): string {
+  const tab = tabByName(g, tabName);
   if (!tab) return "";
-  const last = tab.lastselected;
-  if (last && last.isVisible() && tab.indexByUnitName[last.name] !== undefined) return last.name;
+  const last = lastSelected ? g.findUnit(lastSelected) : undefined;
+  if (last && last.visible && tab.has(last.name)) return last.name;
   // otherwise the cheapest unit with something to do on its screen (meat has
   // nothing to buy, so a new game opens on drones, territory on swarmlings)
   const units = cheapestFirst(tab);
-  const lead = tab.leadunit as Unit;
-  const candidates = lead.isVisible() ? [lead, ...units.filter((u) => u !== lead)] : units;
+  const lead = tab.lead;
+  const candidates = lead.visible ? [lead, ...units.filter((u) => u.id !== lead.id)] : units;
   return (candidates.find(hasActions) ?? candidates[0])?.name ?? "";
 }
 
 /** Does the unit's screen offer anything to buy or cast? */
-function hasActions(unit: Unit): boolean {
-  return isUnitBuyable(unit) || visibleUpgrades(unit).length > 0 || visibleUpgrades(unit, "ability").length > 0;
+function hasActions(unit: UnitRef): boolean {
+  return isUnitBuyable(unit) || unit.upgrades("upgrade").length > 0 || unit.upgrades("ability").length > 0;
 }
 
-export function tabTitle(tab: Tab): string {
-  return tab.name === "all" ? "All units" : (tab.leadunit.unittype.plural as string);
+export function tabTitle(tab: TabRef): string {
+  return tab.title;
 }
 
 /** "label" for exactly one, "plural" otherwise */
-export function unitNoun(unit: Unit, n: Decimal | number): string {
-  const one = typeof n === "number" ? n === 1 : n.equals(1);
-  return (one ? unit.unittype.label : unit.unittype.plural) as string;
+export function unitNoun(unit: UnitRef, n: NumString | number | Dec): string {
+  return Dec.from(n).eq(1) ? unit.label : unit.plural;
 }
 
 /** A unit's name with its suffix (e.g. "drone", or a ranked unit's "overmind II") */
-export function unitLabel(unit: Unit, plural = false): string {
-  const base = (plural ? unit.unittype.plural : unit.unittype.label) as string;
+export function unitLabel(unit: UnitRef, plural = false): string {
+  const base = plural ? unit.plural : unit.label;
   return unit.suffix ? `${base} ${unit.suffix}` : base;
 }
 
 /** Can the player buy this unit from its screen? (directive-unit.html) */
-export function isUnitBuyable(unit: Unit): boolean {
-  const t = unit.unittype;
-  return !t.unbuyable && !t.isBuyHidden && unit.cost.length > 0 && unit.isBuyButtonVisible();
+export function isUnitBuyable(unit: UnitRef): boolean {
+  const t = unit.st;
+  return !t.unbuyable && !t.is_buy_hidden && unit.hasCost && unit.buyButtonVisible;
 }
 
 /** "a, b and c" */
