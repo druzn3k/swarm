@@ -104,6 +104,9 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         TAG: ${{ github.ref_name }}
       run: |
+        # .github/release-notes/<tag>.md, when present, is the release text
+        notes=".github/release-notes/$TAG.md"
+        if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
         gh release view "$TAG" >/dev/null 2>&1 \
-          || gh release create "$TAG" --title "$TAG" --generate-notes
+          || gh release create "$TAG" --title "Swarm Simulator $TAG" "$@"
         gh release upload "$TAG" out/* --clobber

@@ -11,6 +11,23 @@
 
 Starting with only a few larvae and a small pile of meat, build a merciless swarm of trillions of giant alien bugs.
 
+## Desktop and terminal versions
+
+The game also runs natively on Linux, on a Rust port of the engine: a desktop
+app (an AppImage or a `.deb`), a terminal game, and a command-line client.
+Download them from the [releases](https://github.com/druzn3k/swarm/releases);
+[rust/README.md](rust/README.md) explains how to build and play them.
+
+| Desktop | | |
+|---|---|---|
+| ![The hive, with meat production and the pixel-art hive](docs/screenshots/desktop-hive.png) | ![The Territory tab and its war band](docs/screenshots/desktop-territory.png) | ![A unit's detail screen](docs/screenshots/desktop-unit.png) |
+
+**Terminal** (`swarm-tui`): keyboard-first, with the mouse as an equal path.
+
+![The terminal game on the Meat tab, with the drone detail, its count sparkline and upgrades](docs/screenshots/tui-meat.png)
+
+![Buying from the vim-style command line](docs/screenshots/tui-command.png)
+
 Built with love by Evan Rosson using
 [Coffeescript](http://coffeescript.org),
 [AngularJS](https://angularjs.org),

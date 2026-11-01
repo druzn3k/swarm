@@ -72,6 +72,8 @@ Exit codes: 0 ok, 1 refused by a game rule (can't afford, nothing to undo),
 
 ## Playing with `swarm-tui`
 
+![swarm-tui on the Meat tab](../docs/screenshots/tui-meat.png)
+
 ```sh
 swarm-tui                       # or: swarm-tui --save path/to/save.txt
 ```
@@ -96,6 +98,10 @@ live effects and buy buttons), then Achievements, Stats and Options. `a`
 opens the ascension panel. Panes sit side by side from 100 columns and
 stack below that. Tutorial tips show above the status bar; the status bar
 shows messages, the undo window and the mouse/animation state.
+
+The in-game help (`?`) lists the same keys and commands:
+
+![The swarm-tui help overlay](../docs/screenshots/tui-help.png)
 
 Keys:
 
@@ -156,6 +162,8 @@ number format are saved in the save's options bag (`tui.anim`,
 `tui.mouse`, `tui.numformat`).
 
 ## Desktop (Tauri)
+
+<img src="../docs/screenshots/desktop-hive.png" alt="The desktop app" width="320">
 
 `crates/tauri` (`swarm-tauri`) wraps the built web app (`app/dist`) in a
 Tauri 2 window. The engine runs as wasm inside the webview, so the desktop
